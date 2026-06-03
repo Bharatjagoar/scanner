@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>MANJIT JAGOAR OI DATA SCANNER</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{
+    --srv:"http://localhost:6180";
+    --grid:#c9ccd1; --hdr:#1f3a5f; --hdrtext:#fff;
+    --red:#e74c3c; --darkred:#a01818; --green:#1e8449; --darkgreen:#0b5d2e;
+    --lightred:#fdecea; --lightgreen:#eafaf1;
+    --secA:#eef4fb; --secB:#fbf7ee; --secC:#f1eefb; --secD:#eefbf6;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",Tahoma,sans-serif;font-size:13px;background:#dde1e7;color:#1a1a1a;}
+  h1{font-size:18px;margin:0;padding:10px 14px;background:var(--hdr);color:var(--hdrtext);letter-spacing:1px;}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:8px 14px;background:#fff;border-bottom:2px solid var(--grid);}
+  select,button{font-size:13px;padding:5px 8px;}
+  .strip{display:flex;gap:18px;flex-wrap:wrap;padding:8px 14px;background:#10243d;color:#fff;font-size:14px;}
+  .strip .it{display:flex;gap:6px;align-items:baseline;}
+  .strip .nm{font-weight:700;}
+  .up{color:#5dd886;} .down{color:#ff7b6b;}
+  section{margin:10px;border:1px solid var(--grid);border-radius:4px;overflow:hidden;}
+  .secttl{padding:6px 10px;font-weight:700;background:var(--hdr);color:#fff;font-size:13px;}
+  .scrollbox{max-height:340px;overflow:auto;}
+  .secA{background:var(--secA);} .secB{background:var(--secB);}
+  .secC{background:var(--secC);} .secD{background:var(--secD);}
+  table{border-collapse:collapse;width:100%;background:#fff;}
+  th,td{border:1px solid var(--grid);padding:4px 8px;text-align:right;white-space:nowrap;}
+  th{position:sticky;top:0;background:#dfe6ef;color:#13243a;text-align:center;z-index:1;}
+  td.lbl{text-align:left;}
+  .callcell{background:var(--lightred);} .putcell{background:var(--lightgreen);}
+  .r-red{color:var(--red);font-weight:600;} .r-darkred{color:var(--darkred);font-weight:700;}
+  .r-green{color:var(--green);font-weight:600;} .r-darkgreen{color:var(--darkgreen);font-weight:700;}
+  .totrow td{background:#e8edf3;font-weight:700;}
+  .act-buy-put{background:var(--red);color:#fff;font-weight:700;text-align:center;}
+  .act-buy-call{background:var(--green);color:#fff;font-weight:700;text-align:center;}
+  .note{font-size:11px;color:#555;padding:4px 10px;background:#fff;}
+  .err{background:#fde;color:#900;padding:6px 10px;font-size:12px;}
+  .dlbtns{padding:8px 10px;background:#fff;display:flex;gap:8px;}
+</style>
+</head>
+<body>
+<h1>MANJIT JAGOAR OI DATA SCANNER</h1>
+
+<div class="controls">
+  <label>Scrip:
+    <select id="scrip"></select>
+  </label>
+  <label>Expiry:
+    <select id="expiry"></select>
+  </label>
+  <button id="refresh">Refresh now</button>
+  <span id="status" class="note" style="background:transparent;"></span>
+</div>
+
+<div id="errbox"></div>
+
+<!-- HEADER STRIP: spot + change + PCR -->
+<div class="strip" id="strip"></div>
+
+<!-- SECTION B: 3 strikes (ATM default), 4 cols + totals row -->
+<section>
+  <div class="secttl">SECTION B — Selected scrip, ATM + nearby strikes (Call/Put OI change &amp; remark)</div>
+  <div class="scrollbox secB">
+    <table id="secB">
+      <thead><tr>
+        <th>Strike Price</th><th>Call OI Change</th><th>Put OI Change</th><th>Remark (diff)</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SECTION C: ATM +-5, 5 cols, color coded -->
+<section>
+  <div class="secttl">SECTION C — ATM ±5 strikes (Net Call/Put OI change &amp; volumes)</div>
+  <div class="scrollbox secC">
+    <table id="secC">
+      <thead><tr>
+        <th>SP</th><th>Net Call OI Chg</th><th>Net Put OI Chg</th><th>Call Volume</th><th>Put Volume</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SECTION D: rows accumulate every 3 min -->
+<section>
+  <div class="secttl">SECTION D — ATM ±1 (3 strikes) OI change per 3-min interval</div>
+  <div class="scrollbox secD">
+    <table id="secD">
+      <thead><tr>
+        <th>Time</th><th>Call OI</th><th>Put OI</th><th>Difference</th><th>Change in Diff</th><th>Action</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="dlbtns">
+    <button id="dlxlsx">Download Excel</button>
+    <button id="dlpdf">Download PDF</button>
+  </div>
+</section>
+
+<div class="note">
+  OI change = oi − prev_oi (day-over-day, Upstox definition). 10 lac = 1,000,000.
+  Section D rows accumulate every 3 minutes while open. Verify figures match the Upstox option-chain UI on first run.
+</div>
+
+<script>
+// Same-origin: talk to whatever host served this page (VM IP from a phone,
+// localhost via tunnel). Works everywhere without editing the file.
+const SRV = window.location.origin;
+const TEN_LAC = 1000000;
+const REFRESH_MS = 3 * 60 * 1000;
+
+let indexKeys = {};
+let strikeStep = {};
+let secDRows = [];          // accumulated history
+let lastDiff = null;        // for "change in diff"
+let timer = null;
+
+const $ = id => document.getElementById(id);
+const fmt = n => (n==null?"-":Number(n).toLocaleString("en-IN"));
+
+function showErr(msg){ $("errbox").innerHTML = msg ? `<div class="err">${msg}</div>` : ""; }
+
+async function jget(path){
+  const r = await fetch(SRV + path);
+  if(!r.ok){ throw new Error(`${path} → ${r.status}`); }
+  return r.json();
+}
+
+// ---- bootstrap dropdowns ----
+async function init(){
+  try{
+    const inst = await jget("/instruments");
+    indexKeys = inst.indices || {};
+    strikeStep = inst.strike_step || {};
+    const sel = $("scrip");
+    sel.innerHTML = "";
+    // Indices first, then (optionally) FnO stocks loaded server-side.
+    Object.keys(indexKeys).forEach(name=>{
+      const o=document.createElement("option");
+      o.value=indexKeys[name]; o.textContent=name; o.dataset.name=name;
+      sel.appendChild(o);
+    });
+    sel.onchange = onScripChange;
+    $("refresh").onclick = loadAll;
+    $("expiry").onchange = loadAll;
+    $("dlxlsx").onclick = downloadXlsx;
+    $("dlpdf").onclick = downloadPdf;
+    await onScripChange();
+  }catch(e){ showErr("Cannot reach local server on :6180 — is jagoar_oi_server.py running? ("+e.message+")"); }
+}
+
+async function onScripChange(){
+  showErr("");
+  const ik = $("scrip").value;
+  try{
+    const ex = await jget("/expiries?instrument_key="+encodeURIComponent(ik));
+    const sel=$("expiry"); sel.innerHTML="";
+    (ex.expiries||[]).forEach(d=>{
+      const o=document.createElement("option"); o.value=d; o.textContent=d; sel.appendChild(o);
+    });
+    // switching scrip resets the accumulating history
+    secDRows = []; lastDiff = null; $("#secD tbody")&&($("secD").querySelector("tbody").innerHTML="");
+    await loadAll();
+  }catch(e){ showErr("Expiry load failed: "+e.message); }
+}
+
+function selectedName(){
+  const o=$("scrip").selectedOptions[0];
+  return o ? o.dataset.name || o.textContent : "";
+}
+function stepFor(){
+  const s = strikeStep[selectedName()];
+  return s || null;
+}
+
+// nearest strike to spot = ATM
+function atmIndex(rows, spot){
+  let best=0, bd=Infinity;
+  rows.forEach((r,i)=>{ const d=Math.abs(r.strike-spot); if(d<bd){bd=d;best=i;} });
+  return best;
+}
+
+function remark(diff){
+  // diff = call_oi_change - put_oi_change
+  if(diff > TEN_LAC) return {txt:"STRONG RESISTANCE", cls:"r-darkred"};
+  if(diff > 0)       return {txt:"RESISTANCE",        cls:"r-red"};
+  if(diff < -TEN_LAC)return {txt:"STRONG SUPPORT",    cls:"r-darkgreen"};
+  if(diff < 0)       return {txt:"SUPPORT",           cls:"r-green"};
+  return {txt:"NEUTRAL", cls:""};
+}
+
+async function loadAll(){
+  showErr("");
+  const ik=$("scrip").value, exp=$("expiry").value;
+  if(!ik||!exp) return;
+  $("status").textContent = "Loading…";
+  try{
+    const [chain, indices] = await Promise.all([
+      jget(`/chain?instrument_key=${encodeURIComponent(ik)}&expiry_date=${exp}`),
+      jget("/indices").catch(()=>null),
+    ]);
+    renderStrip(indices, chain);
+    const rows = chain.rows, spot = chain.spot;
+    const atm = atmIndex(rows, spot);
+    renderSecB(rows, atm);
+    renderSecC(rows, atm);
+    appendSecD(rows, atm, chain.ts);
+    $("status").textContent = "Updated "+chain.ts+" (PCR "+(chain.pcr??"-")+")";
+  }catch(e){
+    showErr("Data load failed: "+e.message);
+    $("status").textContent="";
+  }
+  clearTimeout(timer);
+  timer=setTimeout(loadAll, REFRESH_MS);
+}
+
+function renderStrip(indices, chain){
+  const strip=$("strip"); strip.innerHTML="";
+  // PCR of the selected scrip
+  strip.innerHTML += `<div class="it"><span class="nm">PCR</span><span>${chain.pcr??"-"}</span></div>`;
+  if(!indices || !indices.data){ return; }
+  // Upstox ltp endpoint keys are like "NSE_INDEX:Nifty 50"
+  Object.entries(indices.data).forEach(([k,v])=>{
+    const ltp=v.last_price, close=v.close_price ?? v.cp;
+    let chg="", pct="", cls="";
+    if(ltp!=null && close!=null){
+      const d=ltp-close; const p=close?(d/close*100):0;
+      cls = d>=0?"up":"down";
+      chg = (d>=0?"+":"")+d.toFixed(2);
+      pct = (d>=0?"+":"")+p.toFixed(2)+"%";
+    }
+    const label = k.split(":").pop();
+    strip.innerHTML += `<div class="it"><span class="nm">${label}</span><span>${ltp??"-"}</span><span class="${cls}">${chg} ${pct}</span></div>`;
+  });
+}
+
+// SECTION B: ATM + 3 nearby (4 rows default), strike dropdown is the table itself
+function renderSecB(rows, atm){
+  const tb=$("secB").querySelector("tbody"); tb.innerHTML="";
+  // 4 rows by default: ATM and three around. Use ATM-1..ATM+2.
+  const start=Math.max(0, atm-1), end=Math.min(rows.length, start+4);
+  let tc=0, tp=0;
+  for(let i=start;i<end;i++){
+    const r=rows[i]; const diff=r.call_oi_change - r.put_oi_change;
+    const rm=remark(diff); tc+=r.call_oi_change; tp+=r.put_oi_change;
+    tb.innerHTML += `<tr>
+      <td class="lbl">${r.strike}${i===atm?" (ATM)":""}</td>
+      <td class="callcell">${fmt(r.call_oi_change)}</td>
+      <td class="putcell">${fmt(r.put_oi_change)}</td>
+      <td class="${rm.cls}">${rm.txt} (${fmt(diff)})</td>
+    </tr>`;
+  }
+  const trm=remark(tc-tp);
+  tb.innerHTML += `<tr class="totrow">
+    <td class="lbl">TOTAL</td><td>${fmt(tc)}</td><td>${fmt(tp)}</td>
+    <td class="${trm.cls}">${trm.txt}</td></tr>`;
+}
+
+// SECTION C: ATM +-5
+function renderSecC(rows, atm){
+  const tb=$("secC").querySelector("tbody"); tb.innerHTML="";
+  const start=Math.max(0,atm-5), end=Math.min(rows.length,atm+6);
+  for(let i=start;i<end;i++){
+    const r=rows[i];
+    tb.innerHTML += `<tr>
+      <td class="lbl">${r.strike}${i===atm?" (ATM)":""}</td>
+      <td class="callcell">${fmt(r.call_oi_change)}</td>
+      <td class="putcell">${fmt(r.put_oi_change)}</td>
+      <td class="callcell">${fmt(r.call_volume)}</td>
+      <td class="putcell">${fmt(r.put_volume)}</td>
+    </tr>`;
+  }
+}
+
+// SECTION D: ATM +-1 (3 strikes), one row per refresh
+function appendSecD(rows, atm, ts){
+  const start=Math.max(0,atm-1), end=Math.min(rows.length,atm+2);
+  let callOI=0, putOI=0;
+  for(let i=start;i<end;i++){ callOI+=rows[i].call_oi_change; putOI+=rows[i].put_oi_change; }
+  const diff = callOI - putOI;
+  const changeDiff = (lastDiff===null) ? 0 : diff - lastDiff;
+  let action="", actCls="";
+  if(callOI - putOI > TEN_LAC){ action="BUY PUT"; actCls="act-buy-put"; }
+  else if(putOI - callOI > TEN_LAC){ action="BUY CALL"; actCls="act-buy-call"; }
+  lastDiff = diff;
+
+  const rec={ts, callOI, putOI, diff, changeDiff, action};
+  secDRows.push(rec);
+
+  const tb=$("secD").querySelector("tbody");
+  const diffCls = diff>0 ? "r-red" : (diff<0 ? "r-green":"");
+  const tr=document.createElement("tr");
+  tr.innerHTML = `<td class="lbl">${ts}</td>
+    <td class="callcell">${fmt(callOI)}</td>
+    <td class="putcell">${fmt(putOI)}</td>
+    <td class="${diffCls}">${fmt(diff)}</td>
+    <td>${fmt(changeDiff)}</td>
+    <td class="${actCls}">${action}</td>`;
+  tb.appendChild(tr);
+  tb.parentElement.parentElement.querySelector(".scrollbox")?.scrollTo(0,9e9);
+}
+
+// ---- exports (Section D) ----
+function secDArray(){
+  return [["Time","Call OI","Put OI","Difference","Change in Diff","Action"],
+    ...secDRows.map(r=>[r.ts,r.callOI,r.putOI,r.diff,r.changeDiff,r.action])];
+}
+function downloadXlsx(){
+  const ws=XLSX.utils.aoa_to_sheet(secDArray());
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"OI Section D");
+  XLSX.writeFile(wb, `JAGOAR_OI_SectionD_${selectedName()}.xlsx`);
+}
+function downloadPdf(){
+  const {jsPDF}=window.jspdf; const doc=new jsPDF();
+  doc.text("MANJIT JAGOAR OI SCANNER - Section D ("+selectedName()+")",14,14);
+  doc.autoTable({head:[secDArray()[0]], body:secDArray().slice(1), startY:20, styles:{fontSize:8}});
+  doc.save(`JAGOAR_OI_SectionD_${selectedName()}.pdf`);
+}
+
+init();
+</script>
+</body>
+</html>
