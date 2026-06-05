@@ -371,6 +371,37 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "strike_step": STRIKE_STEP,
                 })
 
+            # ── /fno_stocks ───────────────────────────────────────────────────
+            elif parsed.path == "/fno_stocks":
+                stocks = get_fno_stocks()
+                self._send(200, {"stocks": stocks})
+
+            # ── /backtest ─────────────────────────────────────────────────────
+            elif parsed.path == "/backtest":
+                ik         = qs.get("instrument_key", [""])[0]
+                symbol     = qs.get("symbol",         [""])[0]
+                from_date  = qs.get("from_date",      [""])[0]
+                to_date    = qs.get("to_date",        [ist_date_str()])[0]
+                sl_pct     = float(qs.get("sl_pct",     ["1.5"])[0])
+                target_pct = float(qs.get("target_pct", ["3.0"])[0])
+                if not ik or not from_date:
+                    self._send(400, {"error": "instrument_key and from_date required"})
+                else:
+                    trades = run_backtest(ik, symbol, from_date, to_date, sl_pct, target_pct)
+                    wins   = sum(1 for t in trades if t["result"] == "WIN")
+                    losses = len(trades) - wins
+                    total_pnl = round(sum(t["pnl"] for t in trades), 2)
+                    self._send(200, {
+                        "trades":    trades,
+                        "summary": {
+                            "total":     len(trades),
+                            "wins":      wins,
+                            "losses":    losses,
+                            "win_rate":  round(wins / len(trades) * 100, 1) if trades else 0,
+                            "total_pnl": total_pnl,
+                        }
+                    })
+
             else:
                 self._send(404, {"error": "unknown path"})
 
@@ -394,3 +425,125 @@ if __name__ == "__main__":
     print(f"JAGOAR OI server → http://0.0.0.0:{PORT}")
     print(f"Market open now  : {is_market_open()}")
     server.serve_forever()
+
+# ── Backtest helpers ───────────────────────────────────────────────────────────
+import gzip
+from datetime import timedelta
+
+def get_fno_stocks():
+    """Download NSE instruments JSON and extract unique FnO equity stocks."""
+    r = requests.get(
+        "https://assets.upstox.com/market-quote/instruments/exchange/NSE.json.gz",
+        timeout=(10, 30)
+    )
+    data = json.loads(gzip.decompress(r.content))
+    seen, result = set(), []
+    for d in data:
+        if (d.get("segment") == "NSE_FO"
+                and d.get("instrument_type") == "CE"
+                and d.get("underlying_type") == "EQUITY"
+                and d.get("underlying_symbol")
+                and d.get("underlying_key")):
+            sym = d["underlying_symbol"]
+            if sym not in seen:
+                seen.add(sym)
+                result.append({
+                    "symbol":         sym,
+                    "instrument_key": d["underlying_key"],
+                })
+    return sorted(result, key=lambda x: x["symbol"])
+
+def get_historical_candles(instrument_key, from_date, to_date):
+    """
+    Fetch daily OHLCV candles from Upstox.
+    instrument_key format for EQ: NSE_EQ|INE002A01018
+    Returns list of {date, open, high, low, close, volume}
+    """
+    # Upstox historical candle endpoint:
+    # GET /v2/historical-candle/{instrument_key}/{unit}/{to_date}/{from_date}
+    ik_encoded = instrument_key.replace("|", "%7C")
+    url = f"{BASE}/historical-candle/{ik_encoded}/day/{to_date}/{from_date}"
+    r = requests.get(url, headers=HEADERS, timeout=(10, 30))
+    r.raise_for_status()
+    candles = r.json().get("data", {}).get("candles", [])
+    result = []
+    for c in candles:
+        # Format: [timestamp, open, high, low, close, volume, oi]
+        result.append({
+            "date":   c[0][:10],  # YYYY-MM-DD
+            "open":   c[1],
+            "high":   c[2],
+            "low":    c[3],
+            "close":  c[4],
+            "volume": c[5],
+        })
+    # Sort ascending by date
+    result.sort(key=lambda x: x["date"])
+    return result
+
+def run_backtest(instrument_key, symbol, from_date, to_date, sl_pct, target_pct):
+    """
+    3-consecutive-day bullish close strategy:
+    - Day 1, 2, 3: each day's close > previous day's high
+    - Entry: Day 4 open (we use Day 3 high + 0.5% as entry approximation)
+    - Stop loss: sl_pct% below entry
+    - Target: target_pct% above entry
+    - Exit: whichever hits first on Day 4 (using high/low of Day 4)
+    Returns list of trade dicts.
+    """
+    candles = get_historical_candles(instrument_key, from_date, to_date)
+    if len(candles) < 4:
+        return []
+
+    trades = []
+    for i in range(3, len(candles)):
+        d1, d2, d3, d4 = candles[i-3], candles[i-2], candles[i-1], candles[i]
+
+        # Pattern: close of each day > high of previous day
+        if not (d2["close"] > d1["high"]
+                and d3["close"] > d2["high"]):
+            continue
+
+        # Entry: Day 4 open price
+        entry = d4["open"]
+        if entry <= 0:
+            continue
+
+        sl     = round(entry * (1 - sl_pct / 100), 2)
+        target = round(entry * (1 + target_pct / 100), 2)
+
+        # Simulate: did Day 4 hit target or stop loss?
+        # Use Day 4 high/low to determine which was hit
+        d4_high = d4["high"]
+        d4_low  = d4["low"]
+
+        if d4_low <= sl and d4_high >= target:
+            # Both hit — assume stop loss hit first (conservative)
+            exit_price = sl
+            result     = "LOSS"
+        elif d4_high >= target:
+            exit_price = target
+            result     = "WIN"
+        elif d4_low <= sl:
+            exit_price = sl
+            result     = "LOSS"
+        else:
+            # Neither hit — exit at close
+            exit_price = d4["close"]
+            result     = "WIN" if d4["close"] > entry else "LOSS"
+
+        pnl = round(exit_price - entry, 2)
+        pnl_pct = round((pnl / entry) * 100, 2)
+
+        trades.append({
+            "symbol":     symbol,
+            "entry_date": d4["date"],
+            "entry":      entry,
+            "sl":         sl,
+            "target":     target,
+            "exit":       exit_price,
+            "result":     result,
+            "pnl":        pnl,
+            "pnl_pct":    pnl_pct,
+        })
+    return trades

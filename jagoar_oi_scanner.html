@@ -214,10 +214,74 @@
         font-size: 12px;
         font-weight: 600;
       }
+      /* ── Tabs ── */
+      .tabs {
+        display: flex;
+        background: #152d4a;
+        padding: 0 14px;
+        gap: 4px;
+      }
+      .tab-btn {
+        padding: 8px 18px;
+        border: none;
+        background: transparent;
+        color: #aac4e0;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        letter-spacing: 0.5px;
+      }
+      .tab-btn.active {
+        color: #fff;
+        border-bottom: 3px solid #5dd886;
+      }
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+      /* ── Backtest ── */
+      .bt-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-end;
+        padding: 10px 14px;
+        background: #fff;
+        border-bottom: 2px solid var(--grid);
+      }
+      .bt-controls label { font-size: 12px; font-weight: 600; display:flex; flex-direction:column; gap:3px; }
+      .bt-controls input, .bt-controls select { font-size: 13px; padding: 4px 7px; }
+      .bt-run { background: #1f3a5f; color: #fff; border: none; padding: 7px 18px; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 3px; }
+      .bt-run:hover { background: #2a5298; }
+      .bt-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 10px 14px;
+        background: #10243d;
+        color: #fff;
+        font-size: 13px;
+      }
+      .bt-summary .si { display: flex; flex-direction: column; gap: 2px; }
+      .bt-summary .sv { font-size: 18px; font-weight: 700; }
+      .bt-summary .sk { font-size: 11px; color: #aac4e0; }
+      .bt-win  { color: #5dd886; }
+      .bt-loss { color: #ff7b6b; }
+      .bt-chart { padding: 10px; background: #f8f9fb; }
+      .bt-chart canvas { width: 100% !important; }
+      #bt-status { padding: 6px 14px; font-size: 12px; color: #555; background: #fff; }
     </style>
   </head>
   <body>
     <h1>MANJIT JAGOAR OI DATA SCANNER</h1>
+
+    <!-- Tab buttons -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('oi')">OI SCANNER</button>
+      <button class="tab-btn" onclick="switchTab('bt')">BACKTEST</button>
+    </div>
+
+    <!-- ═══════════════════════ TAB 1: OI SCANNER ═══════════════════════ -->
+    <div class="tab-panel active" id="tab-oi">
 
     <div class="controls">
       <label
@@ -310,6 +374,64 @@
       midnight IST.
     </div>
 
+    </div><!-- end tab-oi -->
+
+    <!-- ═══════════════════════ TAB 2: BACKTEST ═══════════════════════ -->
+    <div class="tab-panel" id="tab-bt">
+
+      <div class="bt-controls">
+        <label>Stock
+          <select id="bt-stock" style="min-width:160px">
+            <option value="">Loading FnO stocks…</option>
+          </select>
+        </label>
+        <label>Period
+          <select id="bt-period">
+            <option value="30">1 Month</option>
+            <option value="90">3 Months</option>
+            <option value="180" selected>6 Months</option>
+            <option value="365">1 Year</option>
+          </select>
+        </label>
+        <label>Stop Loss %
+          <input type="number" id="bt-sl" value="1.5" min="0.1" max="10" step="0.1" style="width:70px">
+        </label>
+        <label>Target %
+          <input type="number" id="bt-target" value="3.0" min="0.1" max="20" step="0.1" style="width:70px">
+        </label>
+        <button class="bt-run" onclick="runBacktest()">▶ RUN BACKTEST</button>
+      </div>
+
+      <div id="bt-status">Select a stock and click Run Backtest.</div>
+
+      <div class="bt-summary" id="bt-summary" style="display:none">
+        <div class="si"><span class="sv" id="bs-total">0</span><span class="sk">TOTAL TRADES</span></div>
+        <div class="si"><span class="sv bt-win" id="bs-wins">0</span><span class="sk">WINS</span></div>
+        <div class="si"><span class="sv bt-loss" id="bs-losses">0</span><span class="sk">LOSSES</span></div>
+        <div class="si"><span class="sv" id="bs-winrate">0%</span><span class="sk">WIN RATE</span></div>
+        <div class="si"><span class="sv" id="bs-pnl">0</span><span class="sk">TOTAL P&amp;L (pts)</span></div>
+      </div>
+
+      <div class="bt-chart" id="bt-chart" style="display:none">
+        <canvas id="bt-canvas" height="120"></canvas>
+      </div>
+
+      <section style="display:none" id="bt-table-wrap">
+        <div class="secttl">Trade Log</div>
+        <div class="scrollbox">
+          <table id="bt-table">
+            <thead><tr>
+              <th>Date</th><th>Entry</th><th>SL</th><th>Target</th>
+              <th>Exit</th><th>P&amp;L (pts)</th><th>P&amp;L %</th><th>Result</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div><!-- end tab-bt -->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
       const SRV = window.location.origin;
       const TEN_LAC = 1_000_000;
@@ -694,6 +816,139 @@
       }
 
       init();
+
+      // ── Tab switching ─────────────────────────────────────────────────────────
+      function switchTab(name) {
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.getElementById("tab-" + name).classList.add("active");
+        event.target.classList.add("active");
+        if (name === "bt" && $("bt-stock").options.length <= 1) {
+          loadFnoStocks();
+        }
+      }
+
+      // ── Backtest ──────────────────────────────────────────────────────────────
+      let btChart = null;
+
+      async function loadFnoStocks() {
+        $("bt-status").textContent = "Loading FnO stock list…";
+        try {
+          const res = await jget("/fno_stocks");
+          const sel = $("bt-stock");
+          sel.innerHTML = '<option value="">— Select stock —</option>';
+          (res.stocks || []).forEach(s => {
+            const o = document.createElement("option");
+            o.value = s.instrument_key;
+            o.dataset.symbol = s.symbol;
+            o.textContent = s.symbol;
+            sel.appendChild(o);
+          });
+          $("bt-status").textContent = `${res.stocks.length} FnO stocks loaded. Select one and click Run Backtest.`;
+        } catch(e) {
+          $("bt-status").textContent = "Failed to load stocks: " + e.message;
+        }
+      }
+
+      async function runBacktest() {
+        const sel = $("bt-stock");
+        const ik  = sel.value;
+        const sym = sel.selectedOptions[0]?.dataset?.symbol || "";
+        if (!ik) { $("bt-status").textContent = "Please select a stock first."; return; }
+
+        const days      = parseInt($("bt-period").value);
+        const sl_pct    = parseFloat($("bt-sl").value);
+        const tgt_pct   = parseFloat($("bt-target").value);
+        const toDate    = new Date().toISOString().slice(0,10);
+        const fromDate  = new Date(Date.now() - days * 86400000).toISOString().slice(0,10);
+
+        $("bt-status").textContent = `Running backtest for ${sym}… (this may take 10–20 seconds)`;
+        $("bt-summary").style.display = "none";
+        $("bt-chart").style.display   = "none";
+        $("bt-table-wrap").style.display = "none";
+
+        try {
+          const url = `/backtest?instrument_key=${encodeURIComponent(ik)}`
+                    + `&symbol=${encodeURIComponent(sym)}`
+                    + `&from_date=${fromDate}&to_date=${toDate}`
+                    + `&sl_pct=${sl_pct}&target_pct=${tgt_pct}`;
+          const res = await jget(url);
+          const s   = res.summary;
+          const trades = res.trades;
+
+          if (!trades || trades.length === 0) {
+            $("bt-status").textContent = `No trades found for ${sym} in this period. Try a longer period.`;
+            return;
+          }
+
+          // Summary bar
+          $("bs-total").textContent   = s.total;
+          $("bs-wins").textContent    = s.wins;
+          $("bs-losses").textContent  = s.losses;
+          $("bs-winrate").textContent = s.win_rate + "%";
+          const pnlEl = $("bs-pnl");
+          pnlEl.textContent = (s.total_pnl >= 0 ? "+" : "") + s.total_pnl.toFixed(2);
+          pnlEl.className   = "sv " + (s.total_pnl >= 0 ? "bt-win" : "bt-loss");
+          $("bt-summary").style.display = "flex";
+
+          // Cumulative P&L chart
+          let cum = 0;
+          const labels = [], data = [];
+          trades.forEach(t => {
+            cum += t.pnl;
+            labels.push(t.entry_date);
+            data.push(parseFloat(cum.toFixed(2)));
+          });
+          $("bt-chart").style.display = "block";
+          if (btChart) btChart.destroy();
+          btChart = new Chart($("bt-canvas"), {
+            type: "line",
+            data: {
+              labels,
+              datasets: [{
+                label: `${sym} Cumulative P&L (pts)`,
+                data,
+                borderColor: s.total_pnl >= 0 ? "#1e8449" : "#e74c3c",
+                backgroundColor: s.total_pnl >= 0 ? "rgba(30,132,73,0.08)" : "rgba(231,76,60,0.08)",
+                borderWidth: 2,
+                pointRadius: 3,
+                fill: true,
+                tension: 0.3,
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { display: true } },
+              scales: {
+                x: { ticks: { maxTicksLimit: 12, font: { size: 10 } } },
+                y: { ticks: { font: { size: 10 } } }
+              }
+            }
+          });
+
+          // Trade log table
+          const tb = $("bt-table").querySelector("tbody");
+          tb.innerHTML = "";
+          trades.forEach(t => {
+            const cls = t.result === "WIN" ? "r-darkgreen" : "r-darkred";
+            tb.innerHTML += `<tr>
+              <td class="lbl">${t.entry_date}</td>
+              <td>${t.entry.toFixed(2)}</td>
+              <td class="r-red">${t.sl.toFixed(2)}</td>
+              <td class="r-green">${t.target.toFixed(2)}</td>
+              <td>${t.exit.toFixed(2)}</td>
+              <td class="${cls}">${t.pnl >= 0 ? "+" : ""}${t.pnl.toFixed(2)}</td>
+              <td class="${cls}">${t.pnl_pct >= 0 ? "+" : ""}${t.pnl_pct}%</td>
+              <td class="${cls}">${t.result}</td>
+            </tr>`;
+          });
+          $("bt-table-wrap").style.display = "block";
+          $("bt-status").textContent = `Backtest complete: ${sym} | ${fromDate} → ${toDate} | SL ${sl_pct}% | Target ${tgt_pct}%`;
+
+        } catch(e) {
+          $("bt-status").textContent = "Backtest failed: " + e.message;
+        }
+      }
     </script>
   </body>
 </html>
