@@ -14,6 +14,7 @@ SQLite DB (jagoar_oi.db) sits beside this script.
 - Market open/closed determined by Upstox /market/status/NSE API (handles holidays).
 """
 
+import gzip
 import http.server
 import json
 import os
@@ -28,12 +29,12 @@ try:
 except ImportError:
     raise SystemExit("Run: pip install requests")
 
-PORT      = 6180
-HTML_FILE = "jagoar_oi_scanner.html"
-DB_FILE   = "jagoar_oi.db"
-BASE      = "https://api.upstox.com/v2"
-POLL_INTERVAL = 3 * 60   # 3 minutes in seconds
-TEN_LAC   = 1_000_000
+PORT          = 6180
+HTML_FILE     = "jagoar_oi_scanner.html"
+DB_FILE       = "jagoar_oi.db"
+BASE          = "https://api.upstox.com/v2"
+POLL_INTERVAL = 3 * 60
+TEN_LAC       = 1_000_000
 
 ACCESS_TOKEN = os.environ.get(
     "UPSTOX_ACCESS_TOKEN",
@@ -62,32 +63,26 @@ STRIKE_STEP = {
 
 # ── Time helpers ───────────────────────────────────────────────────────────────
 def now_ist():
-    """System local time — VM clock is IST."""
     return datetime.now()
 
 def ist_date_str():
     return now_ist().strftime("%Y-%m-%d")
 
-# ── Market status via Upstox API ───────────────────────────────────────────────
+# ── Market status ──────────────────────────────────────────────────────────────
 def is_market_open():
-    """Ask Upstox directly — handles weekends, holidays, early closes."""
     try:
-        r = requests.get(
-            f"{BASE}/market/status/NSE",
-            headers=HEADERS, timeout=(5, 10)
-        )
+        r = requests.get(f"{BASE}/market/status/NSE", headers=HEADERS, timeout=(5, 10))
         r.raise_for_status()
         status = r.json().get("data", {}).get("status", "")
         return status == "NORMAL_OPEN"
     except Exception:
-        # Fallback: time-based check if API call fails
         t = now_ist()
         if t.weekday() >= 5:
             return False
         cur_min = t.hour * 60 + t.minute
         return (9 * 60 + 15) <= cur_min <= (15 * 60 + 15)
 
-# ── SQLite setup ───────────────────────────────────────────────────────────────
+# ── SQLite ─────────────────────────────────────────────────────────────────────
 _db_lock = threading.Lock()
 
 def get_conn():
@@ -127,7 +122,6 @@ def db_insert_log(scrip, expiry, ts, call_oi, put_oi, diff, change_diff, action)
         conn.commit()
 
 def db_get_last_diff(scrip, expiry):
-    """Get the diff value of the most recent row for a scrip+expiry today."""
     today = ist_date_str()
     with _db_lock, get_conn() as conn:
         cur = conn.execute(
@@ -171,11 +165,9 @@ def upstox_get(path, params):
     return r.json()
 
 def get_nearest_expiry(instrument_key):
-    """Fetch expiry list and return the nearest upcoming one."""
     data = upstox_get("/option/contract", {"instrument_key": instrument_key})
     expiries = sorted({d.get("expiry") for d in data.get("data", []) if d.get("expiry")})
     today = ist_date_str()
-    # Pick first expiry that is today or later
     for exp in expiries:
         if exp >= today:
             return exp
@@ -193,12 +185,10 @@ def get_option_chain(instrument_key, expiry_date):
             pcr_vals.append(item["pcr"])
         call = item.get("call_options", {}).get("market_data", {}) or {}
         put  = item.get("put_options",  {}).get("market_data", {}) or {}
-
         call_oi   = call.get("oi", 0) or 0
         call_prev = call.get("prev_oi", 0) or 0
         put_oi    = put.get("oi", 0) or 0
         put_prev  = put.get("prev_oi", 0) or 0
-
         rows.append({
             "strike":         item.get("strike_price"),
             "call_oi_change": call_oi - call_prev,
@@ -227,33 +217,108 @@ def atm_index(rows, spot):
     return best
 
 def compute_section_d(rows, atm, scrip, expiry):
-    """Compute ATM±1 aggregated OI row and save to DB."""
-    start = max(0, atm - 1)
-    end   = min(len(rows), atm + 2)
+    start   = max(0, atm - 1)
+    end     = min(len(rows), atm + 2)
     call_oi = sum(rows[i]["call_oi_change"] for i in range(start, end))
     put_oi  = sum(rows[i]["put_oi_change"]  for i in range(start, end))
     diff    = call_oi - put_oi
-
-    last_diff  = db_get_last_diff(scrip, expiry)
+    last_diff   = db_get_last_diff(scrip, expiry)
     change_diff = 0 if last_diff is None else diff - last_diff
-
     action = ""
     if call_oi - put_oi >  TEN_LAC: action = "BUY PUT"
     if put_oi  - call_oi > TEN_LAC: action = "BUY CALL"
-
     ts = now_ist().strftime("%H:%M:%S")
     db_insert_log(scrip, expiry, ts, call_oi, put_oi, diff, change_diff, action)
     print(f"[{ts} IST] Logged {scrip} | expiry={expiry} | callOI={call_oi} putOI={put_oi} diff={diff} action={action or '-'}")
 
-# ── Server-side scheduler ──────────────────────────────────────────────────────
+# ── Backtest helpers ───────────────────────────────────────────────────────────
+def get_fno_stocks():
+    r = requests.get(
+        "https://assets.upstox.com/market-quote/instruments/exchange/NSE.json.gz",
+        timeout=(10, 30)
+    )
+    data = json.loads(gzip.decompress(r.content))
+    seen, result = set(), []
+    for d in data:
+        if (d.get("segment") == "NSE_FO"
+                and d.get("instrument_type") == "CE"
+                and d.get("underlying_type") == "EQUITY"
+                and d.get("underlying_symbol")
+                and d.get("underlying_key")):
+            sym = d["underlying_symbol"]
+            if sym not in seen:
+                seen.add(sym)
+                result.append({
+                    "symbol":         sym,
+                    "instrument_key": d["underlying_key"],
+                })
+    return sorted(result, key=lambda x: x["symbol"])
+
+def get_historical_candles(instrument_key, from_date, to_date):
+    ik_encoded = instrument_key.replace("|", "%7C")
+    url = f"{BASE}/historical-candle/{ik_encoded}/day/{to_date}/{from_date}"
+    r = requests.get(url, headers=HEADERS, timeout=(10, 30))
+    r.raise_for_status()
+    candles = r.json().get("data", {}).get("candles", [])
+    result = []
+    for c in candles:
+        result.append({
+            "date":   c[0][:10],
+            "open":   c[1],
+            "high":   c[2],
+            "low":    c[3],
+            "close":  c[4],
+            "volume": c[5],
+        })
+    result.sort(key=lambda x: x["date"])
+    return result
+
+def run_backtest(instrument_key, symbol, from_date, to_date, sl_pct, target_pct):
+    candles = get_historical_candles(instrument_key, from_date, to_date)
+    if len(candles) < 4:
+        return []
+    trades = []
+    for i in range(3, len(candles)):
+        d1, d2, d3, d4 = candles[i-3], candles[i-2], candles[i-1], candles[i]
+        # 3-day bullish pattern: each close > previous day high
+        if not (d2["close"] > d1["high"] and d3["close"] > d2["high"]):
+            continue
+        entry = d4["open"]
+        if entry <= 0:
+            continue
+        sl     = round(entry * (1 - sl_pct / 100), 2)
+        target = round(entry * (1 + target_pct / 100), 2)
+        d4_high = d4["high"]
+        d4_low  = d4["low"]
+        if d4_low <= sl and d4_high >= target:
+            exit_price = sl
+            result     = "LOSS"
+        elif d4_high >= target:
+            exit_price = target
+            result     = "WIN"
+        elif d4_low <= sl:
+            exit_price = sl
+            result     = "LOSS"
+        else:
+            exit_price = d4["close"]
+            result     = "WIN" if d4["close"] > entry else "LOSS"
+        pnl     = round(exit_price - entry, 2)
+        pnl_pct = round((pnl / entry) * 100, 2)
+        trades.append({
+            "symbol":     symbol,
+            "entry_date": d4["date"],
+            "entry":      entry,
+            "sl":         sl,
+            "target":     target,
+            "exit":       exit_price,
+            "result":     result,
+            "pnl":        pnl,
+            "pnl_pct":    pnl_pct,
+        })
+    return trades
+
+# ── Scheduler ──────────────────────────────────────────────────────────────────
 def scheduler():
-    """
-    Every 3 minutes during market hours:
-    - Check market status via Upstox API
-    - For each index, fetch nearest expiry + option chain
-    - Compute and save Section D row to DB
-    Browser reads from DB on load — no dependency on browser being open.
-    """
     print(f"[{now_ist().strftime('%H:%M:%S')} IST] Scheduler started.")
     while True:
         time.sleep(POLL_INTERVAL)
@@ -261,25 +326,21 @@ def scheduler():
             if not is_market_open():
                 print(f"[{now_ist().strftime('%H:%M:%S')} IST] Market closed — skipping poll.")
                 continue
-
             print(f"[{now_ist().strftime('%H:%M:%S')} IST] Polling all indices...")
             for scrip, ik in INDEX_KEYS.items():
                 try:
                     expiry = get_nearest_expiry(ik)
                     if not expiry:
-                        print(f"  {scrip}: no expiry found, skipping.")
                         continue
-                    chain  = get_option_chain(ik, expiry)
-                    rows   = chain["rows"]
-                    spot   = chain["spot"]
+                    chain = get_option_chain(ik, expiry)
+                    rows  = chain["rows"]
+                    spot  = chain["spot"]
                     if not rows or spot is None:
-                        print(f"  {scrip}: empty chain, skipping.")
                         continue
                     atm = atm_index(rows, spot)
                     compute_section_d(rows, atm, scrip, expiry)
                 except Exception as e:
                     print(f"  {scrip}: error — {e}")
-
         except Exception as e:
             print(f"[{now_ist().strftime('%H:%M:%S')} IST] Scheduler error: {e}")
 
@@ -313,8 +374,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         try:
             if parsed.path == "/indices":
                 keys = ",".join(INDEX_KEYS.values())
-                self._send(200, upstox_get("/market-quote/ltp",
-                                           {"instrument_key": keys}))
+                self._send(200, upstox_get("/market-quote/ltp", {"instrument_key": keys}))
 
             elif parsed.path == "/expiries":
                 ik = qs.get("instrument_key", [""])[0]
@@ -334,7 +394,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 exp   = qs.get("expiry", [""])[0]
                 self._send(200, {"logs": db_get_logs(scrip, exp)})
 
-            # Dedicated log endpoint — browser can still send manual log if needed
             elif parsed.path == "/log":
                 scrip     = qs.get("scrip",       [""])[0]
                 exp       = qs.get("expiry",      [""])[0]
@@ -366,17 +425,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     self._send(404, {"error": f"{HTML_FILE} not found"})
 
             elif parsed.path == "/instruments":
-                self._send(200, {
-                    "indices":     INDEX_KEYS,
-                    "strike_step": STRIKE_STEP,
-                })
+                self._send(200, {"indices": INDEX_KEYS, "strike_step": STRIKE_STEP})
 
-            # ── /fno_stocks ───────────────────────────────────────────────────
             elif parsed.path == "/fno_stocks":
-                stocks = get_fno_stocks()
-                self._send(200, {"stocks": stocks})
+                self._send(200, {"stocks": get_fno_stocks()})
 
-            # ── /backtest ─────────────────────────────────────────────────────
             elif parsed.path == "/backtest":
                 ik         = qs.get("instrument_key", [""])[0]
                 symbol     = qs.get("symbol",         [""])[0]
@@ -387,12 +440,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if not ik or not from_date:
                     self._send(400, {"error": "instrument_key and from_date required"})
                 else:
-                    trades = run_backtest(ik, symbol, from_date, to_date, sl_pct, target_pct)
-                    wins   = sum(1 for t in trades if t["result"] == "WIN")
-                    losses = len(trades) - wins
+                    trades    = run_backtest(ik, symbol, from_date, to_date, sl_pct, target_pct)
+                    wins      = sum(1 for t in trades if t["result"] == "WIN")
+                    losses    = len(trades) - wins
                     total_pnl = round(sum(t["pnl"] for t in trades), 2)
                     self._send(200, {
-                        "trades":    trades,
+                        "trades": trades,
                         "summary": {
                             "total":     len(trades),
                             "wins":      wins,
@@ -415,135 +468,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
 # ── Entry point ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     db_init()
-
     threading.Thread(target=midnight_wiper, daemon=True).start()
     print(f"[{now_ist().strftime('%H:%M:%S')} IST] Midnight wiper started.")
-
     threading.Thread(target=scheduler, daemon=True).start()
-
     server = http.server.ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"JAGOAR OI server → http://0.0.0.0:{PORT}")
     print(f"Market open now  : {is_market_open()}")
     server.serve_forever()
-
-# ── Backtest helpers ───────────────────────────────────────────────────────────
-import gzip
-from datetime import timedelta
-
-def get_fno_stocks():
-    """Download NSE instruments JSON and extract unique FnO equity stocks."""
-    r = requests.get(
-        "https://assets.upstox.com/market-quote/instruments/exchange/NSE.json.gz",
-        timeout=(10, 30)
-    )
-    data = json.loads(gzip.decompress(r.content))
-    seen, result = set(), []
-    for d in data:
-        if (d.get("segment") == "NSE_FO"
-                and d.get("instrument_type") == "CE"
-                and d.get("underlying_type") == "EQUITY"
-                and d.get("underlying_symbol")
-                and d.get("underlying_key")):
-            sym = d["underlying_symbol"]
-            if sym not in seen:
-                seen.add(sym)
-                result.append({
-                    "symbol":         sym,
-                    "instrument_key": d["underlying_key"],
-                })
-    return sorted(result, key=lambda x: x["symbol"])
-
-def get_historical_candles(instrument_key, from_date, to_date):
-    """
-    Fetch daily OHLCV candles from Upstox.
-    instrument_key format for EQ: NSE_EQ|INE002A01018
-    Returns list of {date, open, high, low, close, volume}
-    """
-    # Upstox historical candle endpoint:
-    # GET /v2/historical-candle/{instrument_key}/{unit}/{to_date}/{from_date}
-    ik_encoded = instrument_key.replace("|", "%7C")
-    url = f"{BASE}/historical-candle/{ik_encoded}/day/{to_date}/{from_date}"
-    r = requests.get(url, headers=HEADERS, timeout=(10, 30))
-    r.raise_for_status()
-    candles = r.json().get("data", {}).get("candles", [])
-    result = []
-    for c in candles:
-        # Format: [timestamp, open, high, low, close, volume, oi]
-        result.append({
-            "date":   c[0][:10],  # YYYY-MM-DD
-            "open":   c[1],
-            "high":   c[2],
-            "low":    c[3],
-            "close":  c[4],
-            "volume": c[5],
-        })
-    # Sort ascending by date
-    result.sort(key=lambda x: x["date"])
-    return result
-
-def run_backtest(instrument_key, symbol, from_date, to_date, sl_pct, target_pct):
-    """
-    3-consecutive-day bullish close strategy:
-    - Day 1, 2, 3: each day's close > previous day's high
-    - Entry: Day 4 open (we use Day 3 high + 0.5% as entry approximation)
-    - Stop loss: sl_pct% below entry
-    - Target: target_pct% above entry
-    - Exit: whichever hits first on Day 4 (using high/low of Day 4)
-    Returns list of trade dicts.
-    """
-    candles = get_historical_candles(instrument_key, from_date, to_date)
-    if len(candles) < 4:
-        return []
-
-    trades = []
-    for i in range(3, len(candles)):
-        d1, d2, d3, d4 = candles[i-3], candles[i-2], candles[i-1], candles[i]
-
-        # Pattern: close of each day > high of previous day
-        if not (d2["close"] > d1["high"]
-                and d3["close"] > d2["high"]):
-            continue
-
-        # Entry: Day 4 open price
-        entry = d4["open"]
-        if entry <= 0:
-            continue
-
-        sl     = round(entry * (1 - sl_pct / 100), 2)
-        target = round(entry * (1 + target_pct / 100), 2)
-
-        # Simulate: did Day 4 hit target or stop loss?
-        # Use Day 4 high/low to determine which was hit
-        d4_high = d4["high"]
-        d4_low  = d4["low"]
-
-        if d4_low <= sl and d4_high >= target:
-            # Both hit — assume stop loss hit first (conservative)
-            exit_price = sl
-            result     = "LOSS"
-        elif d4_high >= target:
-            exit_price = target
-            result     = "WIN"
-        elif d4_low <= sl:
-            exit_price = sl
-            result     = "LOSS"
-        else:
-            # Neither hit — exit at close
-            exit_price = d4["close"]
-            result     = "WIN" if d4["close"] > entry else "LOSS"
-
-        pnl = round(exit_price - entry, 2)
-        pnl_pct = round((pnl / entry) * 100, 2)
-
-        trades.append({
-            "symbol":     symbol,
-            "entry_date": d4["date"],
-            "entry":      entry,
-            "sl":         sl,
-            "target":     target,
-            "exit":       exit_price,
-            "result":     result,
-            "pnl":        pnl,
-            "pnl_pct":    pnl_pct,
-        })
-    return trades
