@@ -254,63 +254,225 @@ def get_fno_stocks():
                 })
     return sorted(result, key=lambda x: x["symbol"])
 
-def get_historical_candles(instrument_key, from_date, to_date):
+# ── Candle cache (SQLite) ────────────────────────────────────────────────────
+# Separate table from section_d_logs so the midnight wiper never touches it.
+# Cached candles are immutable history, so repeat backtests are instant.
+def candle_cache_init():
+    with _db_lock, get_conn() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS candle_cache (
+                instrument_key TEXT    NOT NULL,
+                interval       TEXT    NOT NULL,   -- e.g. 'minutes/3', 'day'
+                ts             TEXT    NOT NULL,   -- full ISO timestamp from Upstox
+                open           REAL    NOT NULL,
+                high           REAL    NOT NULL,
+                low            REAL    NOT NULL,
+                close          REAL    NOT NULL,
+                volume         REAL    NOT NULL,
+                PRIMARY KEY (instrument_key, interval, ts)
+            )
+        """)
+        conn.commit()
+
+def candle_cache_get(instrument_key, interval, from_date, to_date):
+    with _db_lock, get_conn() as conn:
+        rows = conn.execute(
+            "SELECT ts, open, high, low, close, volume FROM candle_cache "
+            "WHERE instrument_key=? AND interval=? AND substr(ts,1,10) BETWEEN ? AND ? "
+            "ORDER BY ts ASC",
+            (instrument_key, interval, from_date, to_date),
+        ).fetchall()
+    return [{"ts": r[0], "open": r[1], "high": r[2], "low": r[3],
+             "close": r[4], "volume": r[5]} for r in rows]
+
+def candle_cache_put(instrument_key, interval, candles):
+    if not candles:
+        return
+    with _db_lock, get_conn() as conn:
+        conn.executemany(
+            "INSERT OR REPLACE INTO candle_cache "
+            "(instrument_key, interval, ts, open, high, low, close, volume) "
+            "VALUES (?,?,?,?,?,?,?,?)",
+            [(instrument_key, interval, c["ts"], c["open"], c["high"],
+              c["low"], c["close"], c["volume"]) for c in candles],
+        )
+        conn.commit()
+
+# ── V3 candle fetcher with chunking ──────────────────────────────────────────
+# Timeframe map → (unit, interval, max_days_per_request).
+# Sub-15-min intervals have a small per-request window (Upstox caps ~1 month and
+# has been seen as low as ~6 days), so we chunk conservatively. 'day' is one shot.
+TIMEFRAMES = {
+    "1min":  ("minutes", "1",  20),
+    "3min":  ("minutes", "3",  20),
+    "5min":  ("minutes", "5",  25),
+    "15min": ("minutes", "15", 90),
+    "day":   ("days",    "1",  365),
+}
+V3_BASE = "https://api.upstox.com/v3"
+
+def _date_chunks(from_date, to_date, max_days):
+    from datetime import timedelta
+    d0 = datetime.strptime(from_date, "%Y-%m-%d").date()
+    d1 = datetime.strptime(to_date,   "%Y-%m-%d").date()
+    chunks = []
+    cur = d0
+    while cur <= d1:
+        end = min(cur + timedelta(days=max_days - 1), d1)
+        chunks.append((cur.isoformat(), end.isoformat()))
+        cur = end + timedelta(days=1)
+    return chunks
+
+def _fetch_v3(instrument_key, unit, interval, chunk_from, chunk_to):
     ik_encoded = instrument_key.replace("|", "%7C")
-    url = f"{BASE}/historical-candle/{ik_encoded}/day/{to_date}/{from_date}"
+    url = f"{V3_BASE}/historical-candle/{ik_encoded}/{unit}/{interval}/{chunk_to}/{chunk_from}"
     r = requests.get(url, headers=HEADERS, timeout=(10, 30))
     r.raise_for_status()
-    candles = r.json().get("data", {}).get("candles", [])
-    result = []
-    for c in candles:
-        result.append({
-            "date":   c[0][:10],
-            "open":   c[1],
-            "high":   c[2],
-            "low":    c[3],
-            "close":  c[4],
-            "volume": c[5],
-        })
-    result.sort(key=lambda x: x["date"])
-    return result
+    raw = r.json().get("data", {}).get("candles", [])
+    out = []
+    for c in raw:
+        out.append({"ts": c[0], "open": c[1], "high": c[2],
+                    "low": c[3], "close": c[4], "volume": c[5]})
+    return out
 
-def run_backtest(instrument_key, symbol, from_date, to_date, sl_pct, target_pct):
-    candles = get_historical_candles(instrument_key, from_date, to_date)
-    if len(candles) < 4:
-        return []
+def get_candles(instrument_key, timeframe, from_date, to_date):
+    """Cache-first. Fetches only what's missing, chunked, then returns the full range."""
+    if timeframe not in TIMEFRAMES:
+        raise ValueError(f"bad timeframe: {timeframe}")
+    unit, interval, max_days = TIMEFRAMES[timeframe]
+    cache_key = f"{unit}/{interval}"
+
+    cached = candle_cache_get(instrument_key, cache_key, from_date, to_date)
+    if cached:
+        return cached  # whole range present (or partial — accepted; history is append-only)
+
+    all_candles = []
+    for cf, ct in _date_chunks(from_date, to_date, max_days):
+        try:
+            chunk = _fetch_v3(instrument_key, unit, interval, cf, ct)
+            all_candles.extend(chunk)
+            time.sleep(0.25)  # gentle on rate limits
+        except requests.HTTPError:
+            time.sleep(0.5)   # skip a bad window rather than abort the whole run
+            continue
+    # dedupe by ts, sort
+    seen = {}
+    for c in all_candles:
+        seen[c["ts"]] = c
+    merged = sorted(seen.values(), key=lambda x: x["ts"])
+    candle_cache_put(instrument_key, cache_key, merged)
+    return merged
+
+# ── Opening Range Breakout backtest ───────────────────────────────────────────
+# Strategy:
+#   Opening range = 09:15–09:45 (first 30 min). Record OR_high / OR_low.
+#   After 09:45, first candle whose high > OR_high → LONG at OR_high;
+#                first candle whose low  < OR_low  → SHORT at OR_low.
+#   Whichever breaks first that day takes the single trade.
+#   Exit (first to occur): target hit (entry ± X), SL hit (entry ∓ Y),
+#   or 15:00 force square-off at that candle's close.
+#   Same-candle target+SL → counted as SL (pessimistic).
+def _group_by_day(candles):
+    days = {}
+    for c in candles:
+        day = c["ts"][:10]
+        days.setdefault(day, []).append(c)
+    for d in days:
+        days[d].sort(key=lambda x: x["ts"])
+    return days
+
+def _minutes_of(ts):
+    # ts like '2025-01-12T09:45:00+05:30' → minutes since midnight
+    hh = int(ts[11:13]); mm = int(ts[14:16])
+    return hh * 60 + mm
+
+OR_START = 9 * 60 + 15   # 09:15
+OR_END   = 9 * 60 + 45   # 09:45 (opening range is candles starting < 09:45)
+SQUARE_OFF = 15 * 60     # 15:00
+
+def run_orb_backtest(instrument_key, symbol, timeframe, from_date, to_date, x_pts, y_pts):
+    candles = get_candles(instrument_key, timeframe, from_date, to_date)
+    days = _group_by_day(candles)
     trades = []
-    for i in range(3, len(candles)):
-        d1, d2, d3, d4 = candles[i-3], candles[i-2], candles[i-1], candles[i]
-        # 3-day bullish pattern: each close > previous day high
-        if not (d2["close"] > d1["high"] and d3["close"] > d2["high"]):
+
+    for day in sorted(days.keys()):
+        bars = days[day]
+        # Opening range: bars that start within 09:15–09:45
+        or_bars = [b for b in bars if OR_START <= _minutes_of(b["ts"]) < OR_END]
+        if not or_bars:
             continue
-        entry = d4["open"]
-        if entry <= 0:
-            continue
-        sl     = round(entry * (1 - sl_pct / 100), 2)
-        target = round(entry * (1 + target_pct / 100), 2)
-        d4_high = d4["high"]
-        d4_low  = d4["low"]
-        if d4_low <= sl and d4_high >= target:
-            exit_price = sl
-            result     = "LOSS"
-        elif d4_high >= target:
-            exit_price = target
-            result     = "WIN"
-        elif d4_low <= sl:
-            exit_price = sl
-            result     = "LOSS"
+        or_high = max(b["high"] for b in or_bars)
+        or_low  = min(b["low"]  for b in or_bars)
+
+        # Scan bars after the opening range for the first breakout
+        post = [b for b in bars if _minutes_of(b["ts"]) >= OR_END]
+        entry = side = None
+        entry_idx = None
+        for i, b in enumerate(post):
+            broke_up   = b["high"] > or_high
+            broke_down = b["low"]  < or_low
+            if broke_up and broke_down:
+                # both in same bar — take the side closer to bar open (pessimistic ambiguity)
+                side  = "LONG" if abs(b["open"] - or_high) <= abs(b["open"] - or_low) else "SHORT"
+                entry = or_high if side == "LONG" else or_low
+            elif broke_up:
+                side, entry = "LONG", or_high
+            elif broke_down:
+                side, entry = "SHORT", or_low
+            if side:
+                entry_idx = i
+                break
+        if side is None:
+            continue  # no breakout that day → no trade
+
+        if side == "LONG":
+            target = round(entry + x_pts, 2)
+            sl     = round(entry - y_pts, 2)
         else:
-            exit_price = d4["close"]
-            result     = "WIN" if d4["close"] > entry else "LOSS"
-        pnl     = round(exit_price - entry, 2)
-        pnl_pct = round((pnl / entry) * 100, 2)
+            target = round(entry - x_pts, 2)
+            sl     = round(entry + y_pts, 2)
+
+        # Walk forward from the breakout bar to find exit
+        exit_price = result = exit_time = None
+        for b in post[entry_idx:]:
+            tmin = _minutes_of(b["ts"])
+            hit_target = (b["high"] >= target) if side == "LONG" else (b["low"]  <= target)
+            hit_sl     = (b["low"]  <= sl)     if side == "LONG" else (b["high"] >= sl)
+            if hit_target and hit_sl:
+                exit_price, result = sl, "LOSS"          # pessimistic same-bar tiebreak
+            elif hit_target:
+                exit_price, result = target, "WIN"
+            elif hit_sl:
+                exit_price, result = sl, "LOSS"
+            if result:
+                exit_time = b["ts"][11:16]
+                break
+            if tmin >= SQUARE_OFF:                        # force square-off at 15:00
+                exit_price = b["close"]
+                exit_time  = b["ts"][11:16]
+                break
+        if exit_price is None:                            # ran out of bars before 15:00
+            last = post[-1]
+            exit_price = last["close"]
+            exit_time  = last["ts"][11:16]
+
+        if side == "LONG":
+            pnl = round(exit_price - entry, 2)
+        else:
+            pnl = round(entry - exit_price, 2)
+        if result is None:
+            result = "WIN" if pnl > 0 else "LOSS"
+        pnl_pct = round((pnl / entry) * 100, 2) if entry else 0
+
         trades.append({
             "symbol":     symbol,
-            "entry_date": d4["date"],
-            "entry":      entry,
+            "entry_date": day,
+            "side":       side,
+            "entry":      round(entry, 2),
             "sl":         sl,
             "target":     target,
-            "exit":       exit_price,
+            "exit":       round(exit_price, 2),
+            "exit_time":  exit_time,
             "result":     result,
             "pnl":        pnl,
             "pnl_pct":    pnl_pct,
@@ -431,18 +593,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._send(200, {"stocks": get_fno_stocks()})
 
             elif parsed.path == "/backtest":
-                ik         = qs.get("instrument_key", [""])[0]
-                symbol     = qs.get("symbol",         [""])[0]
-                from_date  = qs.get("from_date",      [""])[0]
-                to_date    = qs.get("to_date",        [ist_date_str()])[0]
-                sl_pct     = float(qs.get("sl_pct",     ["1.5"])[0])
-                target_pct = float(qs.get("target_pct", ["3.0"])[0])
+                ik        = qs.get("instrument_key", [""])[0]
+                symbol    = qs.get("symbol",         [""])[0]
+                timeframe = qs.get("timeframe",      ["3min"])[0]
+                from_date = qs.get("from_date",      [""])[0]
+                to_date   = qs.get("to_date",        [ist_date_str()])[0]
+                x_pts     = float(qs.get("x_pts",    ["50"])[0])   # target in points
+                y_pts     = float(qs.get("y_pts",    ["30"])[0])   # stoploss in points
                 if not ik or not from_date:
                     self._send(400, {"error": "instrument_key and from_date required"})
                 else:
-                    trades    = run_backtest(ik, symbol, from_date, to_date, sl_pct, target_pct)
+                    trades    = run_orb_backtest(ik, symbol, timeframe, from_date, to_date, x_pts, y_pts)
                     wins      = sum(1 for t in trades if t["result"] == "WIN")
                     losses    = len(trades) - wins
+                    longs     = sum(1 for t in trades if t["side"] == "LONG")
+                    shorts    = len(trades) - longs
                     total_pnl = round(sum(t["pnl"] for t in trades), 2)
                     self._send(200, {
                         "trades": trades,
@@ -450,6 +615,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                             "total":     len(trades),
                             "wins":      wins,
                             "losses":    losses,
+                            "longs":     longs,
+                            "shorts":    shorts,
                             "win_rate":  round(wins / len(trades) * 100, 1) if trades else 0,
                             "total_pnl": total_pnl,
                         }
@@ -468,6 +635,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 # ── Entry point ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     db_init()
+    candle_cache_init()
     threading.Thread(target=midnight_wiper, daemon=True).start()
     print(f"[{now_ist().strftime('%H:%M:%S')} IST] Midnight wiper started.")
     threading.Thread(target=scheduler, daemon=True).start()
