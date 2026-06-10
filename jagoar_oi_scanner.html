@@ -2,10 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <title>MANJIT JAGOAR OI DATA SCANNER</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -26,9 +23,7 @@
         --secC: #f1eefb;
         --secD: #eefbf6;
       }
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
       body {
         margin: 0;
         font-family: "Segoe UI", Tahoma, sans-serif;
@@ -37,229 +32,80 @@
         color: #1a1a1a;
       }
       h1 {
-        font-size: 18px;
-        margin: 0;
+        font-size: 18px; margin: 0;
         padding: 10px 14px;
         background: var(--hdr);
         color: var(--hdrtext);
         letter-spacing: 1px;
       }
       .controls {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        align-items: center;
-        padding: 8px 14px;
-        background: #fff;
-        border-bottom: 2px solid var(--grid);
+        display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        padding: 8px 14px; background: #fff; border-bottom: 2px solid var(--grid);
       }
-      select,
-      button {
-        font-size: 13px;
-        padding: 5px 8px;
-      }
+      select, button { font-size: 13px; padding: 5px 8px; }
       .strip {
-        display: flex;
-        gap: 18px;
-        flex-wrap: wrap;
-        padding: 8px 14px;
-        background: #10243d;
-        color: #fff;
-        font-size: 14px;
+        display: flex; gap: 18px; flex-wrap: wrap;
+        padding: 8px 14px; background: #10243d;
+        color: #fff; font-size: 14px;
       }
-      .strip .it {
-        display: flex;
-        gap: 6px;
-        align-items: baseline;
-      }
-      .strip .nm {
-        font-weight: 700;
-      }
-      .up {
-        color: #5dd886;
-      }
-      .down {
-        color: #ff7b6b;
-      }
-      section {
-        margin: 10px;
-        border: 1px solid var(--grid);
-        border-radius: 4px;
-        overflow: hidden;
-      }
+      .strip .it { display: flex; gap: 6px; align-items: baseline; }
+      .strip .nm { font-weight: 700; }
+      .up { color: #5dd886; }
+      .down { color: #ff7b6b; }
+      section { margin: 10px; border: 1px solid var(--grid); border-radius: 4px; overflow: hidden; }
       .secttl {
-        padding: 6px 10px;
-        font-weight: 700;
-        background: var(--hdr);
-        color: #fff;
-        font-size: 13px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        padding: 6px 10px; font-weight: 700; background: var(--hdr);
+        color: #fff; font-size: 13px; display: flex;
+        justify-content: space-between; align-items: center;
       }
-      .mkt-badge {
-        font-size: 11px;
-        font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 10px;
-      }
-      .mkt-open {
-        background: #1e8449;
-        color: #fff;
-      }
-      .mkt-closed {
-        background: #888;
-        color: #fff;
-      }
-      .scrollbox {
-        max-height: 340px;
-        overflow: auto;
-      }
-      .secA {
-        background: var(--secA);
-      }
-      .secB {
-        background: var(--secB);
-      }
-      .secC {
-        background: var(--secC);
-      }
-      .secD {
-        background: var(--secD);
-      }
-      table {
-        border-collapse: collapse;
-        width: 100%;
-        background: #fff;
-      }
-      th,
-      td {
-        border: 1px solid var(--grid);
-        padding: 4px 8px;
-        text-align: right;
-        white-space: nowrap;
-      }
-      th {
-        position: sticky;
-        top: 0;
-        background: #dfe6ef;
-        color: #13243a;
-        text-align: center;
-        z-index: 1;
-      }
-      td.lbl {
-        text-align: left;
-      }
-      .callcell {
-        background: var(--lightred);
-      }
-      .putcell {
-        background: var(--lightgreen);
-      }
-      .r-red {
-        color: var(--red);
-        font-weight: 600;
-      }
-      .r-darkred {
-        color: var(--darkred);
-        font-weight: 700;
-      }
-      .r-green {
-        color: var(--green);
-        font-weight: 600;
-      }
-      .r-darkgreen {
-        color: var(--darkgreen);
-        font-weight: 700;
-      }
-      .totrow td {
-        background: #e8edf3;
-        font-weight: 700;
-      }
-      .act-buy-put {
-        background: var(--red);
-        color: #fff;
-        font-weight: 700;
-        text-align: center;
-      }
-      .act-buy-call {
-        background: var(--green);
-        color: #fff;
-        font-weight: 700;
-        text-align: center;
-      }
-      .note {
-        font-size: 11px;
-        color: #555;
-        padding: 4px 10px;
-        background: #fff;
-      }
-      .err {
-        background: #fde;
-        color: #900;
-        padding: 6px 10px;
-        font-size: 12px;
-      }
-      .dlbtns {
-        padding: 8px 10px;
-        background: #fff;
-        display: flex;
-        gap: 8px;
-      }
-      .mkt-closed-banner {
-        background: #555;
-        color: #fff;
-        text-align: center;
-        padding: 6px;
-        font-size: 12px;
-        font-weight: 600;
-      }
+      .mkt-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+      .mkt-open { background: #1e8449; color: #fff; }
+      .mkt-closed { background: #888; color: #fff; }
+      .scrollbox { max-height: 340px; overflow: auto; }
+      .secA { background: var(--secA); }
+      .secB { background: var(--secB); }
+      .secC { background: var(--secC); }
+      .secD { background: var(--secD); }
+      table { border-collapse: collapse; width: 100%; background: #fff; }
+      th, td { border: 1px solid var(--grid); padding: 4px 8px; text-align: right; white-space: nowrap; }
+      th { position: sticky; top: 0; background: #dfe6ef; color: #13243a; text-align: center; z-index: 1; }
+      td.lbl { text-align: left; }
+      .callcell { background: var(--lightred); }
+      .putcell { background: var(--lightgreen); }
+      .r-red { color: var(--red); font-weight: 600; }
+      .r-darkred { color: var(--darkred); font-weight: 700; }
+      .r-green { color: var(--green); font-weight: 600; }
+      .r-darkgreen { color: var(--darkgreen); font-weight: 700; }
+      .totrow td { background: #e8edf3; font-weight: 700; }
+      .act-buy-put { background: var(--red); color: #fff; font-weight: 700; text-align: center; }
+      .act-buy-call { background: var(--green); color: #fff; font-weight: 700; text-align: center; }
+      .note { font-size: 11px; color: #555; padding: 4px 10px; background: #fff; }
+      .err { background: #fde; color: #900; padding: 6px 10px; font-size: 12px; }
+      .dlbtns { padding: 8px 10px; background: #fff; display: flex; gap: 8px; }
+
       /* ── Tabs ── */
-      .tabs {
-        display: flex;
-        background: #152d4a;
-        padding: 0 14px;
-        gap: 4px;
-      }
+      .tabs { display: flex; background: #152d4a; padding: 0 14px; gap: 4px; }
       .tab-btn {
-        padding: 8px 18px;
-        border: none;
-        background: transparent;
-        color: #aac4e0;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        border-bottom: 3px solid transparent;
-        letter-spacing: 0.5px;
+        padding: 8px 18px; border: none; background: transparent;
+        color: #aac4e0; font-size: 13px; font-weight: 600; cursor: pointer;
+        border-bottom: 3px solid transparent; letter-spacing: 0.5px;
       }
-      .tab-btn.active {
-        color: #fff;
-        border-bottom: 3px solid #5dd886;
-      }
+      .tab-btn.active { color: #fff; border-bottom: 3px solid #5dd886; }
       .tab-panel { display: none; }
       .tab-panel.active { display: block; }
+
       /* ── Backtest ── */
       .bt-controls {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: flex-end;
-        padding: 10px 14px;
-        background: #fff;
-        border-bottom: 2px solid var(--grid);
+        display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+        padding: 10px 14px; background: #fff; border-bottom: 2px solid var(--grid);
       }
       .bt-controls label { font-size: 12px; font-weight: 600; display:flex; flex-direction:column; gap:3px; }
       .bt-controls input, .bt-controls select { font-size: 13px; padding: 4px 7px; }
       .bt-run { background: #1f3a5f; color: #fff; border: none; padding: 7px 18px; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 3px; }
       .bt-run:hover { background: #2a5298; }
       .bt-summary {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        padding: 10px 14px;
-        background: #10243d;
-        color: #fff;
-        font-size: 13px;
+        display: flex; flex-wrap: wrap; gap: 16px;
+        padding: 10px 14px; background: #10243d; color: #fff; font-size: 13px;
       }
       .bt-summary .si { display: flex; flex-direction: column; gap: 2px; }
       .bt-summary .sv { font-size: 18px; font-weight: 700; }
@@ -269,6 +115,133 @@
       .bt-chart { padding: 10px; background: #f8f9fb; }
       .bt-chart canvas { width: 100% !important; }
       #bt-status { padding: 6px 14px; font-size: 12px; color: #555; background: #fff; }
+
+      /* ── Trending tab ── */
+      .tr-params {
+        display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+        padding: 10px 14px; background: #fff; border-bottom: 2px solid var(--grid);
+      }
+      .tr-params label { font-size: 12px; font-weight: 600; display:flex; flex-direction:column; gap:3px; }
+      .tr-params input { font-size: 13px; padding: 4px 7px; width: 90px; }
+      .tr-save-btn {
+        background: #1f3a5f; color: #fff; border: none; padding: 7px 18px;
+        font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 3px;
+        align-self: flex-end;
+      }
+      .tr-save-btn:hover { background: #2a5298; }
+      .tr-rr-warn {
+        font-size: 12px; color: #7a5c00; background: #fff8e6;
+        padding: 6px 14px; border-bottom: 1px solid var(--grid);
+      }
+      .tr-cards {
+        display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 14px;
+        background: #edf1f7;
+      }
+      .tr-card {
+        background: #fff; border: 1px solid var(--grid); border-radius: 6px;
+        min-width: 180px; flex: 1 1 180px; max-width: 240px;
+        overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      }
+      .tr-card-hdr {
+        background: var(--hdr); color: #fff; padding: 6px 10px;
+        font-weight: 700; font-size: 13px; display: flex;
+        justify-content: space-between; align-items: center;
+      }
+      .tr-card-body { padding: 8px 10px; font-size: 12px; line-height: 1.8; }
+      .tr-card-body .row { display: flex; justify-content: space-between; }
+      .tr-card-body .key { color: #666; }
+      .tr-card-body .val { font-weight: 600; }
+      .tr-ltp-val { font-size: 15px; font-weight: 700; color: #1f3a5f; }
+      .tr-badge {
+        font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+      }
+      .tr-badge-open   { background: #2a5298; color: #fff; }
+      .tr-badge-tgt    { background: #1e8449; color: #fff; }
+      .tr-badge-sl     { background: #a01818; color: #fff; }
+      .tr-badge-sq     { background: #888; color: #fff; }
+      .tr-badge-wait   { background: #c0932a; color: #fff; }
+      .tr-pnl-pos { color: var(--darkgreen); font-weight: 700; }
+      .tr-pnl-neg { color: var(--darkred); font-weight: 700; }
+
+      .tr-hist-controls {
+        display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        padding: 8px 14px; background: #fff; border-bottom: 1px solid var(--grid);
+      }
+      #tr-status { padding: 6px 14px; font-size: 12px; color: #555; background: #fff; }
+      #tr-refresh-btn { background: #2a5298; color:#fff; border:none; padding:5px 14px; border-radius:3px; cursor:pointer; font-size:13px; }
+
+      /* ── FnO Trades tab ── */
+      .fno-topbar {
+        display: flex; flex-wrap: wrap; gap: 0;
+        background: #10243d; color: #fff;
+      }
+      .fno-bal-block {
+        padding: 10px 18px; border-right: 1px solid #1e3a60;
+        display: flex; flex-direction: column; gap: 2px;
+      }
+      .fno-bal-block .lbl { font-size: 10px; color: #aac4e0; letter-spacing: .5px; text-transform: uppercase; }
+      .fno-bal-block .val { font-size: 20px; font-weight: 700; }
+      .fno-bal-block .val.pos { color: #5dd886; }
+      .fno-bal-block .val.neg { color: #ff7b6b; }
+      .fno-params-bar {
+        display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+        padding: 8px 14px; background: #fff; border-bottom: 2px solid var(--grid);
+      }
+      .fno-params-bar label { font-size: 12px; font-weight: 600; display:flex; flex-direction:column; gap:3px; }
+      .fno-params-bar input { font-size: 13px; padding: 4px 7px; width: 90px; }
+      .fno-btn { border: none; padding: 7px 16px; font-size: 13px; font-weight: 700;
+                 cursor: pointer; border-radius: 3px; align-self: flex-end; }
+      .fno-btn-blue  { background: #1f3a5f; color: #fff; }
+      .fno-btn-blue:hover { background: #2a5298; }
+      .fno-btn-green { background: #1e8449; color: #fff; }
+      .fno-btn-green:hover { background: #16703d; }
+      .fno-btn-red   { background: #c0392b; color: #fff; }
+      .fno-pending-banner {
+        background: #fff3cd; color: #7a5c00; border-bottom: 1px solid #f5c842;
+        padding: 7px 14px; font-size: 12px; font-weight: 600; display: none;
+      }
+      #fno-status { padding: 6px 14px; font-size: 12px; color: #555; background: #fff; }
+      .fno-cards {
+        display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 14px; background: #edf1f7;
+      }
+      .fno-card {
+        background: #fff; border: 1px solid var(--grid); border-radius: 6px;
+        min-width: 190px; flex: 1 1 190px; max-width: 230px;
+        overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      }
+      .fno-card-hdr {
+        background: var(--hdr); color: #fff; padding: 6px 10px;
+        font-weight: 700; font-size: 13px; display: flex;
+        justify-content: space-between; align-items: center;
+      }
+      .fno-card-sub { font-size: 10px; color: #aac4e0; font-weight: 400; }
+      .fno-card-body { padding: 8px 10px; font-size: 12px; line-height: 1.9; }
+      .fno-card-body .row { display: flex; justify-content: space-between; }
+      .fno-card-body .key { color: #666; }
+      .fno-card-body .val { font-weight: 600; }
+      .fno-ltp  { font-size: 15px; font-weight: 700; color: #1f3a5f; }
+      .fno-or-bar {
+        display: flex; gap: 8px; padding: 4px 10px; background: #f7f9fc;
+        border-top: 1px solid #e5e8ee; font-size: 11px; color: #555;
+      }
+      .fno-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+      .fno-badge-open  { background: #2a5298; color: #fff; }
+      .fno-badge-tgt   { background: #1e8449; color: #fff; }
+      .fno-badge-sl    { background: #a01818; color: #fff; }
+      .fno-badge-sq    { background: #888; color: #fff; }
+      .fno-badge-wait  { background: #c0932a; color: #fff; }
+      .fno-badge-pend  { background: #e67e22; color: #fff; }
+      .fno-badge-notr  { background: #aaa; color: #fff; }
+      .fno-badge-long  { background: #1e8449; color: #fff; }
+      .fno-badge-short { background: #c0392b; color: #fff; }
+      .fno-pnl-pos { color: var(--darkgreen); font-weight: 700; }
+      .fno-pnl-neg { color: var(--darkred); font-weight: 700; }
+      .fno-add-funds-row {
+        display: flex; gap: 8px; align-items: center;
+        padding: 8px 14px; background: #fff8e6;
+        border-bottom: 1px solid #f5c842;
+      }
+      .fno-add-funds-row input { font-size: 13px; padding: 5px 8px; width: 140px; border: 1px solid #ccc; border-radius: 3px; }
     </style>
   </head>
   <body>
@@ -276,114 +249,68 @@
 
     <!-- Tab buttons -->
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('oi')">OI SCANNER</button>
-      <button class="tab-btn" onclick="switchTab('bt')">BACKTEST</button>
+      <button class="tab-btn active" onclick="switchTab('oi',event)">OI SCANNER</button>
+      <button class="tab-btn" onclick="switchTab('bt',event)">BACKTEST</button>
+      <button class="tab-btn" onclick="switchTab('tr',event)">TRENDING</button>
+      <button class="tab-btn" onclick="switchTab('fno',event)">FNO TRADES</button>
     </div>
 
-    <!-- ═══════════════════════ TAB 1: OI SCANNER ═══════════════════════ -->
+    <!-- ═══════════════════ TAB 1: OI SCANNER ═══════════════════ -->
     <div class="tab-panel active" id="tab-oi">
+      <div class="controls">
+        <label>Scrip: <select id="scrip"></select></label>
+        <label>Expiry: <select id="expiry"></select></label>
+        <button id="refresh">Refresh now</button>
+        <span id="status" class="note" style="background: transparent"></span>
+      </div>
+      <div id="errbox"></div>
+      <div id="mktbanner"></div>
+      <div class="strip" id="strip"></div>
 
-    <div class="controls">
-      <label
-        >Scrip:
-        <select id="scrip"></select
-      ></label>
-      <label
-        >Expiry:
-        <select id="expiry"></select
-      ></label>
-      <button id="refresh">Refresh now</button>
-      <span id="status" class="note" style="background: transparent"></span>
+      <section>
+        <div class="secttl">SECTION B — Selected scrip, ATM + nearby strikes (Call/Put OI change &amp; remark)</div>
+        <div class="scrollbox secB">
+          <table id="secB">
+            <thead><tr><th>Strike Price</th><th>Call OI Change</th><th>Put OI Change</th><th>Remark (diff)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div class="secttl">SECTION C — ATM ±5 strikes (Net Call/Put OI change &amp; volumes)</div>
+        <div class="scrollbox secC">
+          <table id="secC">
+            <thead><tr><th>SP</th><th>Net Call OI Chg</th><th>Net Put OI Chg</th><th>Call Volume</th><th>Put Volume</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div class="secttl" id="secDttl">
+          <span>SECTION D — ATM ±1 (3 strikes) OI change per 3-min interval</span>
+          <span class="mkt-badge mkt-closed" id="mktbadge">MARKET CLOSED</span>
+        </div>
+        <div class="scrollbox secD">
+          <table id="secD">
+            <thead><tr><th>Time</th><th>Call OI</th><th>Put OI</th><th>Difference</th><th>Change in Diff</th><th>Action</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="dlbtns">
+          <button id="dlxlsx">Download Excel</button>
+          <button id="dlpdf">Download PDF</button>
+        </div>
+      </section>
+      <div class="note">OI change = oi − prev_oi (day-over-day, Upstox definition). 10 lac = 1,000,000. Section D rows logged every 3 minutes during market hours (09:15–15:15 IST) and restored from server DB on page load. DB wiped at midnight IST.</div>
     </div>
 
-    <div id="errbox"></div>
-    <div id="mktbanner"></div>
-
-    <div class="strip" id="strip"></div>
-
-    <section>
-      <div class="secttl">
-        SECTION B — Selected scrip, ATM + nearby strikes (Call/Put OI change
-        &amp; remark)
-      </div>
-      <div class="scrollbox secB">
-        <table id="secB">
-          <thead>
-            <tr>
-              <th>Strike Price</th>
-              <th>Call OI Change</th>
-              <th>Put OI Change</th>
-              <th>Remark (diff)</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section>
-      <div class="secttl">
-        SECTION C — ATM ±5 strikes (Net Call/Put OI change &amp; volumes)
-      </div>
-      <div class="scrollbox secC">
-        <table id="secC">
-          <thead>
-            <tr>
-              <th>SP</th>
-              <th>Net Call OI Chg</th>
-              <th>Net Put OI Chg</th>
-              <th>Call Volume</th>
-              <th>Put Volume</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section>
-      <div class="secttl" id="secDttl">
-        <span>SECTION D — ATM ±1 (3 strikes) OI change per 3-min interval</span>
-        <span class="mkt-badge mkt-closed" id="mktbadge">MARKET CLOSED</span>
-      </div>
-      <div class="scrollbox secD">
-        <table id="secD">
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Call OI</th>
-              <th>Put OI</th>
-              <th>Difference</th>
-              <th>Change in Diff</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="dlbtns">
-        <button id="dlxlsx">Download Excel</button>
-        <button id="dlpdf">Download PDF</button>
-      </div>
-    </section>
-
-    <div class="note">
-      OI change = oi − prev_oi (day-over-day, Upstox definition). 10 lac =
-      1,000,000. Section D rows logged every 3 minutes during market hours
-      (09:15–15:15 IST) and restored from server DB on page load. DB wiped at
-      midnight IST.
-    </div>
-
-    </div><!-- end tab-oi -->
-
-    <!-- ═══════════════════════ TAB 2: BACKTEST ═══════════════════════ -->
+    <!-- ═══════════════════ TAB 2: BACKTEST ═══════════════════ -->
     <div class="tab-panel" id="tab-bt">
-
       <div class="bt-controls">
         <label>Stock
-          <select id="bt-stock" style="min-width:160px">
-            <option value="">Loading FnO stocks…</option>
-          </select>
+          <select id="bt-stock" style="min-width:160px"><option value="">Loading FnO stocks…</option></select>
         </label>
         <label>Period
           <select id="bt-period">
@@ -402,19 +329,12 @@
             <option value="day">Daily — instant (no intraday exits)</option>
           </select>
         </label>
-        <label>Target (pts)
-          <input type="number" id="bt-x" value="50" min="1" step="1" style="width:80px">
-        </label>
-        <label>Stop Loss (pts)
-          <input type="number" id="bt-y" value="30" min="1" step="1" style="width:80px">
-        </label>
+        <label>Target (pts) <input type="number" id="bt-x" value="50" min="1" step="1" style="width:80px"></label>
+        <label>Stop Loss (pts) <input type="number" id="bt-y" value="30" min="1" step="1" style="width:80px"></label>
         <button class="bt-run" onclick="runBacktest()">▶ RUN BACKTEST</button>
       </div>
-
       <div id="bt-speed-note" class="note" style="background:#fff8e6;border-bottom:1px solid var(--grid);padding:7px 14px;font-size:12px;color:#7a5c00"></div>
-
       <div id="bt-status">Opening Range Breakout — 09:15–09:45 range. Select a stock and click Run Backtest.</div>
-
       <div class="bt-summary" id="bt-summary" style="display:none">
         <div class="si"><span class="sv" id="bs-total">0</span><span class="sk">TOTAL TRADES</span></div>
         <div class="si"><span class="sv bt-win" id="bs-wins">0</span><span class="sk">WINS</span></div>
@@ -423,25 +343,187 @@
         <div class="si"><span class="sv" id="bs-ls">0/0</span><span class="sk">LONG / SHORT</span></div>
         <div class="si"><span class="sv" id="bs-pnl">0</span><span class="sk">TOTAL P&amp;L (pts)</span></div>
       </div>
-
       <div class="bt-chart" id="bt-chart" style="display:none">
         <canvas id="bt-canvas" height="120"></canvas>
       </div>
-
       <section style="display:none" id="bt-table-wrap">
         <div class="secttl">Trade Log</div>
         <div class="scrollbox">
           <table id="bt-table">
+            <thead><tr><th>Date</th><th>Side</th><th>Entry</th><th>SL</th><th>Target</th><th>Exit</th><th>Exit Time</th><th>P&amp;L (pts)</th><th>P&amp;L %</th><th>Result</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══════════════════ TAB 3: TRENDING ═══════════════════ -->
+    <div class="tab-panel" id="tab-tr">
+
+      <!-- Param controls -->
+      <div class="tr-params">
+        <label>Stop Loss %
+          <input type="number" id="tr-sl-pct" placeholder="Default 2.0" step="0.1" min="0.1" max="20">
+        </label>
+        <label>Target %
+          <input type="number" id="tr-tgt-pct" placeholder="Default 0.6" step="0.1" min="0.1" max="20">
+        </label>
+        <button class="tr-save-btn" onclick="saveTrendingParams()">💾 Save Params</button>
+        <button id="tr-refresh-btn" onclick="loadTrending()">↻ Refresh</button>
+        <span id="tr-param-display" class="note" style="background:transparent;margin-left:4px;align-self:center"></span>
+      </div>
+
+      <!-- Risk-reward warning — shown dynamically -->
+      <div class="tr-rr-warn" id="tr-rr-warn" style="display:none"></div>
+
+      <!-- Status line -->
+      <div id="tr-status">Loading trending stocks…</div>
+
+      <!-- Live cards -->
+      <div class="tr-cards" id="tr-cards"></div>
+
+      <!-- History section -->
+      <section>
+        <div class="secttl">
+          <span>TRADE HISTORY (last 30 days, all 5 stocks)</span>
+        </div>
+        <div class="tr-hist-controls">
+          <label style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:600">
+            Filter:
+            <select id="tr-hist-sym" onchange="loadHistory()">
+              <option value="">All stocks</option>
+              <option value="DIXON">DIXON</option>
+              <option value="FORCEMOT">FORCEMOT</option>
+              <option value="POWERINDIA">POWERINDIA</option>
+              <option value="BSE">BSE</option>
+              <option value="MCX">MCX</option>
+            </select>
+          </label>
+        </div>
+        <div class="scrollbox">
+          <table id="tr-hist-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Symbol</th><th>Entry</th><th>Entry Time</th>
+                <th>SL%</th><th>TGT%</th><th>SL Price</th><th>Target</th>
+                <th>Exit</th><th>Exit Time</th><th>P&amp;L ₹</th><th>P&amp;L %</th><th>Result</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="note">
+        ⚠ Strategy: LONG entry at LTP on 09:15 IST. Direction is always LONG.
+        Exit on SL hit, Target hit, or force square-off at 15:00. One trade per stock per day.
+        Server auto-enters at 09:15 — browser need not be open. History persists across days (never wiped).
+      </div>
+    </div><!-- end tab-tr -->
+
+    <!-- ═══════════════════ TAB 4: FNO TRADES ═══════════════════ -->
+    <div class="tab-panel" id="tab-fno">
+
+      <!-- Balance + P&L top bar -->
+      <div class="fno-topbar" id="fno-topbar">
+        <div class="fno-bal-block">
+          <span class="lbl">Account Balance</span>
+          <span class="val" id="fno-balance">₹—</span>
+        </div>
+        <div class="fno-bal-block">
+          <span class="lbl">Today P&amp;L (₹)</span>
+          <span class="val" id="fno-today-pnl">—</span>
+        </div>
+        <div class="fno-bal-block">
+          <span class="lbl">Overall P&amp;L (₹)</span>
+          <span class="val" id="fno-overall-pnl">—</span>
+        </div>
+        <div class="fno-bal-block">
+          <span class="lbl">Margin In Use</span>
+          <span class="val" id="fno-margin-used">—</span>
+        </div>
+        <div class="fno-bal-block">
+          <span class="lbl">Date</span>
+          <span class="val" style="font-size:14px" id="fno-date">—</span>
+        </div>
+      </div>
+
+      <!-- Add funds banner (shown when pending trades exist) -->
+      <div class="fno-pending-banner" id="fno-pending-banner">
+        ⚠ Some trades are waiting for funds. Add funds below and they will auto re-enter if price is still near breakout level.
+      </div>
+      <div class="fno-add-funds-row" id="fno-add-funds-row" style="display:none">
+        <span style="font-weight:600;font-size:13px">Add Funds:</span>
+        <input type="number" id="fno-fund-input" placeholder="Amount in ₹ e.g. 200000" min="1" step="1000">
+        <button class="fno-btn fno-btn-green" onclick="addFunds()">➕ Add Funds</button>
+        <button class="fno-btn fno-btn-blue" onclick="$('fno-add-funds-row').style.display='none'">Cancel</button>
+      </div>
+
+      <!-- Params bar -->
+      <div class="fno-params-bar">
+        <label>Stop Loss (pts)
+          <input type="number" id="fno-sl-pts" placeholder="Default 50" step="1" min="1">
+        </label>
+        <label>Target (pts)
+          <input type="number" id="fno-tgt-pts" placeholder="Default 80" step="1" min="1">
+        </label>
+        <button class="fno-btn fno-btn-blue" onclick="saveFnoParams()">💾 Save Params</button>
+        <button class="fno-btn fno-btn-green" onclick="showAddFunds()">💰 Add Funds</button>
+        <button class="fno-btn fno-btn-blue" onclick="loadFno()" style="background:#2a5298">↻ Refresh</button>
+        <span id="fno-param-display" class="note" style="background:transparent;align-self:center"></span>
+      </div>
+
+      <div id="fno-status">Loading FnO trade state…</div>
+
+      <!-- Stock cards -->
+      <div class="fno-cards" id="fno-cards"></div>
+
+      <!-- History -->
+      <section>
+        <div class="secttl">
+          <span>TRADE LOG (last 30 days)</span>
+          <select id="fno-hist-sym" onchange="loadFnoHistory()"
+            style="font-size:11px;padding:2px 6px;background:#2a4a6e;color:#fff;border:none;border-radius:3px">
+            <option value="">All stocks</option>
+            <option value="DIXON">DIXON</option>
+            <option value="FORCEMOT">FORCEMOT</option>
+            <option value="POWERINDIA">POWERINDIA</option>
+            <option value="BSE">BSE</option>
+            <option value="MCX">MCX</option>
+          </select>
+        </div>
+        <div class="scrollbox">
+          <table id="fno-hist-table">
             <thead><tr>
-              <th>Date</th><th>Side</th><th>Entry</th><th>SL</th><th>Target</th>
-              <th>Exit</th><th>Exit Time</th><th>P&amp;L (pts)</th><th>P&amp;L %</th><th>Result</th>
+              <th>Date</th><th>Symbol</th><th>Side</th><th>Lot</th>
+              <th>Entry</th><th>Time</th><th>SL pts</th><th>TGT pts</th>
+              <th>SL ₹</th><th>Target ₹</th><th>Margin</th>
+              <th>OR High</th><th>OR Low</th>
+              <th>Exit ₹</th><th>Exit Time</th><th>P&amp;L pts</th><th>P&amp;L ₹</th><th>Result</th>
             </tr></thead>
             <tbody></tbody>
           </table>
         </div>
       </section>
 
-    </div><!-- end tab-bt -->
+      <!-- Balance log -->
+      <section>
+        <div class="secttl">BALANCE LOG</div>
+        <div class="scrollbox" style="max-height:200px">
+          <table id="fno-bal-table">
+            <thead><tr><th>Date</th><th>Time</th><th>Event</th><th>Amount</th><th>Balance</th><th>Note</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="note">
+        Strategy: 30-min Opening Range (09:15–09:45). First breakout of OR_high → LONG, OR_low → SHORT.
+        1 lot per stock. SL/Target in pts. Margin ~15% of notional (Upstox API if available).
+        Square-off at 15:25 IST. Re-entry after funds: only if LTP within 0.5% of breakout level.
+        Balance and all trades persist in DB permanently.
+      </div>
+    </div><!-- end tab-fno -->
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
@@ -452,12 +534,14 @@
       let indexKeys = {};
       let strikeStep = {};
       let secDRows = [];
-      let lastDiff = null; // seeded from DB on load — fixes the expiry-switch bug
+      let lastDiff = null;
       let timer = null;
       let marketOpen = false;
+      let trTimer = null;
 
       const $ = (id) => document.getElementById(id);
       const fmt = (n) => (n == null ? "-" : Number(n).toLocaleString("en-IN"));
+      const fmtR = (n, d=2) => (n == null ? "-" : Number(n).toFixed(d));
 
       function showErr(msg) {
         $("errbox").innerHTML = msg ? `<div class="err">${msg}</div>` : "";
@@ -469,7 +553,7 @@
         return r.json();
       }
 
-      // ── bootstrap ─────────────────────────────────────────────────────────────────
+      // ── bootstrap ──────────────────────────────────────────────────────────
       async function init() {
         try {
           const inst = await jget("/instruments");
@@ -491,28 +575,20 @@
           $("dlpdf").onclick = downloadPdf;
           await onScripChange();
         } catch (e) {
-          showErr(
-            "Cannot reach server — is jagoar_oi_server.py running? (" +
-              e.message +
-              ")",
-          );
+          showErr("Cannot reach server — is jagoar_oi_server.py running? (" + e.message + ")");
         }
       }
 
-      // ── scrip changed → reload expiries + restore DB logs ────────────────────────
       async function onScripChange() {
         showErr("");
         const ik = $("scrip").value;
         try {
-          const ex = await jget(
-            "/expiries?instrument_key=" + encodeURIComponent(ik),
-          );
+          const ex = await jget("/expiries?instrument_key=" + encodeURIComponent(ik));
           const sel = $("expiry");
           sel.innerHTML = "";
           (ex.expiries || []).forEach((d) => {
             const o = document.createElement("option");
-            o.value = d;
-            o.textContent = d;
+            o.value = d; o.textContent = d;
             sel.appendChild(o);
           });
           await resetSectionD();
@@ -522,47 +598,31 @@
         }
       }
 
-      // ── expiry changed → restore DB logs for new expiry ──────────────────────────
       async function onExpiryChange() {
         await resetSectionD();
         await loadAll();
       }
 
-      // ── clear in-memory state + tbody, then reload from DB ───────────────────────
       async function resetSectionD() {
-        secDRows = [];
-        lastDiff = null;
-        $("secD").querySelector("tbody").innerHTML = ""; // FIXED: was wrong selector
+        secDRows = []; lastDiff = null;
+        $("secD").querySelector("tbody").innerHTML = "";
         await restoreFromDB();
       }
 
-      // ── pull today's logs from server DB and pre-fill Section D ──────────────────
       async function restoreFromDB() {
         const scrip = selectedName();
         const expiry = $("expiry").value;
         if (!scrip || !expiry) return;
         try {
-          const res = await jget(
-            `/logs?scrip=${encodeURIComponent(scrip)}&expiry=${encodeURIComponent(expiry)}`,
-          );
+          const res = await jget(`/logs?scrip=${encodeURIComponent(scrip)}&expiry=${encodeURIComponent(expiry)}`);
           const logs = res.logs || [];
           if (logs.length === 0) return;
-          // Replay each stored row into the table (no re-logging, just display)
           logs.forEach((row) => {
-            _renderSecDRow(
-              row.ts,
-              row.callOI,
-              row.putOI,
-              row.diff,
-              row.changeDiff,
-              row.action,
-            );
+            _renderSecDRow(row.ts, row.callOI, row.putOI, row.diff, row.changeDiff, row.action);
             secDRows.push(row);
           });
-          // Seed lastDiff from the most recent DB row so next live row computes correctly
           lastDiff = logs[logs.length - 1].diff;
-          $("status").textContent =
-            `Restored ${logs.length} rows from today's DB`;
+          $("status").textContent = `Restored ${logs.length} rows from today's DB`;
         } catch (e) {
           console.warn("DB restore failed:", e.message);
         }
@@ -574,29 +634,22 @@
       }
 
       function atmIndex(rows, spot) {
-        let best = 0,
-          bd = Infinity;
+        let best = 0, bd = Infinity;
         rows.forEach((r, i) => {
           const d = Math.abs(r.strike - spot);
-          if (d < bd) {
-            bd = d;
-            best = i;
-          }
+          if (d < bd) { bd = d; best = i; }
         });
         return best;
       }
 
       function remark(diff) {
-        if (diff > TEN_LAC)
-          return { txt: "STRONG RESISTANCE", cls: "r-darkred" };
-        if (diff > 0) return { txt: "RESISTANCE", cls: "r-red" };
-        if (diff < -TEN_LAC)
-          return { txt: "STRONG SUPPORT", cls: "r-darkgreen" };
-        if (diff < 0) return { txt: "SUPPORT", cls: "r-green" };
+        if (diff > TEN_LAC)  return { txt: "STRONG RESISTANCE", cls: "r-darkred" };
+        if (diff > 0)        return { txt: "RESISTANCE", cls: "r-red" };
+        if (diff < -TEN_LAC) return { txt: "STRONG SUPPORT", cls: "r-darkgreen" };
+        if (diff < 0)        return { txt: "SUPPORT", cls: "r-green" };
         return { txt: "NEUTRAL", cls: "" };
       }
 
-      // ── main data load ────────────────────────────────────────────────────────────
       async function loadAll() {
         showErr("");
         const ik = $("scrip").value;
@@ -605,38 +658,26 @@
         $("status").textContent = "Loading…";
         try {
           const [chain, indices] = await Promise.all([
-            jget(
-              `/chain?instrument_key=${encodeURIComponent(ik)}&expiry_date=${exp}`,
-            ),
+            jget(`/chain?instrument_key=${encodeURIComponent(ik)}&expiry_date=${exp}`),
             jget("/indices").catch(() => null),
           ]);
-
           marketOpen = chain.market_open || false;
           updateMarketBadge();
-
           renderStrip(indices, chain);
-          const rows = chain.rows,
-            spot = chain.spot;
+          const rows = chain.rows, spot = chain.spot;
           const atm = atmIndex(rows, spot);
           renderSecB(rows, atm);
           renderSecC(rows, atm);
-
-          // Only append Section D row + log to DB during market hours
           if (marketOpen) {
             const lastRow = secDRows[secDRows.length - 1];
             const now = new Date();
-            const lastTime = lastRow
-              ? new Date(now.toDateString() + " " + lastRow.ts)
-              : null;
+            const lastTime = lastRow ? new Date(now.toDateString() + " " + lastRow.ts) : null;
             const diffMs = lastTime ? now - lastTime : Infinity;
             if (diffMs > 2.5 * 60 * 1000) {
-              // only append if last row is older than 2.5 min
               appendSecD(rows, atm, chain.ts, exp);
             }
           }
-
-          $("status").textContent =
-            `Updated ${chain.ts} IST (PCR ${chain.pcr ?? "-"})${marketOpen ? "" : " — Market closed, logging paused"}`;
+          $("status").textContent = `Updated ${chain.ts} IST (PCR ${chain.pcr ?? "-"})${marketOpen ? "" : " — Market closed, logging paused"}`;
         } catch (e) {
           showErr("Data load failed: " + e.message);
           $("status").textContent = "";
@@ -658,18 +699,13 @@
 
       function renderStrip(indices, chain) {
         const strip = $("strip");
-        strip.innerHTML = "";
-        strip.innerHTML += `<div class="it"><span class="nm">PCR</span><span>${chain.pcr ?? "-"}</span></div>`;
+        strip.innerHTML = `<div class="it"><span class="nm">PCR</span><span>${chain.pcr ?? "-"}</span></div>`;
         if (!indices || !indices.data) return;
         Object.entries(indices.data).forEach(([k, v]) => {
-          const ltp = v.last_price,
-            close = v.close_price ?? v.cp;
-          let chg = "",
-            pct = "",
-            cls = "";
+          const ltp = v.last_price, close = v.close_price ?? v.cp;
+          let chg = "", pct = "", cls = "";
           if (ltp != null && close != null) {
-            const d = ltp - close,
-              p = close ? (d / close) * 100 : 0;
+            const d = ltp - close, p = close ? (d / close) * 100 : 0;
             cls = d >= 0 ? "up" : "down";
             chg = (d >= 0 ? "+" : "") + d.toFixed(2);
             pct = (d >= 0 ? "+" : "") + p.toFixed(2) + "%";
@@ -682,22 +718,19 @@
       function renderSecB(rows, atm) {
         const tb = $("secB").querySelector("tbody");
         tb.innerHTML = "";
-        const start = Math.max(0, atm - 1),
-          end = Math.min(rows.length, start + 4);
-        let tc = 0,
-          tp = 0;
+        const start = Math.max(0, atm - 1), end = Math.min(rows.length, start + 4);
+        let tc = 0, tp = 0;
         for (let i = start; i < end; i++) {
           const r = rows[i];
           const diff = r.call_oi_change - r.put_oi_change;
           const rm = remark(diff);
-          tc += r.call_oi_change;
-          tp += r.put_oi_change;
+          tc += r.call_oi_change; tp += r.put_oi_change;
           tb.innerHTML += `<tr>
-      <td class="lbl">${r.strike}${i === atm ? " (ATM)" : ""}</td>
-      <td class="callcell">${fmt(r.call_oi_change)}</td>
-      <td class="putcell">${fmt(r.put_oi_change)}</td>
-      <td class="${rm.cls}">${rm.txt} (${fmt(diff)})</td>
-    </tr>`;
+            <td class="lbl">${r.strike}${i === atm ? " (ATM)" : ""}</td>
+            <td class="callcell">${fmt(r.call_oi_change)}</td>
+            <td class="putcell">${fmt(r.put_oi_change)}</td>
+            <td class="${rm.cls}">${rm.txt} (${fmt(diff)})</td>
+          </tr>`;
         }
         const trm = remark(tc - tp);
         tb.innerHTML += `<tr class="totrow"><td class="lbl">TOTAL</td><td>${fmt(tc)}</td><td>${fmt(tp)}</td><td class="${trm.cls}">${trm.txt}</td></tr>`;
@@ -706,102 +739,56 @@
       function renderSecC(rows, atm) {
         const tb = $("secC").querySelector("tbody");
         tb.innerHTML = "";
-        const start = Math.max(0, atm - 5),
-          end = Math.min(rows.length, atm + 6);
+        const start = Math.max(0, atm - 5), end = Math.min(rows.length, atm + 6);
         for (let i = start; i < end; i++) {
           const r = rows[i];
           tb.innerHTML += `<tr>
-      <td class="lbl">${r.strike}${i === atm ? " (ATM)" : ""}</td>
-      <td class="callcell">${fmt(r.call_oi_change)}</td>
-      <td class="putcell">${fmt(r.put_oi_change)}</td>
-      <td class="callcell">${fmt(r.call_volume)}</td>
-      <td class="putcell">${fmt(r.put_volume)}</td>
-    </tr>`;
+            <td class="lbl">${r.strike}${i === atm ? " (ATM)" : ""}</td>
+            <td class="callcell">${fmt(r.call_oi_change)}</td>
+            <td class="putcell">${fmt(r.put_oi_change)}</td>
+            <td class="callcell">${fmt(r.call_volume)}</td>
+            <td class="putcell">${fmt(r.put_volume)}</td>
+          </tr>`;
         }
       }
 
-      // ── Section D: compute row, send log params to server, render ─────────────────
       async function appendSecD(rows, atm, ts, expiry) {
-        const start = Math.max(0, atm - 1),
-          end = Math.min(rows.length, atm + 2);
-        let callOI = 0,
-          putOI = 0;
-        for (let i = start; i < end; i++) {
-          callOI += rows[i].call_oi_change;
-          putOI += rows[i].put_oi_change;
-        }
+        const start = Math.max(0, atm - 1), end = Math.min(rows.length, atm + 2);
+        let callOI = 0, putOI = 0;
+        for (let i = start; i < end; i++) { callOI += rows[i].call_oi_change; putOI += rows[i].put_oi_change; }
         const diff = callOI - putOI;
         const changeDiff = lastDiff === null ? 0 : diff - lastDiff;
-        let action = "",
-          actCls = "";
-        if (callOI - putOI > TEN_LAC) {
-          action = "BUY PUT";
-          actCls = "act-buy-put";
-        }
-        if (putOI - callOI > TEN_LAC) {
-          action = "BUY CALL";
-          actCls = "act-buy-call";
-        }
+        let action = "";
+        if (callOI - putOI > TEN_LAC) action = "BUY PUT";
+        if (putOI - callOI > TEN_LAC) action = "BUY CALL";
         lastDiff = diff;
-
         const rec = { ts, callOI, putOI, diff, changeDiff, action };
         secDRows.push(rec);
         _renderSecDRow(ts, callOI, putOI, diff, changeDiff, action);
-
-        // Tell server to persist this row (server double-checks market hours)
-        const logUrl =
-          `/log?scrip=${encodeURIComponent(selectedName())}` +
-          `&expiry=${encodeURIComponent(expiry)}` +
-          `&ts=${encodeURIComponent(ts)}` +
-          `&call_oi=${callOI}&put_oi=${putOI}` +
-          `&diff=${diff}&change_diff=${changeDiff}` +
-          `&action=${encodeURIComponent(action)}`;
-        fetch(SRV + logUrl).catch((e) =>
-          console.warn("DB log failed:", e.message),
-        );
+        const logUrl = `/log?scrip=${encodeURIComponent(selectedName())}&expiry=${encodeURIComponent(expiry)}&ts=${encodeURIComponent(ts)}&call_oi=${callOI}&put_oi=${putOI}&diff=${diff}&change_diff=${changeDiff}&action=${encodeURIComponent(action)}`;
+        fetch(SRV + logUrl).catch(e => console.warn("DB log failed:", e.message));
       }
 
       function _renderSecDRow(ts, callOI, putOI, diff, changeDiff, action) {
         const tb = $("secD").querySelector("tbody");
         const diffCls = diff > 0 ? "r-red" : diff < 0 ? "r-green" : "";
-        const actCls =
-          action === "BUY PUT"
-            ? "act-buy-put"
-            : action === "BUY CALL"
-              ? "act-buy-call"
-              : "";
+        const actCls = action === "BUY PUT" ? "act-buy-put" : action === "BUY CALL" ? "act-buy-call" : "";
         const tr = document.createElement("tr");
         tr.innerHTML = `<td class="lbl">${ts}</td>
-    <td class="callcell">${fmt(callOI)}</td>
-    <td class="putcell">${fmt(putOI)}</td>
-    <td class="${diffCls}">${fmt(diff)}</td>
-    <td>${fmt(changeDiff)}</td>
-    <td class="${actCls}">${action}</td>`;
+          <td class="callcell">${fmt(callOI)}</td>
+          <td class="putcell">${fmt(putOI)}</td>
+          <td class="${diffCls}">${fmt(diff)}</td>
+          <td>${fmt(changeDiff)}</td>
+          <td class="${actCls}">${action}</td>`;
         tb.appendChild(tr);
-        // Auto-scroll to bottom
         const box = tb.closest(".scrollbox");
         if (box) box.scrollTop = box.scrollHeight;
       }
 
-      // ── exports ───────────────────────────────────────────────────────────────────
       function secDArray() {
         return [
-          [
-            "Time",
-            "Call OI",
-            "Put OI",
-            "Difference",
-            "Change in Diff",
-            "Action",
-          ],
-          ...secDRows.map((r) => [
-            r.ts,
-            r.callOI,
-            r.putOI,
-            r.diff,
-            r.changeDiff,
-            r.action,
-          ]),
+          ["Time","Call OI","Put OI","Difference","Change in Diff","Action"],
+          ...secDRows.map(r => [r.ts, r.callOI, r.putOI, r.diff, r.changeDiff, r.action]),
         ];
       }
       function downloadXlsx() {
@@ -813,34 +800,25 @@
       function downloadPdf() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text(
-          `MANJIT JAGOAR OI SCANNER - Section D (${selectedName()})`,
-          14,
-          14,
-        );
-        doc.autoTable({
-          head: [secDArray()[0]],
-          body: secDArray().slice(1),
-          startY: 20,
-          styles: { fontSize: 8 },
-        });
+        doc.text(`MANJIT JAGOAR OI SCANNER - Section D (${selectedName()})`, 14, 14);
+        doc.autoTable({ head: [secDArray()[0]], body: secDArray().slice(1), startY: 20, styles: { fontSize: 8 } });
         doc.save(`JAGOAR_OI_SectionD_${selectedName()}.pdf`);
       }
 
       init();
 
-      // ── Tab switching ─────────────────────────────────────────────────────────
-      function switchTab(name) {
+      // ── Tab switching ───────────────────────────────────────────────────────
+      function switchTab(name, evt) {
         document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
         document.getElementById("tab-" + name).classList.add("active");
-        event.target.classList.add("active");
-        if (name === "bt" && $("bt-stock").options.length <= 1) {
-          loadFnoStocks();
-        }
+        if (evt && evt.target) evt.target.classList.add("active");
+        if (name === "bt" && $("bt-stock").options.length <= 1) loadFnoStocks();
+        if (name === "tr") initTrending();
+        if (name === "fno") initFno();
       }
 
-      // ── Backtest ──────────────────────────────────────────────────────────────
+      // ── Backtest ────────────────────────────────────────────────────────────
       let btChart = null;
 
       async function loadFnoStocks() {
@@ -856,19 +834,18 @@
             o.textContent = s.symbol;
             sel.appendChild(o);
           });
-          $("bt-status").textContent = `${res.stocks.length} FnO stocks loaded. Select one and click Run Backtest.`;
+          $("bt-status").textContent = `${res.stocks.length} FnO stocks loaded.`;
         } catch(e) {
           $("bt-status").textContent = "Failed to load stocks: " + e.message;
         }
       }
 
-      // Speed expectation per timeframe (first run only; cached runs are instant)
       const SPEED_NOTE = {
         "1min":  "⚠ 1-min: slowest. Many chunked requests per stock — first run can take 1–3 min. Cached after.",
         "3min":  "⚠ 3-min: chunked fetch, first run ~20–60s per stock. Cached after, then instant.",
         "5min":  "5-min: chunked fetch, first run ~15–40s. Cached after.",
         "15min": "15-min: few requests, first run ~5–15s. Cached after.",
-        "day":   "Daily: 1 request, instant — but NO intraday exits (X/Y/15:00 can't be simulated on daily candles). ORB needs intraday data; use 15-min or finer for real results.",
+        "day":   "Daily: 1 request, instant — but NO intraday exits. ORB needs intraday data; use 15-min or finer for real results.",
       };
       function updateSpeedNote() {
         const tf = $("bt-timeframe").value;
@@ -883,42 +860,26 @@
         const ik  = sel.value;
         const sym = sel.selectedOptions[0]?.dataset?.symbol || "";
         if (!ik) { $("bt-status").textContent = "Please select a stock first."; return; }
-
-        const days      = parseInt($("bt-period").value);
+        const days = parseInt($("bt-period").value);
         const timeframe = $("bt-timeframe").value;
-        const xPts      = parseFloat($("bt-x").value);
-        const yPts      = parseFloat($("bt-y").value);
-        if (!(xPts > 0) || !(yPts > 0)) {
-          $("bt-status").textContent = "Target and Stop Loss must be positive points.";
-          return;
-        }
-        const toDate    = new Date().toISOString().slice(0,10);
-        const fromDate  = new Date(Date.now() - days * 86400000).toISOString().slice(0,10);
-
+        const xPts = parseFloat($("bt-x").value);
+        const yPts = parseFloat($("bt-y").value);
+        if (!(xPts > 0) || !(yPts > 0)) { $("bt-status").textContent = "Target and Stop Loss must be positive."; return; }
+        const toDate   = new Date().toISOString().slice(0,10);
+        const fromDate = new Date(Date.now() - days * 86400000).toISOString().slice(0,10);
         const slow = (timeframe === "1min" || timeframe === "3min");
-        $("bt-status").textContent =
-          `Running ORB backtest for ${sym} on ${timeframe} candles…` +
-          (slow ? " First run fetches & caches intraday data — please wait." : "");
+        $("bt-status").textContent = `Running ORB backtest for ${sym} on ${timeframe} candles…` + (slow ? " First run fetches & caches data — please wait." : "");
         $("bt-summary").style.display = "none";
         $("bt-chart").style.display   = "none";
         $("bt-table-wrap").style.display = "none";
-
         try {
-          const url = `/backtest?instrument_key=${encodeURIComponent(ik)}`
-                    + `&symbol=${encodeURIComponent(sym)}`
-                    + `&timeframe=${encodeURIComponent(timeframe)}`
-                    + `&from_date=${fromDate}&to_date=${toDate}`
-                    + `&x_pts=${xPts}&y_pts=${yPts}`;
+          const url = `/backtest?instrument_key=${encodeURIComponent(ik)}&symbol=${encodeURIComponent(sym)}&timeframe=${encodeURIComponent(timeframe)}&from_date=${fromDate}&to_date=${toDate}&x_pts=${xPts}&y_pts=${yPts}`;
           const res = await jget(url);
-          const s   = res.summary;
-          const trades = res.trades;
-
+          const s = res.summary, trades = res.trades;
           if (!trades || trades.length === 0) {
-            $("bt-status").textContent = `No breakout trades for ${sym} in this period. Try a longer period or a different candle size.`;
+            $("bt-status").textContent = `No breakout trades for ${sym} in this period.`;
             return;
           }
-
-          // Summary bar
           $("bs-total").textContent   = s.total;
           $("bs-wins").textContent    = s.wins;
           $("bs-losses").textContent  = s.losses;
@@ -926,17 +887,11 @@
           $("bs-ls").textContent      = `${s.longs} / ${s.shorts}`;
           const pnlEl = $("bs-pnl");
           pnlEl.textContent = (s.total_pnl >= 0 ? "+" : "") + s.total_pnl.toFixed(2);
-          pnlEl.className   = "sv " + (s.total_pnl >= 0 ? "bt-win" : "bt-loss");
+          pnlEl.className = "sv " + (s.total_pnl >= 0 ? "bt-win" : "bt-loss");
           $("bt-summary").style.display = "flex";
-
-          // Cumulative P&L chart
           let cum = 0;
           const labels = [], data = [];
-          trades.forEach(t => {
-            cum += t.pnl;
-            labels.push(t.entry_date);
-            data.push(parseFloat(cum.toFixed(2)));
-          });
+          trades.forEach(t => { cum += t.pnl; labels.push(t.entry_date); data.push(parseFloat(cum.toFixed(2))); });
           $("bt-chart").style.display = "block";
           if (btChart) btChart.destroy();
           btChart = new Chart($("bt-canvas"), {
@@ -944,14 +899,11 @@
             data: {
               labels,
               datasets: [{
-                label: `${sym} Cumulative P&L (pts) — ORB ${timeframe}`,
+                label: `${sym} Cumulative P&L (pts)`,
                 data,
                 borderColor: s.total_pnl >= 0 ? "#1e8449" : "#e74c3c",
                 backgroundColor: s.total_pnl >= 0 ? "rgba(30,132,73,0.08)" : "rgba(231,76,60,0.08)",
-                borderWidth: 2,
-                pointRadius: 3,
-                fill: true,
-                tension: 0.3,
+                borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3,
               }]
             },
             options: {
@@ -963,8 +915,6 @@
               }
             }
           });
-
-          // Trade log table
           const tb = $("bt-table").querySelector("tbody");
           tb.innerHTML = "";
           trades.forEach(t => {
@@ -985,10 +935,445 @@
           });
           $("bt-table-wrap").style.display = "block";
           $("bt-status").textContent = `ORB complete: ${sym} | ${timeframe} | ${fromDate} → ${toDate} | Target ${xPts}pts | SL ${yPts}pts`;
-
         } catch(e) {
           $("bt-status").textContent = "Backtest failed: " + e.message;
         }
+      }
+
+      // ══════════════════════════════════════════════════════════════════
+      //  TRENDING TAB
+      // ══════════════════════════════════════════════════════════════════
+      let _trCurrentParams = { sl_pct: 2.0, target_pct: 0.6 };
+
+      function updateRRWarn(sl, tgt) {
+        const warn = $("tr-rr-warn");
+        if (!sl || !tgt) { warn.style.display = "none"; return; }
+        const rr = (tgt / sl).toFixed(2);
+        const breakeven = ((sl / (sl + tgt)) * 100).toFixed(1);
+        warn.style.display = "block";
+        if (tgt < sl) {
+          warn.innerHTML = `⚠ Risk:Reward = 1:${rr} — you need <b>${breakeven}%+ win rate</b> to break even. At SL ${sl}% and target ${tgt}%, most market conditions will grind this negative over time.`;
+          warn.style.background = "#fff0f0";
+          warn.style.color = "#900";
+        } else {
+          warn.innerHTML = `✓ Risk:Reward = 1:${rr} — breakeven win rate ${breakeven}%.`;
+          warn.style.background = "#f0fff4";
+          warn.style.color = "#0b5d2e";
+        }
+      }
+
+      async function initTrending() {
+        // Fetch current server params
+        try {
+          const p = await jget("/trending_params");
+          _trCurrentParams = p;
+          $("tr-param-display").textContent = `Active: SL ${p.sl_pct}% / TGT ${p.target_pct}%`;
+          updateRRWarn(p.sl_pct, p.target_pct);
+        } catch(e) {
+          console.warn("Param fetch failed:", e.message);
+        }
+        await loadTrending();
+        await loadHistory();
+        clearTimeout(trTimer);
+        trTimer = setTimeout(function autoRefresh() {
+          loadTrending();
+          clearTimeout(trTimer);
+          trTimer = setTimeout(autoRefresh, 60000); // refresh every 60s
+        }, 60000);
+      }
+
+      async function saveTrendingParams() {
+        const sl  = parseFloat($("tr-sl-pct").value);
+        const tgt = parseFloat($("tr-tgt-pct").value);
+        if (isNaN(sl) || sl <= 0 || isNaN(tgt) || tgt <= 0) {
+          $("tr-status").textContent = "Enter valid positive numbers for both SL% and Target%.";
+          return;
+        }
+        try {
+          const p = await jget(`/trending_params?sl_pct=${sl}&target_pct=${tgt}`);
+          _trCurrentParams = p;
+          $("tr-param-display").textContent = `Active: SL ${p.sl_pct}% / TGT ${p.target_pct}%`;
+          $("tr-status").textContent = `Params saved — SL ${p.sl_pct}% / Target ${p.target_pct}%. Will apply on next 09:15 entry.`;
+          updateRRWarn(p.sl_pct, p.target_pct);
+          $("tr-sl-pct").value = "";
+          $("tr-tgt-pct").value = "";
+        } catch(e) {
+          $("tr-status").textContent = "Failed to save params: " + e.message;
+        }
+      }
+
+      async function loadTrending() {
+        $("tr-status").textContent = "Fetching stock status…";
+        try {
+          // Fetch stock status from DB
+          const [stocksRes, ltpRes] = await Promise.all([
+            jget("/trending_stocks"),
+            jget("/trending_ltp").catch(() => ({ ltps: {} })),
+          ]);
+          renderTrendingCards(stocksRes.stocks, ltpRes.ltps, stocksRes.date);
+          $("tr-status").textContent = `Last updated: ${new Date().toLocaleTimeString("en-IN")} IST | Date: ${stocksRes.date}`;
+        } catch(e) {
+          $("tr-status").textContent = "Failed to load: " + e.message;
+        }
+      }
+
+      function badgeFor(result) {
+        if (!result || result === "OPEN") return `<span class="tr-badge tr-badge-open">OPEN</span>`;
+        if (result === "TGT HIT")  return `<span class="tr-badge tr-badge-tgt">TGT HIT ✓</span>`;
+        if (result === "SL HIT")   return `<span class="tr-badge tr-badge-sl">SL HIT ✗</span>`;
+        if (result === "SQUAREOFF") return `<span class="tr-badge tr-badge-sq">SQUARED OFF</span>`;
+        return `<span class="tr-badge tr-badge-wait">${result}</span>`;
+      }
+
+      function renderTrendingCards(stocks, ltps, date) {
+        const container = $("tr-cards");
+        container.innerHTML = "";
+        stocks.forEach(s => {
+          const sym = s.symbol;
+          const row = s.today;
+          // Try to find LTP: ltps might have key as symbol or partial match
+          let ltp = null;
+          for (const [k, v] of Object.entries(ltps)) {
+            if (k.toUpperCase().includes(sym.toUpperCase()) || sym.toUpperCase().includes(k.toUpperCase())) {
+              ltp = v; break;
+            }
+          }
+          const ltpHtml = ltp != null
+            ? `<span class="tr-ltp-val">₹${fmtR(ltp)}</span>`
+            : `<span style="color:#888">—</span>`;
+
+          let bodyHtml = "";
+          if (!row) {
+            // No trade today yet
+            const mktHour = new Date().getHours() * 60 + new Date().getMinutes();
+            const entryDue = mktHour < (9 * 60 + 15);
+            bodyHtml = `
+              <div class="row"><span class="key">Status</span><span class="val">${entryDue ? "⏳ Waiting for 09:15" : "No entry today"}</span></div>
+              <div class="row"><span class="key">LTP</span><span class="val">${ltpHtml}</span></div>
+            `;
+          } else {
+            const isOpen = row.result === "OPEN";
+            // Live unrealised P&L
+            let livePnl = "", livePnlCls = "";
+            if (isOpen && ltp != null) {
+              const unreal = ltp - row.entry_price;
+              const unrPct = ((unreal / row.entry_price) * 100).toFixed(2);
+              livePnlCls = unreal >= 0 ? "tr-pnl-pos" : "tr-pnl-neg";
+              livePnl = `<div class="row"><span class="key">Unrealised</span><span class="val ${livePnlCls}">${unreal >= 0 ? "+" : ""}${fmtR(unreal)} (${unreal >= 0 ? "+" : ""}${unrPct}%)</span></div>`;
+            }
+            let realPnl = "";
+            if (!isOpen && row.pnl_pts != null) {
+              const cls = row.pnl_pts >= 0 ? "tr-pnl-pos" : "tr-pnl-neg";
+              realPnl = `<div class="row"><span class="key">P&amp;L</span><span class="val ${cls}">${row.pnl_pts >= 0 ? "+" : ""}₹${fmtR(row.pnl_pts)} (${row.pnl_pct >= 0 ? "+" : ""}${fmtR(row.pnl_pct)}%)</span></div>`;
+            }
+            bodyHtml = `
+              <div class="row"><span class="key">LTP</span><span class="val">${ltpHtml}</span></div>
+              <div class="row"><span class="key">Entry</span><span class="val">₹${fmtR(row.entry_price)} @ ${row.entry_time}</span></div>
+              <div class="row"><span class="key">SL</span><span class="val r-red">₹${fmtR(row.sl_price)} (${fmtR(row.sl_pct)}%)</span></div>
+              <div class="row"><span class="key">Target</span><span class="val r-green">₹${fmtR(row.target_price)} (${fmtR(row.target_pct)}%)</span></div>
+              ${livePnl}
+              ${realPnl}
+              ${!isOpen ? `<div class="row"><span class="key">Exit</span><span class="val">₹${fmtR(row.exit_price)} @ ${row.exit_time || "-"}</span></div>` : ""}
+            `;
+          }
+
+          const card = document.createElement("div");
+          card.className = "tr-card";
+          card.innerHTML = `
+            <div class="tr-card-hdr">
+              <span>${sym}</span>
+              ${row ? badgeFor(row.result) : `<span class="tr-badge tr-badge-wait">NO TRADE</span>`}
+            </div>
+            <div class="tr-card-body">${bodyHtml}</div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      async function loadHistory() {
+        const sym = $("tr-hist-sym").value;
+        try {
+          const url = `/trending_history?days=30${sym ? "&symbol=" + encodeURIComponent(sym) : ""}`;
+          const res = await jget(url);
+          const rows = res.history || [];
+          const tb = $("tr-hist-table").querySelector("tbody");
+          tb.innerHTML = "";
+          if (rows.length === 0) {
+            tb.innerHTML = `<tr><td colspan="13" style="text-align:center;color:#888;padding:12px">No history yet</td></tr>`;
+            return;
+          }
+          rows.forEach(r => {
+            const isOpen = r.result === "OPEN";
+            const pnlCls = r.pnl_pts == null ? "" : r.pnl_pts >= 0 ? "r-darkgreen" : "r-darkred";
+            const resultCls = r.result === "TGT HIT" ? "r-darkgreen"
+                            : r.result === "SL HIT"  ? "r-darkred"
+                            : r.result === "SQUAREOFF" ? "r-red" : "";
+            tb.innerHTML += `<tr>
+              <td class="lbl">${r.log_date}</td>
+              <td class="lbl" style="font-weight:700">${r.symbol}</td>
+              <td>₹${fmtR(r.entry_price)}</td>
+              <td>${r.entry_time}</td>
+              <td class="r-red">${fmtR(r.sl_pct)}%</td>
+              <td class="r-green">${fmtR(r.target_pct)}%</td>
+              <td class="r-red">₹${fmtR(r.sl_price)}</td>
+              <td class="r-green">₹${fmtR(r.target_price)}</td>
+              <td>${isOpen ? "—" : "₹" + fmtR(r.exit_price)}</td>
+              <td>${r.exit_time || "—"}</td>
+              <td class="${pnlCls}">${r.pnl_pts == null ? "—" : (r.pnl_pts >= 0 ? "+" : "") + "₹" + fmtR(r.pnl_pts)}</td>
+              <td class="${pnlCls}">${r.pnl_pct == null ? "—" : (r.pnl_pct >= 0 ? "+" : "") + fmtR(r.pnl_pct) + "%"}</td>
+              <td class="${resultCls}">${r.result}</td>
+            </tr>`;
+          });
+        } catch(e) {
+          console.warn("History load failed:", e.message);
+        }
+      }
+
+      // ══════════════════════════════════════════════════════════════════
+      //  FNO TRADES TAB
+      // ══════════════════════════════════════════════════════════════════
+      let fnoTimer = null;
+      let _fnoInited = false;
+
+      function initFno() {
+        if (!_fnoInited) { _fnoInited = true; }
+        loadFno();
+        clearInterval(fnoTimer);
+        fnoTimer = setInterval(loadFno, 60000);
+      }
+
+      async function loadFno() {
+        try {
+          const [state, hist] = await Promise.all([
+            jget("/fno_state"),
+            jget("/fno_history?days=30"),
+          ]);
+          renderFnoTopbar(state, hist);
+          renderFnoCards(state);
+          renderFnoHistory(hist.trades);
+          renderFnoBalLog(hist.balance_log);
+          $("fno-date").textContent = state.date;
+          $("fno-param-display").textContent =
+            `Active: SL ${state.sl_pts}pts / TGT ${state.target_pts}pts`;
+          $("fno-status").textContent =
+            `Last refreshed: ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open ? "OPEN ✓" : "CLOSED"}`;
+          // Pending banner
+          const hasPending = state.pending && state.pending.length > 0;
+          $("fno-pending-banner").style.display = hasPending ? "block" : "none";
+        } catch(e) {
+          $("fno-status").textContent = "Load failed: " + e.message;
+        }
+      }
+
+      function renderFnoTopbar(state, hist) {
+        // Balance
+        const bal = state.balance;
+        $("fno-balance").textContent = "₹" + fmt(Math.round(bal));
+        $("fno-balance").className = "val";
+
+        // Today P&L
+        const todayTrades = (hist.trades || []).filter(t => t.log_date === state.date);
+        const todayPnl = todayTrades.reduce((s,t) => s + (t.pnl_inr || 0), 0);
+        const todayEl = $("fno-today-pnl");
+        todayEl.textContent = (todayPnl >= 0 ? "+" : "") + "₹" + fmt(Math.round(todayPnl));
+        todayEl.className = "val " + (todayPnl >= 0 ? "pos" : "neg");
+
+        // Overall P&L = current balance - initial 5L
+        const INITIAL = 500000;
+        const overallPnl = bal - INITIAL;
+        const oel = $("fno-overall-pnl");
+        oel.textContent = (overallPnl >= 0 ? "+" : "") + "₹" + fmt(Math.round(overallPnl));
+        oel.className = "val " + (overallPnl >= 0 ? "pos" : "neg");
+
+        // Margin in use = sum of margin_used for OPEN trades today
+        const marginUsed = todayTrades
+          .filter(t => t.result === "OPEN")
+          .reduce((s,t) => s + (t.margin_used || 0), 0);
+        $("fno-margin-used").textContent = marginUsed > 0 ? "₹" + fmt(Math.round(marginUsed)) : "₹0";
+      }
+
+      function fnoBadge(result, side) {
+        if (!result || result === "OPEN") {
+          const sc = side === "LONG" ? "fno-badge-long" : side === "SHORT" ? "fno-badge-short" : "fno-badge-open";
+          return `<span class="fno-badge ${sc}">${side ? side + " OPEN" : "OPEN"}</span>`;
+        }
+        if (result === "TGT HIT")   return `<span class="fno-badge fno-badge-tgt">TGT HIT ✓</span>`;
+        if (result === "SL HIT")    return `<span class="fno-badge fno-badge-sl">SL HIT ✗</span>`;
+        if (result === "SQUAREOFF") return `<span class="fno-badge fno-badge-sq">SQUARED OFF</span>`;
+        return `<span class="fno-badge fno-badge-wait">${result}</span>`;
+      }
+
+      function renderFnoCards(state) {
+        const container = $("fno-cards");
+        container.innerHTML = "";
+        (state.stocks || []).forEach(s => {
+          const sym   = s.symbol;
+          const trade = s.trade;
+          const ltp   = s.ltp;
+          const isPending = s.is_pending;
+
+          const ltpHtml = ltp != null
+            ? `<span class="fno-ltp">₹${fmtR(ltp)}</span>`
+            : `<span style="color:#888">—</span>`;
+
+          let badge;
+          if (isPending) badge = `<span class="fno-badge fno-badge-pend">WAIT FUNDS</span>`;
+          else if (!trade) badge = `<span class="fno-badge fno-badge-notr">NO TRADE</span>`;
+          else badge = fnoBadge(trade.result, trade.side);
+
+          let bodyHtml = `<div class="row"><span class="key">LTP (Futures)</span><span class="val">${ltpHtml}</span></div>`;
+          bodyHtml += `<div class="row"><span class="key">Lot Size</span><span class="val">${s.lot_size}</span></div>`;
+
+          if (trade) {
+            const isOpen = trade.result === "OPEN";
+            // Live unrealised P&L
+            if (isOpen && ltp != null) {
+              const unreal = trade.side === "LONG"
+                ? (ltp - trade.entry_price) * trade.lot_size
+                : (trade.entry_price - ltp) * trade.lot_size;
+              const pnlPts = trade.side === "LONG" ? ltp - trade.entry_price : trade.entry_price - ltp;
+              const cls = unreal >= 0 ? "fno-pnl-pos" : "fno-pnl-neg";
+              bodyHtml += `<div class="row"><span class="key">Unrealised P&amp;L</span>
+                <span class="val ${cls}">${unreal >= 0 ? "+" : ""}₹${fmtR(unreal)} (${pnlPts >= 0 ? "+" : ""}${fmtR(pnlPts)} pts)</span></div>`;
+            }
+            bodyHtml += `<div class="row"><span class="key">Entry</span><span class="val">₹${fmtR(trade.entry_price)} @ ${trade.entry_time}</span></div>`;
+            bodyHtml += `<div class="row"><span class="key">SL</span><span class="val r-red">₹${fmtR(trade.sl_price)} (−${trade.sl_pts}pts)</span></div>`;
+            bodyHtml += `<div class="row"><span class="key">Target</span><span class="val r-green">₹${fmtR(trade.target_price)} (+${trade.target_pts}pts)</span></div>`;
+            bodyHtml += `<div class="row"><span class="key">Margin Blocked</span><span class="val">₹${fmtR(trade.margin_used)}</span></div>`;
+            if (!isOpen) {
+              const cls = trade.pnl_inr >= 0 ? "fno-pnl-pos" : "fno-pnl-neg";
+              bodyHtml += `<div class="row"><span class="key">P&amp;L</span>
+                <span class="val ${cls}">${trade.pnl_inr >= 0 ? "+" : ""}₹${fmtR(trade.pnl_inr)} (${trade.pnl_pts >= 0 ? "+" : ""}${fmtR(trade.pnl_pts)}pts)</span></div>`;
+              bodyHtml += `<div class="row"><span class="key">Exit</span><span class="val">₹${fmtR(trade.exit_price)} @ ${trade.exit_time || "—"}</span></div>`;
+            }
+          } else if (isPending) {
+            bodyHtml += `<div class="row" style="color:#c0392b;font-size:11px;padding-top:4px">
+              Insufficient margin. Add funds to enable entry.</div>`;
+          } else {
+            const cm = new Date().getHours() * 60 + new Date().getMinutes();
+            if (cm < 9*60+45) {
+              bodyHtml += `<div class="row"><span class="key">Status</span><span class="val">⏳ Building OR (09:15–09:45)</span></div>`;
+            } else {
+              bodyHtml += `<div class="row"><span class="key">Status</span><span class="val">Watching for breakout</span></div>`;
+            }
+          }
+
+          // OR bar at bottom of card
+          const orHtml = (s.or_high != null)
+            ? `<div class="fno-or-bar">OR: H <b>₹${fmtR(s.or_high)}</b> L <b>₹${fmtR(s.or_low)}</b></div>`
+            : `<div class="fno-or-bar" style="color:#aaa">OR: building after 09:15</div>`;
+
+          const card = document.createElement("div");
+          card.className = "fno-card";
+          card.innerHTML = `
+            <div class="fno-card-hdr">
+              <span>${sym} <span class="fno-card-sub">FUT</span></span>
+              ${badge}
+            </div>
+            <div class="fno-card-body">${bodyHtml}</div>
+            ${orHtml}`;
+          container.appendChild(card);
+        });
+      }
+
+      function renderFnoHistory(trades) {
+        const tb = $("fno-hist-table").querySelector("tbody");
+        tb.innerHTML = "";
+        if (!trades || trades.length === 0) {
+          tb.innerHTML = `<tr><td colspan="18" style="text-align:center;color:#888;padding:12px">No trade history yet</td></tr>`;
+          return;
+        }
+        trades.forEach(t => {
+          const isOpen = t.result === "OPEN";
+          const sideCls = t.side === "LONG" ? "r-darkgreen" : "r-darkred";
+          const resCls  = t.result === "TGT HIT" ? "r-darkgreen"
+                        : t.result === "SL HIT"  ? "r-darkred"
+                        : t.result === "SQUAREOFF" ? "r-red" : "";
+          const pnlCls  = t.pnl_inr == null ? "" : t.pnl_inr >= 0 ? "r-darkgreen" : "r-darkred";
+          tb.innerHTML += `<tr>
+            <td class="lbl">${t.log_date}</td>
+            <td style="font-weight:700">${t.symbol}</td>
+            <td class="${sideCls}">${t.side}</td>
+            <td>${t.lot_size}</td>
+            <td>₹${fmtR(t.entry_price)}</td>
+            <td>${t.entry_time}</td>
+            <td class="r-red">${t.sl_pts}</td>
+            <td class="r-green">${t.target_pts}</td>
+            <td class="r-red">₹${fmtR(t.sl_price)}</td>
+            <td class="r-green">₹${fmtR(t.target_price)}</td>
+            <td>₹${fmtR(t.margin_used)}</td>
+            <td>${fmtR(t.or_high)}</td>
+            <td>${fmtR(t.or_low)}</td>
+            <td>${isOpen ? "—" : "₹"+fmtR(t.exit_price)}</td>
+            <td>${t.exit_time || "—"}</td>
+            <td class="${pnlCls}">${t.pnl_pts == null ? "—" : (t.pnl_pts >= 0 ? "+" : "") + fmtR(t.pnl_pts)}</td>
+            <td class="${pnlCls}">${t.pnl_inr == null ? "—" : (t.pnl_inr >= 0 ? "+" : "") + "₹" + fmtR(t.pnl_inr)}</td>
+            <td class="${resCls}">${t.result}</td>
+          </tr>`;
+        });
+      }
+
+      function renderFnoBalLog(logs) {
+        const tb = $("fno-bal-table").querySelector("tbody");
+        tb.innerHTML = "";
+        if (!logs || logs.length === 0) {
+          tb.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#888">No balance events yet</td></tr>`;
+          return;
+        }
+        logs.forEach(r => {
+          const amtCls = r.amount >= 0 ? "r-darkgreen" : "r-darkred";
+          tb.innerHTML += `<tr>
+            <td class="lbl">${r.log_date}</td>
+            <td>${r.ts}</td>
+            <td style="font-weight:600">${r.event}</td>
+            <td class="${amtCls}">${r.amount >= 0 ? "+" : ""}₹${fmtR(r.amount)}</td>
+            <td style="font-weight:700">₹${fmtR(r.balance)}</td>
+            <td class="lbl" style="color:#666;font-size:11px">${r.note || ""}</td>
+          </tr>`;
+        });
+      }
+
+      async function saveFnoParams() {
+        const sl  = parseFloat($("fno-sl-pts").value);
+        const tgt = parseFloat($("fno-tgt-pts").value);
+        if (isNaN(sl) || sl <= 0 || isNaN(tgt) || tgt <= 0) {
+          $("fno-status").textContent = "Enter valid positive numbers for SL and Target."; return;
+        }
+        try {
+          const res = await jget(`/fno_params?sl_pts=${sl}&target_pts=${tgt}`);
+          $("fno-param-display").textContent = `Active: SL ${res.sl_pts}pts / TGT ${res.target_pts}pts`;
+          $("fno-status").textContent = `Params saved — SL ${res.sl_pts}pts / Target ${res.target_pts}pts. Applies from next entry.`;
+          $("fno-sl-pts").value = ""; $("fno-tgt-pts").value = "";
+        } catch(e) { $("fno-status").textContent = "Save failed: " + e.message; }
+      }
+
+      function showAddFunds() {
+        $("fno-add-funds-row").style.display = "flex";
+        $("fno-fund-input").focus();
+      }
+
+      async function addFunds() {
+        const amount = parseFloat($("fno-fund-input").value);
+        if (isNaN(amount) || amount <= 0) {
+          $("fno-status").textContent = "Enter a valid positive amount."; return;
+        }
+        try {
+          const res = await jget(`/fno_add_funds?amount=${amount}`);
+          $("fno-status").textContent = `₹${fmt(Math.round(amount))} added. New balance: ₹${fmt(Math.round(res.balance))}. Pending re-entry checks: ${res.pending_count}`;
+          $("fno-fund-input").value = "";
+          $("fno-add-funds-row").style.display = "none";
+          await loadFno();
+        } catch(e) { $("fno-status").textContent = "Add funds failed: " + e.message; }
+      }
+
+      async function loadFnoHistory() {
+        const sym = $("fno-hist-sym").value;
+        try {
+          const url = `/fno_history?days=30${sym ? "&symbol=" + encodeURIComponent(sym) : ""}`;
+          const res = await jget(url);
+          renderFnoHistory(res.trades);
+          renderFnoBalLog(res.balance_log);
+        } catch(e) { console.warn("FnO history load failed:", e.message); }
       }
     </script>
   </body>
