@@ -5,7 +5,8 @@ MANJIT JAGOAR OI DATA SCANNER - backend server.
 Tabs:
   1. OI SCANNER  — live option chain, section B/C/D, DB-logged every 3 min
   2. BACKTEST    — ORB historical backtest, candle cache
-  3. TRENDING    — 5 stocks, LTP-entry at 09:15, SL/TGT %-based, logged forever
+  3. TRENDING    — top10 rising + top10 falling NSE FnO stocks (3-day consecutive
+                   close filter), intraday high/low breakout entry, SL/TGT %-based
   4. FNO TRADES  — 5 stocks, futures, ORB 30-min breakout, 1 lot per stock,
                    balance tracker, lot-size from Upstox (fallback hardcoded),
                    re-entry on fund-add if within 0.5% of breakout level
@@ -73,6 +74,29 @@ FNO_OR_START           = 9  * 60 + 15
 FNO_OR_END             = 9  * 60 + 45
 FNO_SQUAREOFF          = 15 * 60 + 25
 INITIAL_BALANCE        = 500_000.0
+
+# ── Trending (new) config ──────────────────────────────────────────────────────
+TR_TOP_N          = 10        # top N rising + top N falling
+TR_DAYS_CONSEC    = 3         # consecutive days to qualify
+TR_SCAN_HOUR      = 9         # scan for rising/falling at 09:00 before open
+TR_SCAN_MIN       = 0
+TR_ENTRY_START    = 9*60+15   # earliest breakout entry
+TR_ENTRY_END      = 14*60+30  # latest new entry
+TR_SQUAREOFF      = 15*60     # square-off all trending trades
+TR_DEFAULT_SL_PCT    = 1.0
+TR_DEFAULT_TGT_PCT   = 1.0
+
+# Shared state for new trending engine
+_tr_lock  = threading.Lock()
+_tr_state = {
+    "rising":  [],   # list of {symbol, instrument_key, gain3d_pct, close_d1, close_d2, close_d3}
+    "falling": [],   # same shape
+    "scanned_date": None,
+    "sl_pct":  TR_DEFAULT_SL_PCT,
+    "target_pct": TR_DEFAULT_TGT_PCT,
+    # intraday per-stock: { symbol: {day_high, day_low, entered} }
+    "intraday": {},
+}
 
 # ── Thread-safe shared state for FnO engine ────────────────────────────────────
 _fno_lock   = threading.Lock()
@@ -252,6 +276,225 @@ def trending_get_history(symbol=None, days=30):
     return [{"log_date":r[0],"symbol":r[1],"entry_price":r[2],"entry_time":r[3],
              "sl_pct":r[4],"target_pct":r[5],"sl_price":r[6],"target_price":r[7],
              "exit_price":r[8],"exit_time":r[9],"result":r[10],"pnl_pts":r[11],"pnl_pct":r[12]} for r in rows]
+
+# ── New Trending engine: 3-day scan + intraday breakout ────────────────────────
+
+def _fetch_daily_closes(instrument_key, n_days=5):
+    """
+    Fetch last n_days daily candles via v3 API.
+    Returns list of close prices sorted oldest→newest, or [] on failure.
+    """
+    from datetime import timedelta
+    today = datetime.now().date()
+    from_date = (today - timedelta(days=n_days * 2)).isoformat()  # extra buffer for weekends
+    to_date   = (today - timedelta(days=1)).isoformat()            # up to yesterday
+    try:
+        ik_enc = instrument_key.replace("|", "%7C")
+        url = f"{V3_BASE}/historical-candle/{ik_enc}/days/1/{to_date}/{from_date}"
+        r = requests.get(url, headers=HEADERS, timeout=(8, 20))
+        r.raise_for_status()
+        candles = r.json().get("data", {}).get("candles", [])
+        # candles: [[ts, open, high, low, close, volume, oi], ...]
+        # sorted newest first from API
+        closes = [c[4] for c in candles if len(c) >= 5]
+        closes.reverse()   # now oldest→newest
+        return closes[-n_days:] if len(closes) >= n_days else []
+    except Exception:
+        return []
+
+def _scan_trending_stocks():
+    """
+    Scan all NSE FnO stocks for 3-day consecutive rising/falling.
+    Returns (rising_list, falling_list) each sorted by |gain| desc, capped at TR_TOP_N.
+    """
+    print(f"[{now_ist().strftime('%H:%M:%S')}] Trending scan started…")
+    instruments = _load_nse_instruments()
+    stocks = []
+    seen = set()
+    for d in instruments:
+        if (d.get("segment") == "NSE_FO"
+                and d.get("instrument_type") == "CE"
+                and d.get("underlying_type") == "EQUITY"
+                and d.get("underlying_symbol")
+                and d.get("underlying_key")):
+            sym = d["underlying_symbol"]
+            if sym not in seen:
+                seen.add(sym)
+                stocks.append({"symbol": sym, "instrument_key": d["underlying_key"]})
+
+    rising, falling = [], []
+    for s in stocks:
+        closes = _fetch_daily_closes(s["instrument_key"], n_days=4)
+        if len(closes) < 4:
+            time.sleep(0.05)
+            continue
+        # closes[-1] = D-1 (yesterday), [-2] = D-2, [-3] = D-3
+        d1, d2, d3 = closes[-1], closes[-2], closes[-3]
+        gain3 = round((d1 - closes[-4]) / closes[-4] * 100, 3) if closes[-4] else 0
+        entry = {"symbol": s["symbol"], "instrument_key": s["instrument_key"],
+                 "gain3d_pct": gain3, "close_d1": d1, "close_d2": d2, "close_d3": d3}
+        if d1 > d2 > d3:
+            rising.append(entry)
+        elif d1 < d2 < d3:
+            falling.append(entry)
+        time.sleep(0.05)   # gentle rate limiting
+
+    rising.sort(key=lambda x: x["gain3d_pct"], reverse=True)
+    falling.sort(key=lambda x: x["gain3d_pct"])          # most negative first
+    rising  = rising[:TR_TOP_N]
+    falling = falling[:TR_TOP_N]
+    print(f"  Trending scan done: {len(rising)} rising, {len(falling)} falling")
+    return rising, falling
+
+def _tr_all_active():
+    """Return combined list of all tracked stocks today (rising + falling)."""
+    with _tr_lock:
+        return list(_tr_state["rising"]) + list(_tr_state["falling"])
+
+def _tr_enter(symbol, instrument_key, side, ltp, today):
+    """Enter a trending trade. Returns True if entered."""
+    if trending_already_entered(symbol, today):
+        return False
+    with _tr_lock:
+        sl_pct  = _tr_state["sl_pct"]
+        tgt_pct = _tr_state["target_pct"]
+
+    if side == "LONG":
+        sl_price     = round(ltp * (1 - sl_pct  / 100), 2)
+        target_price = round(ltp * (1 + tgt_pct / 100), 2)
+    else:
+        sl_price     = round(ltp * (1 + sl_pct  / 100), 2)
+        target_price = round(ltp * (1 - tgt_pct / 100), 2)
+
+    trending_insert(symbol, today, ltp, now_ist().strftime("%H:%M:%S"),
+                    sl_pct, tgt_pct, sl_price, target_price)
+    print(f"  [TR] ENTRY {symbol} {side} @ {ltp} | SL={sl_price} TGT={target_price}")
+    return True
+
+def _tr_check_exits(today):
+    """Check all open trending trades for SL/TGT/squareoff."""
+    cm = cur_min_ist()
+    for s in _tr_all_active():
+        sym = s["symbol"]
+        row = trending_already_entered(sym, today)
+        if not row or row["result"] != "OPEN":
+            continue
+        try:
+            ltp = get_ltp(s["instrument_key"])
+            if not ltp:
+                continue
+            entry  = row["entry_price"]
+            result = exit_p = None
+            # Determine direction from SL position
+            is_long = row["sl_price"] < entry
+            if is_long:
+                if ltp <= row["sl_price"]:       exit_p, result = row["sl_price"],     "SL HIT"
+                elif ltp >= row["target_price"]: exit_p, result = row["target_price"], "TGT HIT"
+                elif cm >= TR_SQUAREOFF:         exit_p, result = ltp,                 "SQUAREOFF"
+            else:
+                if ltp >= row["sl_price"]:       exit_p, result = row["sl_price"],     "SL HIT"
+                elif ltp <= row["target_price"]: exit_p, result = row["target_price"], "TGT HIT"
+                elif cm >= TR_SQUAREOFF:         exit_p, result = ltp,                 "SQUAREOFF"
+            if result:
+                pnl_pts = exit_p - entry if is_long else entry - exit_p
+                pnl_pct = round((pnl_pts / entry) * 100, 2)
+                trending_update_exit(row["id"], exit_p, now_ist().strftime("%H:%M:%S"),
+                                     result, round(pnl_pts, 2), pnl_pct)
+                print(f"  [TR] EXIT {sym} @ {exit_p} {result}")
+        except Exception as e:
+            print(f"  [TR] exit check {sym}: {e}")
+
+def new_trending_scheduler():
+    """
+    Background thread for the new trending engine.
+    - 09:00: scan NSE FnO for 3-day rising/falling
+    - 09:15–14:30: poll every 3 min, track day high/low, enter on breakout
+    - Check exits every poll
+    - Reset intraday state at midnight (handled by midnight_wiper via _tr_state)
+    """
+    print(f"[{now_ist().strftime('%H:%M:%S')}] New trending scheduler started.")
+    _scanned_today = [None]   # mutable container to track scan date
+
+    while True:
+        t  = now_ist()
+        cm = t.hour * 60 + t.minute
+        today = ist_date_str()
+
+        # ── 09:00 scan ────────────────────────────────────────────────────────
+        if cm == TR_SCAN_HOUR * 60 + TR_SCAN_MIN and _scanned_today[0] != today:
+            try:
+                rising, falling = _scan_trending_stocks()
+                with _tr_lock:
+                    _tr_state["rising"]       = rising
+                    _tr_state["falling"]      = falling
+                    _tr_state["scanned_date"] = today
+                    _tr_state["intraday"]     = {}
+                _scanned_today[0] = today
+            except Exception as e:
+                print(f"  [TR] scan error: {e}")
+            time.sleep(60)
+            continue
+
+        # ── Intraday: track high/low + breakout entry + exits ─────────────────
+        if TR_ENTRY_START <= cm <= TR_SQUAREOFF:
+            all_stocks = _tr_all_active()
+            if not all_stocks:
+                time.sleep(180)
+                continue
+
+            for s in all_stocks:
+                sym = s["symbol"]
+                ik  = s["instrument_key"]
+                # Determine direction: rising → watch for LONG, falling → watch for SHORT
+                is_rising = any(r["symbol"] == sym for r in _tr_state.get("rising", []))
+                side = "LONG" if is_rising else "SHORT"
+
+                try:
+                    ltp = get_ltp(ik)
+                    if not ltp:
+                        continue
+
+                    with _tr_lock:
+                        iday = _tr_state["intraday"].setdefault(sym, {
+                            "day_high": ltp, "day_low": ltp, "entered": False})
+                        iday["day_high"] = max(iday["day_high"], ltp)
+                        iday["day_low"]  = min(iday["day_low"],  ltp)
+                        entered  = iday["entered"]
+                        day_high = iday["day_high"]
+                        day_low  = iday["day_low"]
+
+                    # Entry check (only within entry window, once per stock per day)
+                    if not entered and cm <= TR_ENTRY_END:
+                        already = trending_already_entered(sym, today)
+                        if not already:
+                            trigger = False
+                            if side == "LONG"  and ltp >= day_high and ltp > day_high * 1.0:
+                                trigger = True
+                            elif side == "SHORT" and ltp <= day_low and ltp < day_low * 1.0:
+                                trigger = True
+                            # Simpler: just check if LTP equals the running high/low
+                            # (since we update before checking, ltp==day_high means new high)
+                            if side == "LONG"  and ltp == day_high:
+                                trigger = True
+                            if side == "SHORT" and ltp == day_low:
+                                trigger = True
+
+                            if trigger:
+                                ok = _tr_enter(sym, ik, side, ltp, today)
+                                if ok:
+                                    with _tr_lock:
+                                        _tr_state["intraday"][sym]["entered"] = True
+
+                except Exception as e:
+                    print(f"  [TR] intraday {sym}: {e}")
+
+            # Check exits for all open trades
+            try:
+                _tr_check_exits(today)
+            except Exception as e:
+                print(f"  [TR] exit check error: {e}")
+
+        time.sleep(180)
 
 # ── FnO trades DB helpers ──────────────────────────────────────────────────────
 def fno_trade_today(symbol, log_date):
@@ -780,6 +1023,9 @@ def midnight_wiper():
         with _fno_lock:
             _fno_state["or_data"]       = {}
             _fno_state["pending_funds"] = []
+        with _tr_lock:
+            _tr_state["intraday"]     = {}
+            _tr_state["scanned_date"] = None
 
 # ── Backtest helpers ───────────────────────────────────────────────────────────
 def get_fno_stocks():
@@ -996,31 +1242,95 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         "longs":longs,"shorts":len(trades)-longs,
                         "win_rate":round(wins/len(trades)*100,1) if trades else 0,"total_pnl":pnl}})
 
-            # ── Trending ──────────────────────────────────────────────────────
-            elif p == "/trending_stocks":
+            # ── Trending (new) ────────────────────────────────────────────────
+            elif p == "/trending_state":
+                # Returns scan list + intraday state + live LTP + today's trades
                 today = ist_date_str()
-                self._send(200,{"stocks":[{"symbol":s["symbol"],"instrument_key":s["instrument_key"],
-                    "today": trending_already_entered(s["symbol"],today)} for s in TRENDING_STOCKS],"date":today})
+                with _tr_lock:
+                    rising      = list(_tr_state["rising"])
+                    falling     = list(_tr_state["falling"])
+                    scanned     = _tr_state["scanned_date"]
+                    sl_pct      = _tr_state["sl_pct"]
+                    target_pct  = _tr_state["target_pct"]
+                    intraday    = dict(_tr_state["intraday"])
+
+                def enrich(stocks, direction):
+                    out = []
+                    for s in stocks:
+                        sym = s["symbol"]
+                        iday = intraday.get(sym, {})
+                        trade = trending_already_entered(sym, today)
+                        out.append({
+                            **s,
+                            "direction":  direction,
+                            "day_high":   iday.get("day_high"),
+                            "day_low":    iday.get("day_low"),
+                            "entered":    iday.get("entered", False),
+                            "trade":      trade,
+                        })
+                    return out
+
+                self._send(200, {
+                    "rising":       enrich(rising, "LONG"),
+                    "falling":      enrich(falling, "SHORT"),
+                    "scanned_date": scanned,
+                    "sl_pct":       sl_pct,
+                    "target_pct":   target_pct,
+                    "date":         today,
+                    "market_open":  is_market_open(),
+                })
+
             elif p == "/trending_params":
                 sl  = float(qs.get("sl_pct",["-1"])[0])
                 tgt = float(qs.get("target_pct",["-1"])[0])
                 if sl > 0 and tgt > 0:
-                    with trending_scheduler._params_lock:
-                        trending_scheduler._params.update({"sl_pct":sl,"target_pct":tgt})
-                with trending_scheduler._params_lock:
-                    pp = dict(trending_scheduler._params)
-                self._send(200,pp)
+                    with _tr_lock:
+                        _tr_state["sl_pct"]     = sl
+                        _tr_state["target_pct"] = tgt
+                with _tr_lock:
+                    self._send(200, {"sl_pct": _tr_state["sl_pct"],
+                                     "target_pct": _tr_state["target_pct"]})
+
+            elif p == "/trending_scan_now":
+                # Manual trigger: re-run the scan immediately
+                def _bg():
+                    try:
+                        r, f = _scan_trending_stocks()
+                        with _tr_lock:
+                            _tr_state["rising"]       = r
+                            _tr_state["falling"]      = f
+                            _tr_state["scanned_date"] = ist_date_str()
+                            _tr_state["intraday"]     = {}
+                    except Exception as e:
+                        print(f"  [TR] manual scan error: {e}")
+                threading.Thread(target=_bg, daemon=True).start()
+                self._send(200, {"ok": True, "msg": "Scan started in background (~2-3 min)"})
+
             elif p == "/trending_history":
-                self._send(200,{"history": trending_get_history(
+                self._send(200, {"history": trending_get_history(
                     qs.get("symbol",[None])[0], int(qs.get("days",["30"])[0]))})
+
             elif p == "/trending_ltp":
-                keys = ",".join(s["instrument_key"] for s in TRENDING_STOCKS)
-                data = upstox_get("/market-quote/ltp",{"instrument_key":keys})
-                ltps = {}
-                for k,v in (data.get("data") or {}).items():
-                    sym = k.split(":")[-1].split("|")[-1]
-                    ltps[sym] = v.get("last_price")
-                self._send(200,{"ltps":ltps})
+                # Fetch LTP for all currently tracked stocks
+                with _tr_lock:
+                    all_iks = [s["instrument_key"]
+                               for s in _tr_state["rising"] + _tr_state["falling"]]
+                if not all_iks:
+                    self._send(200, {"ltps": {}})
+                else:
+                    # batch in chunks of 50 (Upstox limit)
+                    ltps = {}
+                    for i in range(0, len(all_iks), 50):
+                        chunk = all_iks[i:i+50]
+                        try:
+                            data = upstox_get("/market-quote/ltp",
+                                              {"instrument_key": ",".join(chunk)})
+                            for k, v in (data.get("data") or {}).items():
+                                sym = k.split(":")[-1].split("|")[-1]
+                                ltps[sym] = v.get("last_price")
+                        except Exception:
+                            pass
+                    self._send(200, {"ltps": ltps})
 
             # ── FnO Trade endpoints ───────────────────────────────────────────
             elif p == "/fno_state":
@@ -1110,10 +1420,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
 if __name__ == "__main__":
     db_init()
     candle_cache_init()
-    threading.Thread(target=midnight_wiper,     daemon=True).start()
-    threading.Thread(target=scheduler,          daemon=True).start()
-    threading.Thread(target=trending_scheduler, daemon=True).start()
-    threading.Thread(target=fno_scheduler,      daemon=True).start()
+    threading.Thread(target=midnight_wiper,       daemon=True).start()
+    threading.Thread(target=scheduler,            daemon=True).start()
+    threading.Thread(target=new_trending_scheduler, daemon=True).start()
+    threading.Thread(target=fno_scheduler,        daemon=True).start()
     server = http.server.ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"JAGOAR OI server → http://0.0.0.0:{PORT}")
     print(f"Market open: {is_market_open()} | Balance: ₹{INITIAL_BALANCE:,.0f}")
