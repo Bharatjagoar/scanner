@@ -111,6 +111,8 @@
       .bt-chart canvas { width: 100% !important; }
       #bt-status { padding: 6px 10px; font-size: 12px; color: #555; background: #fff; }
       #bt-speed-note { padding: 6px 10px; }
+
+      /* ── TRENDING TAB — row layout ─────────────────────────────────────── */
       .tr-params {
         display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end;
         padding: 10px 10px; background: #fff; border-bottom: 2px solid var(--grid);
@@ -121,48 +123,97 @@
         background: #1f3a5f; color: #fff; border: none; padding: 8px 14px;
         font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 3px; flex: 1 1 auto;
       }
-      .tr-rr-warn { font-size: 12px; padding: 6px 10px; border-bottom: 1px solid var(--grid); line-height: 1.5; }
-      .tr-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 8px; padding: 10px;  background: #edf1f7;
+      .tr-section-hdr {
+        padding: 7px 10px; font-weight: 700; font-size: 12px; color: #fff;
+        display: flex; justify-content: space-between; align-items: center;
+        margin: 8px 8px 0; border-radius: 4px 4px 0 0;
       }
-      .tr-card {
-        background: #fff; border: 1px solid var(--grid); border-radius: 6px;
-        overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); min-width: 0;
+      .tr-section-hdr.rising  { background: #1f3a5f; }
+      .tr-section-hdr.falling { background: #6b1a1a; }
+      .tr-table-wrap {
+        margin: 0 8px 8px; border-radius: 0 0 4px 4px;
+        border: 1px solid var(--grid); overflow: hidden;
       }
-      .tr-card-hdr {
-        background: var(--hdr); color: #fff; padding: 6px 10px;
-        font-weight: 700; font-size: 13px; display: flex;
-        justify-content: space-between; align-items: center; gap: 4px;
+      .tr-table-wrap .scrollbox { max-height: none; }
+      .tr-row-table { border-collapse: collapse; width: 100%; background: #fff; }
+      .tr-row-table th {
+        position: sticky; top: 0; background: #dfe6ef; color: #13243a;
+        text-align: center; z-index: 1; font-size: 11px; padding: 5px 7px;
+        white-space: nowrap; border: 1px solid var(--grid);
       }
-      .tr-card-body { padding: 7px 10px; font-size: 12px; line-height: 1.8; }
-      .tr-card-body .row { display: flex; justify-content: space-between; gap: 4px; flex-wrap: wrap; }
-      .tr-card-body .key { color: #666; }
-      .tr-card-body .val { font-weight: 600; word-break: break-all; }
-      .tr-ltp-val { font-size: 14px; font-weight: 700; color: #1f3a5f; }
-      .tr-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; white-space: nowrap; }
-      .tr-badge-open  { background: #2a5298; color: #fff; }
-      .tr-badge-tgt   { background: #1e8449; color: #fff; }
-      .tr-badge-sl    { background: #a01818; color: #fff; }
-      .tr-badge-sq    { background: #888;    color: #fff; }
-      .tr-badge-wait  { background: #c0932a; color: #fff; }
-      .tr-pnl-pos { color: var(--darkgreen); font-weight: 700; }
-      .tr-pnl-neg { color: var(--darkred);   font-weight: 700; }
-      .tr-hist-controls {
-        display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-        padding: 8px 10px; background: #fff; border-bottom: 1px solid var(--grid);
+      .tr-row-table td {
+        border: 1px solid var(--grid); padding: 5px 7px;
+        font-size: 12px; white-space: nowrap; text-align: right;
       }
-      #tr-status, #fno-status { padding: 6px 10px; font-size: 12px; color: #555; background: #fff; line-height: 1.5; }
+      .tr-row-table td.sym-cell {
+        text-align: left; font-weight: 700; color: #1f3a5f; min-width: 80px;
+      }
+      .tr-row-table tbody tr:hover { background: #f4f7fc; }
+
+      .fno-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; white-space: nowrap; }
+      .fno-badge-open  { background: #2a5298; color: #fff; }
+      .fno-badge-tgt   { background: #1e8449; color: #fff; }
+      .fno-badge-sl    { background: #a01818; color: #fff; }
+      .fno-badge-sq    { background: #888;    color: #fff; }
+      .fno-badge-wait  { background: #c0932a; color: #fff; }
+      .fno-badge-notr  { background: #aaa;    color: #fff; }
+      .fno-badge-long  { background: #1e8449; color: #fff; }
+      .fno-badge-short { background: #c0392b; color: #fff; }
+      .fno-badge-pend  { background: #e67e22; color: #fff; }
+
+      #tr-status, #fno-status, #tt-status { padding: 6px 10px; font-size: 12px; color: #555; background: #fff; line-height: 1.5; }
       #tr-refresh-btn { background: #2a5298; color:#fff; border:none; padding:6px 12px; border-radius:3px; cursor:pointer; font-size:13px; }
+
+      /* ── TODAY'S TRADES TAB ───────────────────────────────────────────── */
+      .tt-active-hdr {
+        padding: 8px 10px; background: #10243d; color: #fff;
+        font-weight: 700; font-size: 12px; letter-spacing: .4px;
+        display: flex; justify-content: space-between; align-items: center;
+        margin: 8px 8px 0; border-radius: 4px 4px 0 0;
+      }
+      .tt-table-wrap {
+        margin: 0 8px 0; border-radius: 0 0 4px 4px;
+        border: 1px solid var(--grid); overflow: hidden;
+      }
+      .tt-hist-hdr {
+        padding: 7px 10px; font-weight: 700; font-size: 12px; color: #fff;
+        background: #2a3f5f;
+        display: flex; justify-content: space-between; align-items: center;
+        margin: 10px 8px 0; border-radius: 4px 4px 0 0;
+      }
+      .tt-hist-wrap {
+        margin: 0 8px 10px; border-radius: 0 0 4px 4px;
+        border: 1px solid var(--grid); overflow: hidden;
+      }
+      .tt-table { border-collapse: collapse; width: 100%; background: #fff; }
+      .tt-table th {
+        position: sticky; top: 0; background: #dfe6ef; color: #13243a;
+        text-align: center; z-index: 1; font-size: 11px; padding: 5px 7px;
+        white-space: nowrap; border: 1px solid var(--grid);
+      }
+      .tt-table td {
+        border: 1px solid var(--grid); padding: 5px 8px;
+        font-size: 12px; white-space: nowrap; text-align: right;
+      }
+      .tt-table td.lbl { text-align: left; }
+      .tt-table td.sym { text-align: left; font-weight: 700; color: #1f3a5f; }
+      .tt-table tbody tr:hover { background: #f4f7fc; }
+      .tt-no-trades {
+        padding: 20px; text-align: center; color: #888; font-size: 13px;
+        background: #fff;
+      }
+      .tt-refresh-btn {
+        background: #2a5298; color:#fff; border:none; padding:5px 10px;
+        border-radius:3px; cursor:pointer; font-size:12px;
+      }
+
+      /* ── FNO TAB ──────────────────────────────────────────────────────── */
       .fno-topbar {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        display: grid; grid-template-columns: repeat(2, 1fr);
         background: #10243d; color: #fff;
       }
       .fno-bal-block {
-        padding: 10px 12px;
-        border-right: 1px solid #1e3a60;
+        padding: 10px 12px; border-right: 1px solid #1e3a60;
         border-bottom: 1px solid #1e3a60;
         display: flex; flex-direction: column; gap: 2px;
       }
@@ -197,8 +248,7 @@
         border: 1px solid #ccc; border-radius: 3px;
       }
       .fno-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 8px; padding: 10px; background: #edf1f7;
       }
       .fno-card {
@@ -220,18 +270,9 @@
         display: flex; gap: 6px; padding: 4px 10px; background: #f7f9fc;
         border-top: 1px solid #e5e8ee; font-size: 11px; color: #555; flex-wrap: wrap;
       }
-      .fno-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; white-space: nowrap; }
-      .fno-badge-open  { background: #2a5298; color: #fff; }
-      .fno-badge-tgt   { background: #1e8449; color: #fff; }
-      .fno-badge-sl    { background: #a01818; color: #fff; }
-      .fno-badge-sq    { background: #888;    color: #fff; }
-      .fno-badge-wait  { background: #c0932a; color: #fff; }
-      .fno-badge-pend  { background: #e67e22; color: #fff; }
-      .fno-badge-notr  { background: #aaa;    color: #fff; }
-      .fno-badge-long  { background: #1e8449; color: #fff; }
-      .fno-badge-short { background: #c0392b; color: #fff; }
       .fno-pnl-pos { color: var(--darkgreen); font-weight: 700; }
       .fno-pnl-neg { color: var(--darkred);   font-weight: 700; }
+
       @media (min-width: 640px) {
         h1 { font-size: 18px; padding: 10px 14px; }
         .tabs { padding: 0 14px; gap: 4px; overflow-x: visible; }
@@ -245,9 +286,8 @@
         .bt-summary { display: flex; flex-wrap: wrap; gap: 16px; padding: 10px 14px; }
         .bt-summary .si { border: none; padding: 0; }
         .bt-summary .sv { font-size: 18px; }
-        .tr-cards  { grid-template-columns: repeat(auto-fill, minmax(180px, 240px)); padding: 12px 14px; }
         .fno-topbar { grid-template-columns: repeat(5, 1fr); }
-        .fno-cards  { grid-template-columns: repeat(auto-fill, minmax(190px, 230px)); padding: 12px 14px; }
+        .fno-cards { grid-template-columns: repeat(auto-fill, minmax(190px, 230px)); padding: 12px 14px; }
         .fno-params-bar label { flex: 0 0 auto; }
         .fno-params-bar input { width: 80px; }
         .fno-btn { flex: 0 0 auto; }
@@ -264,6 +304,7 @@
       <button class="tab-btn active" onclick="switchTab('oi',event)">OI SCANNER</button>
       <button class="tab-btn" onclick="switchTab('bt',event)">BACKTEST</button>
       <button class="tab-btn" onclick="switchTab('tr',event)">TRENDING</button>
+      <button class="tab-btn" onclick="switchTab('tt',event)">TODAY'S TRADES</button>
       <button class="tab-btn" onclick="switchTab('fno',event)">FNO TRADES</button>
     </div>
 
@@ -382,22 +423,70 @@
       </div>
       <div id="tr-status">Loading trending stocks…</div>
 
-      <!-- Rising stocks -->
-      <div class="secttl" style="margin:8px 8px 0;border-radius:4px 4px 0 0">
-        <span>📈 TOP 10 RISING — 3 consecutive days higher close</span>
+      <!-- Rising stocks — row layout -->
+      <div class="tr-section-hdr rising">
+        <span>📈 TOP RISING — 3 consecutive days higher close</span>
         <span id="tr-rising-count" style="font-size:11px;color:#aac4e0"></span>
       </div>
-      <div class="tr-cards" id="tr-rising-cards" style="border-radius:0 0 4px 4px;margin:0 8px 8px"></div>
+      <div class="tr-table-wrap">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+          <table class="tr-row-table" id="tr-rising-table">
+            <thead>
+              <tr>
+                <th style="text-align:left">Symbol</th>
+                <th>Side</th>
+                <th>LTP</th>
+                <th>3d Gain%</th>
+                <th>D-1 Close</th>
+                <th>Day High</th>
+                <th>Day Low</th>
+                <th>Entry ₹</th>
+                <th>SL ₹</th>
+                <th>Target ₹</th>
+                <th>Unrealised</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tr-rising-body">
+              <tr><td colspan="12" style="text-align:center;color:#888;padding:14px">No data yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      <!-- Falling stocks -->
-      <div class="secttl" style="margin:8px 8px 0;border-radius:4px 4px 0 0;background:#6b1a1a">
-        <span>📉 TOP 10 FALLING — 3 consecutive days lower close</span>
+      <!-- Falling stocks — row layout -->
+      <div class="tr-section-hdr falling" style="margin-top:10px">
+        <span>📉 TOP FALLING — 3 consecutive days lower close</span>
         <span id="tr-falling-count" style="font-size:11px;color:#ffaaaa"></span>
       </div>
-      <div class="tr-cards" id="tr-falling-cards" style="border-radius:0 0 4px 4px;margin:0 8px 8px"></div>
+      <div class="tr-table-wrap">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+          <table class="tr-row-table" id="tr-falling-table">
+            <thead>
+              <tr>
+                <th style="text-align:left">Symbol</th>
+                <th>Side</th>
+                <th>LTP</th>
+                <th>3d Drop%</th>
+                <th>D-1 Close</th>
+                <th>Day High</th>
+                <th>Day Low</th>
+                <th>Entry ₹</th>
+                <th>SL ₹</th>
+                <th>Target ₹</th>
+                <th>Unrealised</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tr-falling-body">
+              <tr><td colspan="12" style="text-align:center;color:#888;padding:14px">No data yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <!-- History -->
-      <section>
+      <section style="margin-top:10px">
         <div class="secttl">
           <span>TRADE HISTORY (last 30 days)</span>
           <select id="tr-hist-sym" onchange="loadHistory()"
@@ -420,15 +509,88 @@
       </section>
       <div class="note">
         Strategy: Scan NSE FnO stocks at 09:00 for 3 consecutive rising/falling closes.
-        Top 10 by 3-day % gain/loss. Intraday entry: LONG on new day high break, SHORT on new day low break.
+        Intraday entry: LONG on new day high break, SHORT on new day low break.
         Entry window 09:15–14:30. SL/Target as % of entry. Square-off at 15:00.
-        One trade per stock per day. History never wiped.
+        One trade per stock per day.
       </div>
     </div>
 
-    <!-- TAB 4: FNO TRADES -->
-    <div class="tab-panel" id="tab-fno">
+    <!-- TAB 4: TODAY'S TRADES -->
+    <div class="tab-panel" id="tab-tt">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fff;border-bottom:2px solid var(--grid);">
+        <span id="tt-status" style="padding:0;background:transparent">Loading…</span>
+        <button class="tt-refresh-btn" onclick="loadTodayTrades()">↻ Refresh</button>
+      </div>
 
+      <!-- Active trades today -->
+      <div class="tt-active-hdr">
+        <span>⚡ ACTIVE TRADES TODAY</span>
+        <span id="tt-active-count" style="font-size:11px;color:#aac4e0"></span>
+      </div>
+      <div class="tt-table-wrap">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+          <table class="tt-table" id="tt-active-table">
+            <thead>
+              <tr>
+                <th style="text-align:left">Symbol</th>
+                <th>Side</th>
+                <th>Entry ₹</th>
+                <th>Entry Time</th>
+                <th>SL ₹</th>
+                <th>Target ₹</th>
+                <th>LTP</th>
+                <th>Unrealised P&L</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tt-active-body">
+              <tr><td colspan="9" class="tt-no-trades">No active trades today</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Full history log -->
+      <div class="tt-hist-hdr">
+        <span>📋 TRADE LOG — All History</span>
+        <select id="tt-hist-sym" onchange="loadTodayTradesHistory()"
+          style="font-size:11px;padding:2px 6px;background:#3a5278;color:#fff;border:none;border-radius:3px">
+          <option value="">All stocks</option>
+        </select>
+      </div>
+      <div class="tt-hist-wrap">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-height:400px;overflow-y:auto;">
+          <table class="tt-table" id="tt-hist-table">
+            <thead>
+              <tr>
+                <th style="text-align:left">Date</th>
+                <th style="text-align:left">Symbol</th>
+                <th>Side</th>
+                <th>Entry ₹</th>
+                <th>Entry Time</th>
+                <th>SL ₹</th>
+                <th>Target ₹</th>
+                <th>Exit ₹</th>
+                <th>Exit Time</th>
+                <th>P&L ₹</th>
+                <th>P&L %</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="tt-hist-body">
+              <tr><td colspan="12" style="text-align:center;color:#888;padding:14px">No history yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="note">
+        Trades simulated by the trending engine. Entry on intraday high/low breakout.
+        SL and Target as % of entry. Square-off at 15:00 IST. All times IST.
+      </div>
+    </div>
+
+    <!-- TAB 5: FNO TRADES -->
+    <div class="tab-panel" id="tab-fno">
       <div class="fno-topbar" id="fno-topbar">
         <div class="fno-bal-block">
           <span class="lbl">Account Balance</span>
@@ -462,7 +624,6 @@
         <button class="fno-btn fno-btn-blue" onclick="$('fno-add-funds-row').style.display='none'">Cancel</button>
       </div>
 
-      <!-- FnO params — now % based -->
       <div class="fno-params-bar">
         <label>Stop Loss %
           <input type="number" id="fno-sl-pct" placeholder="Default 1.0" step="0.1" min="0.1" max="20">
@@ -477,7 +638,6 @@
       </div>
 
       <div id="fno-status">Loading FnO trade state…</div>
-
       <div class="fno-cards" id="fno-cards"></div>
 
       <section>
@@ -519,10 +679,8 @@
 
       <div class="note">
         Strategy: 30-min Opening Range (09:15–09:45). First breakout of OR_high → LONG, OR_low → SHORT.
-        1 lot per stock. SL and Target as % of entry price (e.g. 1% SL, 1% Target).
-        Margin ~15% of notional (Upstox API if available). Square-off at 15:25 IST.
-        Re-entry after funds: only if LTP within 0.5% of breakout level.
-        Balance and all trades persist in DB permanently.
+        1 lot per stock. SL and Target as % of entry price.
+        Margin ~15% of notional. Square-off at 15:25 IST.
       </div>
     </div>
 
@@ -813,6 +971,7 @@
         if (evt && evt.target) evt.target.classList.add("active");
         if (name === "bt" && $("bt-stock").options.length <= 1) loadFnoStocks();
         if (name === "tr") initTrending();
+        if (name === "tt") initTodayTrades();
         if (name === "fno") initFno();
       }
 
@@ -938,102 +1097,81 @@
         }
       }
 
-      // ── TRENDING TAB ────────────────────────────────────────────────────────
+      // ── TRENDING TAB — row layout ────────────────────────────────────────────
       let trTimer = null;
       let _trLtps  = {};
 
-      function trBadge(result, direction) {
-        if (!result || result === "OPEN") {
+      function _trBadgeHtml(trade, direction) {
+        if (!trade) return `<span class="fno-badge fno-badge-notr">WATCHING</span>`;
+        const r = trade.result;
+        if (!r || r === "OPEN") {
           const cls = direction === "LONG" ? "fno-badge-long" : "fno-badge-short";
-          return `<span class="fno-badge ${cls}">${direction} OPEN</span>`;
+          return `<span class="fno-badge ${cls}">${direction}</span>`;
         }
-        if (result === "TGT HIT")   return `<span class="fno-badge fno-badge-tgt">TGT HIT ✓</span>`;
-        if (result === "SL HIT")    return `<span class="fno-badge fno-badge-sl">SL HIT ✗</span>`;
-        if (result === "SQUAREOFF") return `<span class="fno-badge fno-badge-sq">SQ OFF</span>`;
-        return `<span class="fno-badge fno-badge-wait">${result}</span>`;
+        if (r === "TGT HIT")   return `<span class="fno-badge fno-badge-tgt">TGT ✓</span>`;
+        if (r === "SL HIT")    return `<span class="fno-badge fno-badge-sl">SL ✗</span>`;
+        if (r === "SQUAREOFF") return `<span class="fno-badge fno-badge-sq">SQ OFF</span>`;
+        return `<span class="fno-badge fno-badge-wait">${r}</span>`;
       }
 
-      function renderTrendingCard(s, ltps, gainLabel) {
-        const sym  = s.symbol;
-        const trade = s.trade;
-        const ltp  = ltps[sym] ?? null;
-        const isRising = s.direction === "LONG";
-
-        const ltpHtml = ltp != null
-          ? `<span class="tr-ltp-val">₹${fmtR(ltp)}</span>`
-          : `<span style="color:#888">—</span>`;
-
-        let badge;
-        if (!trade) badge = `<span class="fno-badge fno-badge-notr">WATCHING</span>`;
-        else badge = trBadge(trade.result, s.direction);
-
-        // 3-day info bar
-        const gainCls = isRising ? "r-darkgreen" : "r-darkred";
-        const gainSign = s.gain3d_pct >= 0 ? "+" : "";
-
-        let body = `
-          <div class="row"><span class="key">LTP</span><span class="val">${ltpHtml}</span></div>
-          <div class="row"><span class="key">3d ${gainLabel}</span>
-            <span class="val ${gainCls}">${gainSign}${fmtR(s.gain3d_pct)}%</span></div>
-          <div class="row"><span class="key">D-1 Close</span><span class="val">₹${fmtR(s.close_d1)}</span></div>`;
-
-        if (s.day_high != null) {
-          body += `<div class="row"><span class="key">Day H/L</span>
-            <span class="val"><span class="r-green">₹${fmtR(s.day_high)}</span> / <span class="r-red">₹${fmtR(s.day_low)}</span></span></div>`;
-        }
-
-        if (trade) {
-          const isOpen = trade.result === "OPEN";
-          const isLong = trade.sl_price < trade.entry_price;
-          if (isOpen && ltp != null) {
-            const unreal = isLong ? (ltp - trade.entry_price) : (trade.entry_price - ltp);
-            const unrPct = ((unreal / trade.entry_price) * 100).toFixed(2);
-            const cls = unreal >= 0 ? "tr-pnl-pos" : "tr-pnl-neg";
-            body += `<div class="row"><span class="key">Unrealised</span>
-              <span class="val ${cls}">${unreal >= 0 ? "+" : ""}₹${fmtR(unreal)} (${unreal >= 0 ? "+" : ""}${unrPct}%)</span></div>`;
-          }
-          body += `<div class="row"><span class="key">Entry</span><span class="val">₹${fmtR(trade.entry_price)} @ ${trade.entry_time}</span></div>`;
-          body += `<div class="row"><span class="key">SL</span><span class="val r-red">₹${fmtR(trade.sl_price)} (${fmtR(trade.sl_pct)}%)</span></div>`;
-          body += `<div class="row"><span class="key">Target</span><span class="val r-green">₹${fmtR(trade.target_price)} (${fmtR(trade.target_pct)}%)</span></div>`;
-          if (!isOpen && trade.pnl_pts != null) {
-            const cls = trade.pnl_pts >= 0 ? "tr-pnl-pos" : "tr-pnl-neg";
-            body += `<div class="row"><span class="key">P&amp;L</span>
-              <span class="val ${cls}">${trade.pnl_pts >= 0 ? "+" : ""}₹${fmtR(trade.pnl_pts)} (${trade.pnl_pct >= 0 ? "+" : ""}${fmtR(trade.pnl_pct)}%)</span></div>`;
-            body += `<div class="row"><span class="key">Exit</span><span class="val">₹${fmtR(trade.exit_price)} @ ${trade.exit_time || "—"}</span></div>`;
-          }
-        } else {
-          const cm = new Date().getHours() * 60 + new Date().getMinutes();
-          const waiting = cm < 9*60+15 ? "⏳ Market not open" : cm > 14*60+30 ? "Entry window closed" : `Watching for ${s.direction === "LONG" ? "new day HIGH" : "new day LOW"}`;
-          body += `<div class="row"><span class="key">Status</span><span class="val">${waiting}</span></div>`;
-        }
-
-        const card = document.createElement("div");
-        card.className = "tr-card";
-        card.innerHTML = `
-          <div class="tr-card-hdr">
-            <span>${sym}</span>${badge}
-          </div>
-          <div class="tr-card-body">${body}</div>`;
-        return card;
-      }
-
-      function renderTrendingCards(state, ltps) {
-        const rc = $("tr-rising-cards");
-        const fc = $("tr-falling-cards");
-        rc.innerHTML = ""; fc.innerHTML = "";
-
-        if (!state.rising.length && !state.falling.length) {
-          rc.innerHTML = `<div style="padding:12px;color:#888;font-size:12px">
-            ${state.scanned_date ? "No qualifying stocks found today." : "Scan not run yet — runs at 09:00 IST or click Scan Now."}
-          </div>`;
+      function renderTrendingRows(stocks, bodyId, ltps, direction) {
+        const tb = $(bodyId);
+        if (!stocks || stocks.length === 0) {
+          tb.innerHTML = `<tr><td colspan="12" style="text-align:center;color:#888;padding:14px">No qualifying stocks found</td></tr>`;
           return;
         }
+        tb.innerHTML = "";
+        stocks.forEach(s => {
+          const sym   = s.symbol;
+          const trade = s.trade;
+          const ltp   = ltps[sym] ?? null;
+          const isLong = direction === "LONG";
 
-        $("tr-rising-count").textContent  = `${state.rising.length} stocks`;
-        $("tr-falling-count").textContent = `${state.falling.length} stocks`;
+          const gainCls = isLong ? "r-darkgreen" : "r-darkred";
+          const gainSign = s.gain3d_pct >= 0 ? "+" : "";
 
-        state.rising.forEach(s  => rc.appendChild(renderTrendingCard(s,  ltps, "Gain")));
-        state.falling.forEach(s => fc.appendChild(renderTrendingCard(s,  ltps, "Drop")));
+          // LTP
+          const ltpTd = ltp != null ? `₹${fmtR(ltp)}` : "—";
+
+          // Day H/L
+          const dayH = s.day_high != null ? `<span class="r-green">₹${fmtR(s.day_high)}</span>` : "—";
+          const dayL = s.day_low  != null ? `<span class="r-red">₹${fmtR(s.day_low)}</span>` : "—";
+
+          // Trade fields
+          let entryTd = "—", slTd = "—", tgtTd = "—", unrealTd = "—";
+          if (trade) {
+            entryTd = `₹${fmtR(trade.entry_price)}`;
+            slTd    = `<span class="r-red">₹${fmtR(trade.sl_price)}</span>`;
+            tgtTd   = `<span class="r-green">₹${fmtR(trade.target_price)}</span>`;
+
+            const isOpen = trade.result === "OPEN";
+            if (isOpen && ltp != null) {
+              const isLongTrade = trade.sl_price < trade.entry_price;
+              const unreal = isLongTrade ? (ltp - trade.entry_price) : (trade.entry_price - ltp);
+              const unrPct = ((unreal / trade.entry_price) * 100).toFixed(2);
+              const cls = unreal >= 0 ? "r-darkgreen" : "r-darkred";
+              unrealTd = `<span class="${cls}">${unreal >= 0 ? "+" : ""}₹${fmtR(unreal)} (${unreal >= 0 ? "+" : ""}${unrPct}%)</span>`;
+            } else if (!isOpen && trade.pnl_pts != null) {
+              const cls = trade.pnl_pts >= 0 ? "r-darkgreen" : "r-darkred";
+              unrealTd = `<span class="${cls}">${trade.pnl_pts >= 0 ? "+" : ""}₹${fmtR(trade.pnl_pts)} (${trade.pnl_pct >= 0 ? "+" : ""}${fmtR(trade.pnl_pct)}%)</span>`;
+            }
+          }
+
+          tb.innerHTML += `<tr>
+            <td class="sym-cell">${sym}</td>
+            <td style="text-align:center">${_trBadgeHtml(trade, direction)}</td>
+            <td>${ltpTd}</td>
+            <td class="${gainCls}">${gainSign}${fmtR(s.gain3d_pct)}%</td>
+            <td>₹${fmtR(s.close_d1)}</td>
+            <td>${dayH}</td>
+            <td>${dayL}</td>
+            <td>${entryTd}</td>
+            <td>${slTd}</td>
+            <td>${tgtTd}</td>
+            <td>${unrealTd}</td>
+            <td style="text-align:center">${_trBadgeHtml(trade, direction)}</td>
+          </tr>`;
+        });
       }
 
       async function initTrending() {
@@ -1054,12 +1192,19 @@
             jget("/trending_ltp").catch(() => ({ ltps: {} })),
           ]);
           _trLtps = ltpRes.ltps || {};
-          renderTrendingCards(state, _trLtps);
+
+          $("tr-rising-count").textContent  = `${state.rising.length} stocks`;
+          $("tr-falling-count").textContent = `${state.falling.length} stocks`;
+
+          renderTrendingRows(state.rising,  "tr-rising-body",  _trLtps, "LONG");
+          renderTrendingRows(state.falling, "tr-falling-body", _trLtps, "SHORT");
+
           $("tr-param-display").textContent = `Active: SL ${state.sl_pct}% / TGT ${state.target_pct}%`;
           const scanInfo = state.scanned_date ? `Scanned: ${state.scanned_date}` : "Not scanned yet";
           $("tr-status").textContent =
             `${scanInfo} | Refreshed: ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open ? "OPEN ✓" : "CLOSED"}`;
-          // Populate history filter with known symbols
+
+          // Populate history filter
           const allSyms = [...state.rising, ...state.falling].map(s => s.symbol);
           const sel = $("tr-hist-sym");
           const existing = Array.from(sel.options).map(o => o.value);
@@ -1085,7 +1230,7 @@
         try {
           const p = await jget(`/trending_params?sl_pct=${sl}&target_pct=${tgt}`);
           $("tr-param-display").textContent = `Active: SL ${p.sl_pct}% / TGT ${p.target_pct}%`;
-          $("tr-status").textContent = `Params saved — SL ${p.sl_pct}% / TGT ${p.target_pct}%. Applies on next entry.`;
+          $("tr-status").textContent = `Params saved — SL ${p.sl_pct}% / TGT ${p.target_pct}%.`;
           $("tr-sl-pct").value = ""; $("tr-tgt-pct").value = "";
         } catch(e) {
           $("tr-status").textContent = "Save failed: " + e.message;
@@ -1143,6 +1288,162 @@
         }
       }
 
+      // ── TODAY'S TRADES TAB ──────────────────────────────────────────────────
+      let ttTimer = null;
+
+      function initTodayTrades() {
+        loadTodayTrades();
+        clearInterval(ttTimer);
+        ttTimer = setInterval(loadTodayTrades, 60000);
+      }
+
+      async function loadTodayTrades() {
+        $("tt-status").textContent = "Fetching…";
+        try {
+          const [state, ltpRes, histRes] = await Promise.all([
+            jget("/trending_state"),
+            jget("/trending_ltp").catch(() => ({ ltps: {} })),
+            jget("/trending_history?days=30"),
+          ]);
+
+          const ltps   = ltpRes.ltps || {};
+          const today  = state.date;
+          const allStocks = [...state.rising, ...state.falling];
+
+          // ── Active trades: stocks that have a trade TODAY ──────────────────
+          const activeTrades = [];
+          allStocks.forEach(s => {
+            const direction = state.rising.some(r => r.symbol === s.symbol) ? "LONG" : "SHORT";
+            if (s.trade) {
+              activeTrades.push({ ...s, direction, ltp: ltps[s.symbol] ?? null });
+            }
+          });
+
+          const activeBody = $("tt-active-body");
+          $("tt-active-count").textContent = `${activeTrades.filter(t => t.trade?.result === "OPEN").length} open`;
+
+          if (activeTrades.length === 0) {
+            activeBody.innerHTML = `<tr><td colspan="9" class="tt-no-trades">No trades entered today yet</td></tr>`;
+          } else {
+            activeBody.innerHTML = "";
+            activeTrades.forEach(s => {
+              const trade = s.trade;
+              const ltp   = s.ltp;
+              const isOpen = trade.result === "OPEN";
+              const isLongTrade = trade.sl_price < trade.entry_price;
+              const sideCls = isLongTrade ? "r-darkgreen" : "r-darkred";
+
+              // Unrealised P&L for open trades, realised for closed
+              let pnlTd = "—";
+              if (isOpen && ltp != null) {
+                const unreal = isLongTrade ? (ltp - trade.entry_price) : (trade.entry_price - ltp);
+                const unrPct = ((unreal / trade.entry_price) * 100).toFixed(2);
+                const cls = unreal >= 0 ? "r-darkgreen" : "r-darkred";
+                pnlTd = `<span class="${cls}">${unreal >= 0 ? "+" : ""}₹${fmtR(unreal)} (${unreal >= 0 ? "+" : ""}${unrPct}%)</span>`;
+              } else if (!isOpen && trade.pnl_pts != null) {
+                const cls = trade.pnl_pts >= 0 ? "r-darkgreen" : "r-darkred";
+                pnlTd = `<span class="${cls}">${trade.pnl_pts >= 0 ? "+" : ""}₹${fmtR(trade.pnl_pts)} (${trade.pnl_pct >= 0 ? "+" : ""}${fmtR(trade.pnl_pct)}%)</span>`;
+              }
+
+              // Status badge
+              let statusBadge;
+              const r = trade.result;
+              if (!r || r === "OPEN") {
+                const sc = isLongTrade ? "fno-badge-long" : "fno-badge-short";
+                statusBadge = `<span class="fno-badge ${sc}">${isLongTrade ? "LONG" : "SHORT"} OPEN</span>`;
+              } else if (r === "TGT HIT")   statusBadge = `<span class="fno-badge fno-badge-tgt">TGT HIT ✓</span>`;
+              else if (r === "SL HIT")    statusBadge = `<span class="fno-badge fno-badge-sl">SL HIT ✗</span>`;
+              else if (r === "SQUAREOFF") statusBadge = `<span class="fno-badge fno-badge-sq">SQUARED OFF</span>`;
+              else statusBadge = `<span class="fno-badge fno-badge-wait">${r}</span>`;
+
+              const ltpDisplay = ltp != null ? `₹${fmtR(ltp)}` : "—";
+
+              activeBody.innerHTML += `<tr>
+                <td class="sym">${s.symbol}</td>
+                <td class="${sideCls}" style="text-align:center;font-weight:700">${isLongTrade ? "LONG" : "SHORT"}</td>
+                <td>₹${fmtR(trade.entry_price)}</td>
+                <td>${trade.entry_time}</td>
+                <td><span class="r-red">₹${fmtR(trade.sl_price)}</span></td>
+                <td><span class="r-green">₹${fmtR(trade.target_price)}</span></td>
+                <td style="font-weight:700">${ltpDisplay}</td>
+                <td>${pnlTd}</td>
+                <td style="text-align:center">${statusBadge}</td>
+              </tr>`;
+            });
+          }
+
+          // ── History log ────────────────────────────────────────────────────
+          renderTodayTradesHistory(histRes.history || [], allStocks.map(s => s.symbol));
+
+          $("tt-status").textContent = `Refreshed: ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open ? "OPEN ✓" : "CLOSED"} | Date: ${today}`;
+        } catch(e) {
+          $("tt-status").textContent = "Load failed: " + e.message;
+        }
+      }
+
+      function renderTodayTradesHistory(rows, knownSyms) {
+        // Populate symbol filter
+        const sel = $("tt-hist-sym");
+        const existing = Array.from(sel.options).map(o => o.value);
+        knownSyms.forEach(sym => {
+          if (!existing.includes(sym)) {
+            const o = document.createElement("option"); o.value = sym; o.textContent = sym;
+            sel.appendChild(o);
+          }
+        });
+
+        const filterSym = sel.value;
+        const filtered = filterSym ? rows.filter(r => r.symbol === filterSym) : rows;
+
+        const tb = $("tt-hist-body");
+        if (!filtered || filtered.length === 0) {
+          tb.innerHTML = `<tr><td colspan="12" style="text-align:center;color:#888;padding:14px">No history yet</td></tr>`;
+          return;
+        }
+        tb.innerHTML = "";
+        filtered.forEach(r => {
+          const isOpen  = r.result === "OPEN";
+          const isLong  = r.sl_price < r.entry_price;
+          const sideCls = isLong ? "r-darkgreen" : "r-darkred";
+          const pnlCls  = r.pnl_pts == null ? "" : r.pnl_pts >= 0 ? "r-darkgreen" : "r-darkred";
+          const resCls  = r.result === "TGT HIT" ? "r-darkgreen"
+                        : r.result === "SL HIT"  ? "r-darkred"
+                        : r.result === "SQUAREOFF" ? "r-red" : "";
+
+          let resBadge;
+          if (isOpen) resBadge = `<span class="fno-badge fno-badge-open">OPEN</span>`;
+          else if (r.result === "TGT HIT")   resBadge = `<span class="fno-badge fno-badge-tgt">TGT HIT ✓</span>`;
+          else if (r.result === "SL HIT")    resBadge = `<span class="fno-badge fno-badge-sl">SL HIT ✗</span>`;
+          else if (r.result === "SQUAREOFF") resBadge = `<span class="fno-badge fno-badge-sq">SQ OFF</span>`;
+          else resBadge = `<span class="fno-badge fno-badge-wait">${r.result}</span>`;
+
+          tb.innerHTML += `<tr>
+            <td class="lbl">${r.log_date}</td>
+            <td class="sym">${r.symbol}</td>
+            <td class="${sideCls}" style="text-align:center;font-weight:700">${isLong ? "LONG" : "SHORT"}</td>
+            <td>₹${fmtR(r.entry_price)}</td>
+            <td>${r.entry_time}</td>
+            <td><span class="r-red">₹${fmtR(r.sl_price)}</span></td>
+            <td><span class="r-green">₹${fmtR(r.target_price)}</span></td>
+            <td>${isOpen ? "—" : "₹" + fmtR(r.exit_price)}</td>
+            <td>${r.exit_time || "—"}</td>
+            <td class="${pnlCls}">${r.pnl_pts == null ? "—" : (r.pnl_pts >= 0 ? "+" : "") + "₹" + fmtR(r.pnl_pts)}</td>
+            <td class="${pnlCls}">${r.pnl_pct == null ? "—" : (r.pnl_pct >= 0 ? "+" : "") + fmtR(r.pnl_pct) + "%"}</td>
+            <td style="text-align:center">${resBadge}</td>
+          </tr>`;
+        });
+      }
+
+      async function loadTodayTradesHistory() {
+        // Re-render history with current filter without full reload
+        try {
+          const histRes = await jget("/trending_history?days=30");
+          renderTodayTradesHistory(histRes.history || [], []);
+        } catch(e) {
+          console.warn("History reload failed:", e.message);
+        }
+      }
+
       // ── FNO TRADES TAB ──────────────────────────────────────────────────────
       let fnoTimer = null;
       let _fnoInited = false;
@@ -1180,19 +1481,16 @@
         const bal = state.balance;
         $("fno-balance").textContent = "₹" + fmt(Math.round(bal));
         $("fno-balance").className = "val";
-
         const todayTrades = (hist.trades || []).filter(t => t.log_date === state.date);
         const todayPnl = todayTrades.reduce((s,t) => s + (t.pnl_inr || 0), 0);
         const todayEl = $("fno-today-pnl");
         todayEl.textContent = (todayPnl >= 0 ? "+" : "") + "₹" + fmt(Math.round(todayPnl));
         todayEl.className = "val " + (todayPnl >= 0 ? "pos" : "neg");
-
         const INITIAL = 500000;
         const overallPnl = bal - INITIAL;
         const oel = $("fno-overall-pnl");
         oel.textContent = (overallPnl >= 0 ? "+" : "") + "₹" + fmt(Math.round(overallPnl));
         oel.className = "val " + (overallPnl >= 0 ? "pos" : "neg");
-
         const marginUsed = todayTrades
           .filter(t => t.result === "OPEN")
           .reduce((s,t) => s + (t.margin_used || 0), 0);
@@ -1218,19 +1516,13 @@
           const trade = s.trade;
           const ltp   = s.ltp;
           const isPending = s.is_pending;
-
-          const ltpHtml = ltp != null
-            ? `<span class="fno-ltp">₹${fmtR(ltp)}</span>`
-            : `<span style="color:#888">—</span>`;
-
+          const ltpHtml = ltp != null ? `<span class="fno-ltp">₹${fmtR(ltp)}</span>` : `<span style="color:#888">—</span>`;
           let badge;
           if (isPending) badge = `<span class="fno-badge fno-badge-pend">WAIT FUNDS</span>`;
           else if (!trade) badge = `<span class="fno-badge fno-badge-notr">NO TRADE</span>`;
           else badge = fnoBadge(trade.result, trade.side);
-
           let bodyHtml = `<div class="row"><span class="key">LTP (Futures)</span><span class="val">${ltpHtml}</span></div>`;
           bodyHtml += `<div class="row"><span class="key">Lot Size</span><span class="val">${s.lot_size}</span></div>`;
-
           if (trade) {
             const isOpen = trade.result === "OPEN";
             if (isOpen && ltp != null) {
@@ -1243,7 +1535,6 @@
                 <span class="val ${cls}">${unreal >= 0 ? "+" : ""}₹${fmtR(unreal)} (${pnlPts >= 0 ? "+" : ""}${fmtR(pnlPts)} pts)</span></div>`;
             }
             bodyHtml += `<div class="row"><span class="key">Entry</span><span class="val">₹${fmtR(trade.entry_price)} @ ${trade.entry_time}</span></div>`;
-            // Show SL and Target as both ₹ and %
             bodyHtml += `<div class="row"><span class="key">SL</span><span class="val r-red">₹${fmtR(trade.sl_price)} (${fmtR(trade.sl_pct)}%)</span></div>`;
             bodyHtml += `<div class="row"><span class="key">Target</span><span class="val r-green">₹${fmtR(trade.target_price)} (${fmtR(trade.target_pct)}%)</span></div>`;
             bodyHtml += `<div class="row"><span class="key">Margin Blocked</span><span class="val">₹${fmtR(trade.margin_used)}</span></div>`;
@@ -1254,30 +1545,21 @@
               bodyHtml += `<div class="row"><span class="key">Exit</span><span class="val">₹${fmtR(trade.exit_price)} @ ${trade.exit_time || "—"}</span></div>`;
             }
           } else if (isPending) {
-            bodyHtml += `<div class="row" style="color:#c0392b;font-size:11px;padding-top:4px">
-              Insufficient margin. Add funds to enable entry.</div>`;
+            bodyHtml += `<div class="row" style="color:#c0392b;font-size:11px;padding-top:4px">Insufficient margin. Add funds to enable entry.</div>`;
           } else {
             const cm = new Date().getHours() * 60 + new Date().getMinutes();
-            if (cm < 9*60+45) {
-              bodyHtml += `<div class="row"><span class="key">Status</span><span class="val">⏳ Building OR (09:15–09:45)</span></div>`;
-            } else {
-              bodyHtml += `<div class="row"><span class="key">Status</span><span class="val">Watching for breakout</span></div>`;
-            }
+            bodyHtml += `<div class="row"><span class="key">Status</span><span class="val">${cm < 9*60+45 ? "⏳ Building OR (09:15–09:45)" : "Watching for breakout"}</span></div>`;
           }
-
           const orHtml = (s.or_high != null)
             ? `<div class="fno-or-bar">OR: H <b>₹${fmtR(s.or_high)}</b> L <b>₹${fmtR(s.or_low)}</b></div>`
             : `<div class="fno-or-bar" style="color:#aaa">OR: building after 09:15</div>`;
-
           const card = document.createElement("div");
           card.className = "fno-card";
           card.innerHTML = `
             <div class="fno-card-hdr">
-              <span>${sym} <span class="fno-card-sub">FUT</span></span>
-              ${badge}
+              <span>${sym} <span class="fno-card-sub">FUT</span></span>${badge}
             </div>
-            <div class="fno-card-body">${bodyHtml}</div>
-            ${orHtml}`;
+            <div class="fno-card-body">${bodyHtml}</div>${orHtml}`;
           container.appendChild(card);
         });
       }
@@ -1292,9 +1574,7 @@
         trades.forEach(t => {
           const isOpen = t.result === "OPEN";
           const sideCls = t.side === "LONG" ? "r-darkgreen" : "r-darkred";
-          const resCls  = t.result === "TGT HIT" ? "r-darkgreen"
-                        : t.result === "SL HIT"  ? "r-darkred"
-                        : t.result === "SQUAREOFF" ? "r-red" : "";
+          const resCls  = t.result === "TGT HIT" ? "r-darkgreen" : t.result === "SL HIT" ? "r-darkred" : t.result === "SQUAREOFF" ? "r-red" : "";
           const pnlCls  = t.pnl_inr == null ? "" : t.pnl_inr >= 0 ? "r-darkgreen" : "r-darkred";
           tb.innerHTML += `<tr>
             <td class="lbl">${t.log_date}</td>
@@ -1348,7 +1628,7 @@
         try {
           const res = await jget(`/fno_params?sl_pct=${sl}&target_pct=${tgt}`);
           $("fno-param-display").textContent = `Active: SL ${res.sl_pct}% / TGT ${res.target_pct}%`;
-          $("fno-status").textContent = `Params saved — SL ${res.sl_pct}% / Target ${res.target_pct}%. Applies from next entry.`;
+          $("fno-status").textContent = `Params saved — SL ${res.sl_pct}% / Target ${res.target_pct}%.`;
           $("fno-sl-pct").value = ""; $("fno-tgt-pct").value = "";
         } catch(e) { $("fno-status").textContent = "Save failed: " + e.message; }
       }
