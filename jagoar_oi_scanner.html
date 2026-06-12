@@ -16,8 +16,6 @@
         --secA: #eef4fb; --secB: #fbf7ee; --secC: #f1eefb; --secD: #eefbf6;
       }
       *, *::before, *::after { box-sizing: border-box; }
-
-      /* ── Base ── */
       body {
         margin: 0; font-family: "Segoe UI", Tahoma, sans-serif;
         font-size: 13px; background: #dde1e7; color: #1a1a1a;
@@ -28,8 +26,6 @@
         padding: 10px 12px; background: var(--hdr); color: var(--hdrtext);
         letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
-
-      /* ── Tabs — scrollable on mobile ── */
       .tabs {
         display: flex; background: #152d4a;
         overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -45,16 +41,12 @@
       .tab-btn.active { color: #fff; border-bottom: 3px solid #5dd886; }
       .tab-panel { display: none; }
       .tab-panel.active { display: block; }
-
-      /* ── Controls row ── */
       .controls {
         display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
         padding: 8px 10px; background: #fff; border-bottom: 2px solid var(--grid);
       }
       select, button { font-size: 13px; padding: 6px 8px; max-width: 100%; }
       select { min-width: 0; }
-
-      /* ── Index strip — scrollable ── */
       .strip {
         display: flex; gap: 14px; flex-wrap: nowrap;
         overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -65,8 +57,6 @@
       .strip .it { display: flex; gap: 5px; align-items: baseline; flex: 0 0 auto; }
       .strip .nm { font-weight: 700; }
       .up { color: #5dd886; } .down { color: #ff7b6b; }
-
-      /* ── Sections & tables ── */
       section { margin: 8px; border: 1px solid var(--grid); border-radius: 4px; overflow: hidden; }
       .secttl {
         padding: 6px 10px; font-weight: 700; background: var(--hdr);
@@ -94,8 +84,6 @@
       .note  { font-size: 11px; color: #555; padding: 4px 10px; background: #fff; line-height: 1.6; }
       .err   { background: #fde; color: #900; padding: 6px 10px; font-size: 12px; }
       .dlbtns{ padding: 8px 10px; background: #fff; display: flex; gap: 8px; flex-wrap: wrap; }
-
-      /* ── Backtest ── */
       .bt-controls {
         display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end;
         padding: 10px 10px; background: #fff; border-bottom: 2px solid var(--grid);
@@ -123,8 +111,6 @@
       .bt-chart canvas { width: 100% !important; }
       #bt-status { padding: 6px 10px; font-size: 12px; color: #555; background: #fff; }
       #bt-speed-note { padding: 6px 10px; }
-
-      /* ── Trending ── */
       .tr-params {
         display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end;
         padding: 10px 10px; background: #fff; border-bottom: 2px solid var(--grid);
@@ -169,8 +155,6 @@
       }
       #tr-status, #fno-status { padding: 6px 10px; font-size: 12px; color: #555; background: #fff; line-height: 1.5; }
       #tr-refresh-btn { background: #2a5298; color:#fff; border:none; padding:6px 12px; border-radius:3px; cursor:pointer; font-size:13px; }
-
-      /* ── FnO Trades tab ── */
       .fno-topbar {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -248,8 +232,6 @@
       .fno-badge-short { background: #c0392b; color: #fff; }
       .fno-pnl-pos { color: var(--darkgreen); font-weight: 700; }
       .fno-pnl-neg { color: var(--darkred);   font-weight: 700; }
-
-      /* ── Desktop overrides (≥ 640px) ── */
       @media (min-width: 640px) {
         h1 { font-size: 18px; padding: 10px 14px; }
         .tabs { padding: 0 14px; gap: 4px; overflow-x: visible; }
@@ -267,7 +249,7 @@
         .fno-topbar { grid-template-columns: repeat(5, 1fr); }
         .fno-cards  { grid-template-columns: repeat(auto-fill, minmax(190px, 230px)); padding: 12px 14px; }
         .fno-params-bar label { flex: 0 0 auto; }
-        .fno-params-bar input { width: 90px; }
+        .fno-params-bar input { width: 80px; }
         .fno-btn { flex: 0 0 auto; }
         .fno-add-funds-row input { width: 160px; flex: 0 0 auto; }
         .tr-params label { flex: 0 0 auto; }
@@ -278,7 +260,6 @@
   <body>
     <h1>MANJIT JAGOAR OI DATA SCANNER</h1>
 
-    <!-- Tab buttons -->
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('oi',event)">OI SCANNER</button>
       <button class="tab-btn" onclick="switchTab('bt',event)">BACKTEST</button>
@@ -286,7 +267,7 @@
       <button class="tab-btn" onclick="switchTab('fno',event)">FNO TRADES</button>
     </div>
 
-    <!-- ═══════════════════ TAB 1: OI SCANNER ═══════════════════ -->
+    <!-- TAB 1: OI SCANNER -->
     <div class="tab-panel active" id="tab-oi">
       <div class="controls">
         <label>Scrip: <select id="scrip"></select></label>
@@ -297,7 +278,6 @@
       <div id="errbox"></div>
       <div id="mktbanner"></div>
       <div class="strip" id="strip"></div>
-
       <section>
         <div class="secttl">SECTION B — Selected scrip, ATM + nearby strikes (Call/Put OI change &amp; remark)</div>
         <div class="scrollbox secB">
@@ -307,7 +287,6 @@
           </table>
         </div>
       </section>
-
       <section>
         <div class="secttl">SECTION C — ATM ±5 strikes (Net Call/Put OI change &amp; volumes)</div>
         <div class="scrollbox secC">
@@ -317,7 +296,6 @@
           </table>
         </div>
       </section>
-
       <section>
         <div class="secttl" id="secDttl">
           <span>SECTION D — ATM ±1 (3 strikes) OI change per 3-min interval</span>
@@ -337,7 +315,7 @@
       <div class="note">OI change = oi − prev_oi (day-over-day, Upstox definition). 10 lac = 1,000,000. Section D rows logged every 3 minutes during market hours (09:15–15:15 IST) and restored from server DB on page load. DB wiped at midnight IST.</div>
     </div>
 
-    <!-- ═══════════════════ TAB 2: BACKTEST ═══════════════════ -->
+    <!-- TAB 2: BACKTEST -->
     <div class="tab-panel" id="tab-bt">
       <div class="bt-controls">
         <label>Stock
@@ -388,10 +366,8 @@
       </section>
     </div>
 
-    <!-- ═══════════════════ TAB 3: TRENDING ═══════════════════ -->
+    <!-- TAB 3: TRENDING -->
     <div class="tab-panel" id="tab-tr">
-
-      <!-- Param controls -->
       <div class="tr-params">
         <label>Stop Loss %
           <input type="number" id="tr-sl-pct" placeholder="Default 2.0" step="0.1" min="0.1" max="20">
@@ -403,17 +379,9 @@
         <button id="tr-refresh-btn" onclick="loadTrending()">↻ Refresh</button>
         <span id="tr-param-display" class="note" style="background:transparent;margin-left:4px;align-self:center"></span>
       </div>
-
-      <!-- Risk-reward warning — shown dynamically -->
       <div class="tr-rr-warn" id="tr-rr-warn" style="display:none"></div>
-
-      <!-- Status line -->
       <div id="tr-status">Loading trending stocks…</div>
-
-      <!-- Live cards -->
       <div class="tr-cards" id="tr-cards"></div>
-
-      <!-- History section -->
       <section>
         <div class="secttl">
           <span>TRADE HISTORY (last 30 days, all 5 stocks)</span>
@@ -444,18 +412,16 @@
           </table>
         </div>
       </section>
-
       <div class="note">
         ⚠ Strategy: LONG entry at LTP on 09:15 IST. Direction is always LONG.
         Exit on SL hit, Target hit, or force square-off at 15:00. One trade per stock per day.
         Server auto-enters at 09:15 — browser need not be open. History persists across days (never wiped).
       </div>
-    </div><!-- end tab-tr -->
+    </div>
 
-    <!-- ═══════════════════ TAB 4: FNO TRADES ═══════════════════ -->
+    <!-- TAB 4: FNO TRADES -->
     <div class="tab-panel" id="tab-fno">
 
-      <!-- Balance + P&L top bar -->
       <div class="fno-topbar" id="fno-topbar">
         <div class="fno-bal-block">
           <span class="lbl">Account Balance</span>
@@ -479,7 +445,6 @@
         </div>
       </div>
 
-      <!-- Add funds banner (shown when pending trades exist) -->
       <div class="fno-pending-banner" id="fno-pending-banner">
         ⚠ Some trades are waiting for funds. Add funds below and they will auto re-enter if price is still near breakout level.
       </div>
@@ -490,13 +455,13 @@
         <button class="fno-btn fno-btn-blue" onclick="$('fno-add-funds-row').style.display='none'">Cancel</button>
       </div>
 
-      <!-- Params bar -->
+      <!-- FnO params — now % based -->
       <div class="fno-params-bar">
-        <label>Stop Loss (pts)
-          <input type="number" id="fno-sl-pts" placeholder="Default 50" step="1" min="1">
+        <label>Stop Loss %
+          <input type="number" id="fno-sl-pct" placeholder="Default 1.0" step="0.1" min="0.1" max="20">
         </label>
-        <label>Target (pts)
-          <input type="number" id="fno-tgt-pts" placeholder="Default 80" step="1" min="1">
+        <label>Target %
+          <input type="number" id="fno-tgt-pct" placeholder="Default 1.0" step="0.1" min="0.1" max="20">
         </label>
         <button class="fno-btn fno-btn-blue" onclick="saveFnoParams()">💾 Save Params</button>
         <button class="fno-btn fno-btn-green" onclick="showAddFunds()">💰 Add Funds</button>
@@ -506,10 +471,8 @@
 
       <div id="fno-status">Loading FnO trade state…</div>
 
-      <!-- Stock cards -->
       <div class="fno-cards" id="fno-cards"></div>
 
-      <!-- History -->
       <section>
         <div class="secttl">
           <span>TRADE LOG (last 30 days)</span>
@@ -527,7 +490,7 @@
           <table id="fno-hist-table">
             <thead><tr>
               <th>Date</th><th>Symbol</th><th>Side</th><th>Lot</th>
-              <th>Entry</th><th>Time</th><th>SL pts</th><th>TGT pts</th>
+              <th>Entry ₹</th><th>Time</th><th>SL %</th><th>TGT %</th>
               <th>SL ₹</th><th>Target ₹</th><th>Margin</th>
               <th>OR High</th><th>OR Low</th>
               <th>Exit ₹</th><th>Exit Time</th><th>P&amp;L pts</th><th>P&amp;L ₹</th><th>Result</th>
@@ -537,7 +500,6 @@
         </div>
       </section>
 
-      <!-- Balance log -->
       <section>
         <div class="secttl">BALANCE LOG</div>
         <div class="scrollbox" style="max-height:200px">
@@ -550,11 +512,12 @@
 
       <div class="note">
         Strategy: 30-min Opening Range (09:15–09:45). First breakout of OR_high → LONG, OR_low → SHORT.
-        1 lot per stock. SL/Target in pts. Margin ~15% of notional (Upstox API if available).
-        Square-off at 15:25 IST. Re-entry after funds: only if LTP within 0.5% of breakout level.
+        1 lot per stock. SL and Target as % of entry price (e.g. 1% SL, 1% Target).
+        Margin ~15% of notional (Upstox API if available). Square-off at 15:25 IST.
+        Re-entry after funds: only if LTP within 0.5% of breakout level.
         Balance and all trades persist in DB permanently.
       </div>
-    </div><!-- end tab-fno -->
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
@@ -584,7 +547,6 @@
         return r.json();
       }
 
-      // ── bootstrap ──────────────────────────────────────────────────────────
       async function init() {
         try {
           const inst = await jget("/instruments");
@@ -838,7 +800,6 @@
 
       init();
 
-      // ── Tab switching ───────────────────────────────────────────────────────
       function switchTab(name, evt) {
         document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -971,9 +932,7 @@
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════
-      //  TRENDING TAB
-      // ══════════════════════════════════════════════════════════════════
+      // ── TRENDING TAB ────────────────────────────────────────────────────────
       let _trCurrentParams = { sl_pct: 2.0, target_pct: 0.6 };
 
       function updateRRWarn(sl, tgt) {
@@ -994,7 +953,6 @@
       }
 
       async function initTrending() {
-        // Fetch current server params
         try {
           const p = await jget("/trending_params");
           _trCurrentParams = p;
@@ -1009,7 +967,7 @@
         trTimer = setTimeout(function autoRefresh() {
           loadTrending();
           clearTimeout(trTimer);
-          trTimer = setTimeout(autoRefresh, 60000); // refresh every 60s
+          trTimer = setTimeout(autoRefresh, 60000);
         }, 60000);
       }
 
@@ -1036,7 +994,6 @@
       async function loadTrending() {
         $("tr-status").textContent = "Fetching stock status…";
         try {
-          // Fetch stock status from DB
           const [stocksRes, ltpRes] = await Promise.all([
             jget("/trending_stocks"),
             jget("/trending_ltp").catch(() => ({ ltps: {} })),
@@ -1062,7 +1019,6 @@
         stocks.forEach(s => {
           const sym = s.symbol;
           const row = s.today;
-          // Try to find LTP: ltps might have key as symbol or partial match
           let ltp = null;
           for (const [k, v] of Object.entries(ltps)) {
             if (k.toUpperCase().includes(sym.toUpperCase()) || sym.toUpperCase().includes(k.toUpperCase())) {
@@ -1075,7 +1031,6 @@
 
           let bodyHtml = "";
           if (!row) {
-            // No trade today yet
             const mktHour = new Date().getHours() * 60 + new Date().getMinutes();
             const entryDue = mktHour < (9 * 60 + 15);
             bodyHtml = `
@@ -1084,7 +1039,6 @@
             `;
           } else {
             const isOpen = row.result === "OPEN";
-            // Live unrealised P&L
             let livePnl = "", livePnlCls = "";
             if (isOpen && ltp != null) {
               const unreal = ltp - row.entry_price;
@@ -1160,9 +1114,7 @@
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════
-      //  FNO TRADES TAB
-      // ══════════════════════════════════════════════════════════════════
+      // ── FNO TRADES TAB ──────────────────────────────────────────────────────
       let fnoTimer = null;
       let _fnoInited = false;
 
@@ -1185,10 +1137,9 @@
           renderFnoBalLog(hist.balance_log);
           $("fno-date").textContent = state.date;
           $("fno-param-display").textContent =
-            `Active: SL ${state.sl_pts}pts / TGT ${state.target_pts}pts`;
+            `Active: SL ${state.sl_pct}% / TGT ${state.target_pct}%`;
           $("fno-status").textContent =
             `Last refreshed: ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open ? "OPEN ✓" : "CLOSED"}`;
-          // Pending banner
           const hasPending = state.pending && state.pending.length > 0;
           $("fno-pending-banner").style.display = hasPending ? "block" : "none";
         } catch(e) {
@@ -1197,26 +1148,22 @@
       }
 
       function renderFnoTopbar(state, hist) {
-        // Balance
         const bal = state.balance;
         $("fno-balance").textContent = "₹" + fmt(Math.round(bal));
         $("fno-balance").className = "val";
 
-        // Today P&L
         const todayTrades = (hist.trades || []).filter(t => t.log_date === state.date);
         const todayPnl = todayTrades.reduce((s,t) => s + (t.pnl_inr || 0), 0);
         const todayEl = $("fno-today-pnl");
         todayEl.textContent = (todayPnl >= 0 ? "+" : "") + "₹" + fmt(Math.round(todayPnl));
         todayEl.className = "val " + (todayPnl >= 0 ? "pos" : "neg");
 
-        // Overall P&L = current balance - initial 5L
         const INITIAL = 500000;
         const overallPnl = bal - INITIAL;
         const oel = $("fno-overall-pnl");
         oel.textContent = (overallPnl >= 0 ? "+" : "") + "₹" + fmt(Math.round(overallPnl));
         oel.className = "val " + (overallPnl >= 0 ? "pos" : "neg");
 
-        // Margin in use = sum of margin_used for OPEN trades today
         const marginUsed = todayTrades
           .filter(t => t.result === "OPEN")
           .reduce((s,t) => s + (t.margin_used || 0), 0);
@@ -1257,7 +1204,6 @@
 
           if (trade) {
             const isOpen = trade.result === "OPEN";
-            // Live unrealised P&L
             if (isOpen && ltp != null) {
               const unreal = trade.side === "LONG"
                 ? (ltp - trade.entry_price) * trade.lot_size
@@ -1268,8 +1214,9 @@
                 <span class="val ${cls}">${unreal >= 0 ? "+" : ""}₹${fmtR(unreal)} (${pnlPts >= 0 ? "+" : ""}${fmtR(pnlPts)} pts)</span></div>`;
             }
             bodyHtml += `<div class="row"><span class="key">Entry</span><span class="val">₹${fmtR(trade.entry_price)} @ ${trade.entry_time}</span></div>`;
-            bodyHtml += `<div class="row"><span class="key">SL</span><span class="val r-red">₹${fmtR(trade.sl_price)} (−${trade.sl_pts}pts)</span></div>`;
-            bodyHtml += `<div class="row"><span class="key">Target</span><span class="val r-green">₹${fmtR(trade.target_price)} (+${trade.target_pts}pts)</span></div>`;
+            // Show SL and Target as both ₹ and %
+            bodyHtml += `<div class="row"><span class="key">SL</span><span class="val r-red">₹${fmtR(trade.sl_price)} (${fmtR(trade.sl_pct)}%)</span></div>`;
+            bodyHtml += `<div class="row"><span class="key">Target</span><span class="val r-green">₹${fmtR(trade.target_price)} (${fmtR(trade.target_pct)}%)</span></div>`;
             bodyHtml += `<div class="row"><span class="key">Margin Blocked</span><span class="val">₹${fmtR(trade.margin_used)}</span></div>`;
             if (!isOpen) {
               const cls = trade.pnl_inr >= 0 ? "fno-pnl-pos" : "fno-pnl-neg";
@@ -1289,7 +1236,6 @@
             }
           }
 
-          // OR bar at bottom of card
           const orHtml = (s.or_high != null)
             ? `<div class="fno-or-bar">OR: H <b>₹${fmtR(s.or_high)}</b> L <b>₹${fmtR(s.or_low)}</b></div>`
             : `<div class="fno-or-bar" style="color:#aaa">OR: building after 09:15</div>`;
@@ -1328,8 +1274,8 @@
             <td>${t.lot_size}</td>
             <td>₹${fmtR(t.entry_price)}</td>
             <td>${t.entry_time}</td>
-            <td class="r-red">${t.sl_pts}</td>
-            <td class="r-green">${t.target_pts}</td>
+            <td class="r-red">${fmtR(t.sl_pct)}%</td>
+            <td class="r-green">${fmtR(t.target_pct)}%</td>
             <td class="r-red">₹${fmtR(t.sl_price)}</td>
             <td class="r-green">₹${fmtR(t.target_price)}</td>
             <td>₹${fmtR(t.margin_used)}</td>
@@ -1365,16 +1311,16 @@
       }
 
       async function saveFnoParams() {
-        const sl  = parseFloat($("fno-sl-pts").value);
-        const tgt = parseFloat($("fno-tgt-pts").value);
+        const sl  = parseFloat($("fno-sl-pct").value);
+        const tgt = parseFloat($("fno-tgt-pct").value);
         if (isNaN(sl) || sl <= 0 || isNaN(tgt) || tgt <= 0) {
-          $("fno-status").textContent = "Enter valid positive numbers for SL and Target."; return;
+          $("fno-status").textContent = "Enter valid positive numbers for SL% and Target%."; return;
         }
         try {
-          const res = await jget(`/fno_params?sl_pts=${sl}&target_pts=${tgt}`);
-          $("fno-param-display").textContent = `Active: SL ${res.sl_pts}pts / TGT ${res.target_pts}pts`;
-          $("fno-status").textContent = `Params saved — SL ${res.sl_pts}pts / Target ${res.target_pts}pts. Applies from next entry.`;
-          $("fno-sl-pts").value = ""; $("fno-tgt-pts").value = "";
+          const res = await jget(`/fno_params?sl_pct=${sl}&target_pct=${tgt}`);
+          $("fno-param-display").textContent = `Active: SL ${res.sl_pct}% / TGT ${res.target_pct}%`;
+          $("fno-status").textContent = `Params saved — SL ${res.sl_pct}% / Target ${res.target_pct}%. Applies from next entry.`;
+          $("fno-sl-pct").value = ""; $("fno-tgt-pct").value = "";
         } catch(e) { $("fno-status").textContent = "Save failed: " + e.message; }
       }
 
