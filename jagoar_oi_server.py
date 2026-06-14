@@ -93,6 +93,18 @@ _tr_state = {
 _tr_fut_cache = {}   # symbol → {"fut_key": ..., "lot_size": ...}
 _tr_fut_lock  = threading.Lock()
 
+# ── Equity Cash (Tab 4) shared state ──────────────────────────────────────────
+_eq_lock  = threading.Lock()
+_eq_state = {
+    "capital":    10_000.0,
+    "sl_pct":     1.0,
+    "target_pct": 1.0,
+    "intraday":   {},   # symbol → {day_high, day_low, entered, side, eq_key, qty}
+}
+EQ_TOP_N       = 4
+EQ_ENTRY_START = 9  * 60 + 15
+EQ_ENTRY_END   = 14 * 60 + 30
+EQ_SQUAREOFF   = 15 * 60 + 25
 # ── FnO shared state ───────────────────────────────────────────────────────────
 _fno_lock   = threading.Lock()
 _fno_state  = {
@@ -211,6 +223,30 @@ def db_init():
                 balance  REAL  NOT NULL,
                 note     TEXT
             )""")
+        conn.commit()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS eq_cash_trades (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                log_date     TEXT    NOT NULL,
+                symbol       TEXT    NOT NULL,
+                eq_key       TEXT    NOT NULL,
+                side         TEXT    NOT NULL,
+                qty          INTEGER NOT NULL,
+                capital_used REAL    NOT NULL,
+                entry_price  REAL    NOT NULL,
+                entry_time   TEXT    NOT NULL,
+                sl_pct       REAL    NOT NULL,
+                target_pct   REAL    NOT NULL,
+                sl_price     REAL    NOT NULL,
+                target_price REAL    NOT NULL,
+                exit_price   REAL,
+                exit_time    TEXT,
+                result       TEXT    NOT NULL DEFAULT 'OPEN',
+                pnl_pts      REAL,
+                pnl_pct      REAL,
+                pnl_inr      REAL
+            )""")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_eq_date_sym ON eq_cash_trades(log_date,symbol)")
         conn.commit()
 
 # ── OI scanner DB helpers ──────────────────────────────────────────────────────
@@ -712,6 +748,65 @@ def compute_section_d(rows, atm, scrip, expiry):
     db_insert_log(scrip, expiry, ts, call_oi, put_oi, diff, change_diff, action)
     print(f"[{ts}] Logged {scrip} | diff={diff} action={action or '-'}")
 
+# ── Equity Cash DB helpers ─────────────────────────────────────────────────────
+def eq_trade_today(symbol, log_date):
+    with _db_lock, get_conn() as conn:
+        row = conn.execute(
+            "SELECT id,side,qty,capital_used,entry_price,entry_time,sl_pct,target_pct,"
+            "sl_price,target_price,exit_price,exit_time,result,pnl_pts,pnl_pct,pnl_inr "
+            "FROM eq_cash_trades WHERE log_date=? AND symbol=? ORDER BY id DESC LIMIT 1",
+            (log_date, symbol)).fetchone()
+    if not row: return None
+    return {"id":row[0],"side":row[1],"qty":row[2],"capital_used":row[3],
+            "entry_price":row[4],"entry_time":row[5],"sl_pct":row[6],"target_pct":row[7],
+            "sl_price":row[8],"target_price":row[9],"exit_price":row[10],
+            "exit_time":row[11],"result":row[12],"pnl_pts":row[13],
+            "pnl_pct":row[14],"pnl_inr":row[15]}
+
+def eq_trade_insert(log_date, symbol, eq_key, side, qty, capital_used,
+                    entry_price, entry_time, sl_pct, target_pct, sl_price, target_price):
+    with _db_lock, get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO eq_cash_trades "
+            "(log_date,symbol,eq_key,side,qty,capital_used,entry_price,entry_time,"
+            "sl_pct,target_pct,sl_price,target_price,result) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,'OPEN')",
+            (log_date,symbol,eq_key,side,qty,capital_used,
+             entry_price,entry_time,sl_pct,target_pct,sl_price,target_price))
+        conn.commit()
+        return cur.lastrowid
+
+def eq_trade_update_exit(trade_id, exit_price, exit_time, result, pnl_pts, pnl_pct, pnl_inr):
+    with _db_lock, get_conn() as conn:
+        conn.execute(
+            "UPDATE eq_cash_trades SET exit_price=?,exit_time=?,result=?,"
+            "pnl_pts=?,pnl_pct=?,pnl_inr=? WHERE id=?",
+            (exit_price,exit_time,result,pnl_pts,pnl_pct,pnl_inr,trade_id))
+        conn.commit()
+
+def eq_trades_history(from_date, to_date, symbol=None):
+    with _db_lock, get_conn() as conn:
+        if symbol:
+            rows = conn.execute(
+                "SELECT id,log_date,symbol,eq_key,side,qty,capital_used,entry_price,entry_time,"
+                "sl_pct,target_pct,sl_price,target_price,exit_price,exit_time,result,pnl_pts,pnl_pct,pnl_inr "
+                "FROM eq_cash_trades WHERE log_date BETWEEN ? AND ? AND symbol=? "
+                "ORDER BY log_date DESC,id DESC",
+                (from_date, to_date, symbol)).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT id,log_date,symbol,eq_key,side,qty,capital_used,entry_price,entry_time,"
+                "sl_pct,target_pct,sl_price,target_price,exit_price,exit_time,result,pnl_pts,pnl_pct,pnl_inr "
+                "FROM eq_cash_trades WHERE log_date BETWEEN ? AND ? "
+                "ORDER BY log_date DESC,id DESC",
+                (from_date, to_date)).fetchall()
+    return [{"id":r[0],"log_date":r[1],"symbol":r[2],"eq_key":r[3],"side":r[4],
+             "qty":r[5],"capital_used":r[6],"entry_price":r[7],"entry_time":r[8],
+             "sl_pct":r[9],"target_pct":r[10],"sl_price":r[11],"target_price":r[12],
+             "exit_price":r[13],"exit_time":r[14],"result":r[15],
+             "pnl_pts":r[16],"pnl_pct":r[17],"pnl_inr":r[18]} for r in rows]
+
+
 # ── FnO lot size + futures key ─────────────────────────────────────────────────
 _lot_cache    = {}
 _futkey_cache = {}
@@ -982,6 +1077,123 @@ def fno_scheduler():
         except Exception as e:
             print(f"  FnO scheduler error: {e}")
 
+# ── Equity Cash Scheduler (Tab 4) ─────────────────────────────────────────────
+def eq_cash_scheduler():
+    print(f"[{now_ist().strftime('%H:%M:%S')}] Equity cash scheduler started.")
+    while True:
+        time.sleep(180)
+        if not is_market_open():
+            continue
+        today = ist_date_str()
+        cm    = cur_min_ist()
+
+        # Get top 4 rising + top 4 falling from trending state
+        with _tr_lock:
+            rising  = list(_tr_state["rising"])[:EQ_TOP_N]
+            falling = list(_tr_state["falling"])[:EQ_TOP_N]
+
+        if not rising and not falling:
+            continue
+
+        with _eq_lock:
+            capital    = _eq_state["capital"]
+            sl_pct     = _eq_state["sl_pct"]
+            target_pct = _eq_state["target_pct"]
+
+        all_stocks = [(s, "LONG") for s in rising] + [(s, "SHORT") for s in falling]
+
+        for s, side in all_stocks:
+            sym    = s["symbol"]
+            eq_key = s.get("instrument_key")
+            if not eq_key:
+                continue
+
+            try:
+                ltp = get_ltp(eq_key)
+                if not ltp:
+                    continue
+
+                if ltp > capital:
+                    print(f"  [EQ] {sym} LTP ₹{ltp} > capital ₹{capital}, skipping")
+                    continue
+
+                qty = int(capital / ltp)
+                if qty < 1:
+                    continue
+
+                with _eq_lock:
+                    iday = _eq_state["intraday"].setdefault(sym, {
+                        "day_high": ltp, "day_low": ltp,
+                        "entered":  False,
+                        "side":     side,
+                        "eq_key":   eq_key,
+                        "qty":      qty,
+                    })
+                    prev_high = iday["day_high"]
+                    prev_low  = iday["day_low"]
+                    iday["day_high"] = max(iday["day_high"], ltp)
+                    iday["day_low"]  = min(iday["day_low"],  ltp)
+                    entered  = iday["entered"]
+                    day_high = iday["day_high"]
+                    day_low  = iday["day_low"]
+
+                if not entered and EQ_ENTRY_START <= cm <= EQ_ENTRY_END:
+                    existing = eq_trade_today(sym, today)
+                    if not existing:
+                        trigger = False
+                        if side == "LONG"  and ltp > prev_high:
+                            trigger = True
+                        elif side == "SHORT" and ltp < prev_low:
+                            trigger = True
+
+                        if trigger:
+                            capital_used = round(qty * ltp, 2)
+                            if side == "LONG":
+                                sl_price     = round(ltp * (1 - sl_pct  / 100), 2)
+                                target_price = round(ltp * (1 + target_pct / 100), 2)
+                            else:
+                                sl_price     = round(ltp * (1 + sl_pct  / 100), 2)
+                                target_price = round(ltp * (1 - target_pct / 100), 2)
+
+                            eq_trade_insert(
+                                today, sym, eq_key, side, qty, capital_used,
+                                ltp, now_ist().strftime("%H:%M:%S"),
+                                sl_pct, target_pct, sl_price, target_price)
+                            with _eq_lock:
+                                _eq_state["intraday"][sym]["entered"] = True
+                            print(f"  [EQ] ENTRY {sym} {side} @ ₹{ltp} qty={qty} "
+                                  f"capital=₹{capital_used} SL={sl_price} TGT={target_price}")
+
+                trade = eq_trade_today(sym, today)
+                if trade and trade["result"] == "OPEN":
+                    is_long  = trade["side"] == "LONG"
+                    hit_sl   = (ltp <= trade["sl_price"])     if is_long else (ltp >= trade["sl_price"])
+                    hit_tgt  = (ltp >= trade["target_price"]) if is_long else (ltp <= trade["target_price"])
+                    sq_off   = cm >= EQ_SQUAREOFF
+
+                    exit_p = result = None
+                    if hit_tgt and hit_sl:
+                        exit_p, result = trade["sl_price"], "SL HIT"
+                    elif hit_tgt:
+                        exit_p, result = trade["target_price"], "TGT HIT"
+                    elif hit_sl:
+                        exit_p, result = trade["sl_price"], "SL HIT"
+                    elif sq_off:
+                        exit_p, result = ltp, "SQUAREOFF"
+
+                    if result:
+                        pnl_pts = (exit_p - trade["entry_price"]) if is_long else (trade["entry_price"] - exit_p)
+                        pnl_inr = round(pnl_pts * trade["qty"], 2)
+                        pnl_pct = round((pnl_pts / trade["entry_price"]) * 100, 2)
+                        eq_trade_update_exit(
+                            trade["id"], exit_p,
+                            now_ist().strftime("%H:%M:%S"),
+                            result, round(pnl_pts, 2), pnl_pct, pnl_inr)
+                        print(f"  [EQ] EXIT {sym} @ ₹{exit_p} {result} "
+                              f"P&L=₹{pnl_inr:+.2f} ({pnl_pct:+.2f}%)")
+
+            except Exception as e:
+                print(f"  [EQ] {sym}: {e}")
 # ── OI Scheduler ───────────────────────────────────────────────────────────────
 def scheduler():
     print(f"[{now_ist().strftime('%H:%M:%S')}] OI Scheduler started.")
@@ -1011,6 +1223,8 @@ def midnight_wiper():
         with _tr_lock:
             _tr_state["intraday"]     = {}
             _tr_state["scanned_date"] = None
+        with _eq_lock:
+            _eq_state["intraday"] = {}
         with _tr_fut_lock:
             _tr_fut_cache.clear()
         print(f"[{now_ist().strftime('%H:%M:%S')}] Midnight reset done.")
@@ -1375,7 +1589,71 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif p == "/fno_history":
                 sym=qs.get("symbol",[None])[0]; days=int(qs.get("days",["30"])[0])
                 self._send(200,{"trades":fno_trades_history(days,sym),"balance_log":fno_balance_history(days)})
+            elif p == "/eq_state":
+                today = ist_date_str()
+                with _tr_lock:
+                    rising  = list(_tr_state["rising"])[:EQ_TOP_N]
+                    falling = list(_tr_state["falling"])[:EQ_TOP_N]
+                with _eq_lock:
+                    capital    = _eq_state["capital"]
+                    sl_pct     = _eq_state["sl_pct"]
+                    target_pct = _eq_state["target_pct"]
+                    intraday   = dict(_eq_state["intraday"])
 
+                all_stocks = [(s, "LONG") for s in rising] + [(s, "SHORT") for s in falling]
+                stocks_out = []
+                for s, side in all_stocks:
+                    sym   = s["symbol"]
+                    trade = eq_trade_today(sym, today)
+                    iday  = intraday.get(sym, {})
+                    try:
+                        ltp = get_ltp(s.get("instrument_key"))
+                    except Exception:
+                        ltp = None
+                    stocks_out.append({
+                        "symbol":    sym,
+                        "eq_key":    s.get("instrument_key"),
+                        "side":      side,
+                        "gain3d":    s.get("gain3d_pct"),
+                        "ltp":       ltp,
+                        "day_high":  iday.get("day_high"),
+                        "day_low":   iday.get("day_low"),
+                        "entered":   iday.get("entered", False),
+                        "qty":       iday.get("qty"),
+                        "trade":     trade,
+                    })
+                self._send(200, {
+                    "stocks":      stocks_out,
+                    "capital":     capital,
+                    "sl_pct":      sl_pct,
+                    "target_pct":  target_pct,
+                    "date":        today,
+                    "market_open": is_market_open(),
+                })
+
+            elif p == "/eq_params":
+                capital = float(qs.get("capital",["-1"])[0])
+                sl      = float(qs.get("sl_pct",["-1"])[0])
+                tgt     = float(qs.get("target_pct",["-1"])[0])
+                with _eq_lock:
+                    if capital > 0:  _eq_state["capital"]    = capital
+                    if sl > 0:       _eq_state["sl_pct"]     = sl
+                    if tgt > 0:      _eq_state["target_pct"] = tgt
+                    self._send(200, {
+                        "capital":    _eq_state["capital"],
+                        "sl_pct":     _eq_state["sl_pct"],
+                        "target_pct": _eq_state["target_pct"],
+                    })
+
+            elif p == "/eq_history":
+                from_d  = qs.get("from_date", [None])[0]
+                to_d    = qs.get("to_date",   [None])[0]
+                sym     = qs.get("symbol",    [None])[0]
+                if not from_d or not to_d:
+                    self._send(400, {"error": "from_date and to_date required"})
+                else:
+                    self._send(200, {"trades": eq_trades_history(from_d, to_d, sym)})
+                    
             elif p == "/fno_lot_sizes":
                 self._send(200,{s["symbol"]:get_lot_size(s["symbol"]) for s in FNO_STOCKS})
 
@@ -1395,6 +1673,7 @@ if __name__ == "__main__":
     threading.Thread(target=midnight_wiper,          daemon=True).start()
     threading.Thread(target=scheduler,               daemon=True).start()
     threading.Thread(target=new_trending_scheduler,  daemon=True).start()
+    threading.Thread(target=eq_cash_scheduler,       daemon=True).start()
     threading.Thread(target=fno_scheduler,           daemon=True).start()
     server = http.server.ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"JAGOAR OI server → http://0.0.0.0:{PORT}")
