@@ -12,7 +12,7 @@ Tabs:
 """
 
 import gzip, http.server, json, os, sqlite3, threading, time, urllib.parse
-from datetime import datetime
+from datetime import datetime, timezone
 
 try:
     import requests
@@ -74,7 +74,7 @@ TR_SCAN_HOUR      = 9
 TR_SCAN_MIN       = 0
 TR_ENTRY_START    = 9  * 60 + 15
 TR_ENTRY_END      = 14 * 60 + 30
-TR_SQUAREOFF      = 15 * 60 + 25   # 15:25 IST — 5 min before market close
+TR_SQUAREOFF      = 15 * 60 + 25
 TR_DEFAULT_SL_PCT    = 1.0
 TR_DEFAULT_TGT_PCT   = 1.0
 
@@ -86,11 +86,11 @@ _tr_state = {
     "scanned_date": None,
     "sl_pct":       TR_DEFAULT_SL_PCT,
     "target_pct":   TR_DEFAULT_TGT_PCT,
-    "intraday":     {},   # symbol → {day_high, day_low, entered, fut_key, lot_size}
+    "intraday":     {},
 }
 
-# Futures key + lot size cache for trending stocks (populated during scan)
-_tr_fut_cache = {}   # symbol → {"fut_key": ..., "lot_size": ...}
+# Futures key + lot size cache for trending stocks
+_tr_fut_cache = {}
 _tr_fut_lock  = threading.Lock()
 
 # ── Equity Cash (Tab 4) shared state ──────────────────────────────────────────
@@ -99,12 +99,13 @@ _eq_state = {
     "capital":    10_000.0,
     "sl_pct":     1.0,
     "target_pct": 1.0,
-    "intraday":   {},   # symbol → {day_high, day_low, entered, side, eq_key, qty}
+    "intraday":   {},
 }
 EQ_TOP_N       = 4
 EQ_ENTRY_START = 9  * 60 + 15
 EQ_ENTRY_END   = 14 * 60 + 30
 EQ_SQUAREOFF   = 15 * 60 + 25
+
 # ── FnO shared state ───────────────────────────────────────────────────────────
 _fno_lock   = threading.Lock()
 _fno_state  = {
@@ -125,6 +126,13 @@ def ist_date_str():
 def cur_min_ist():
     t = now_ist()
     return t.hour * 60 + t.minute
+
+# ── Expiry normaliser ──────────────────────────────────────────────────────────
+def _expiry_str(val):
+    """Convert epoch-ms int OR 'YYYY-MM-DD' string to 'YYYY-MM-DD' string."""
+    if isinstance(val, int):
+        return datetime.fromtimestamp(val / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+    return str(val)[:10]
 
 # ── Market status ──────────────────────────────────────────────────────────────
 def is_market_open():
@@ -156,7 +164,6 @@ def db_init():
             )""")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_scrip_expiry_date ON section_d_logs(log_date,scrip,expiry)")
 
-        # trending_logs — now includes futures fields
         conn.execute("""
             CREATE TABLE IF NOT EXISTS trending_logs (
                 id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -177,7 +184,6 @@ def db_init():
                 pnl_pct      REAL,
                 pnl_inr      REAL
             )""")
-        # Add missing columns if upgrading from old schema
         for col, definition in [
             ("fut_key",  "TEXT"),
             ("lot_size", "INTEGER NOT NULL DEFAULT 1"),
@@ -223,7 +229,6 @@ def db_init():
                 balance  REAL  NOT NULL,
                 note     TEXT
             )""")
-        conn.commit()
         conn.execute("""
             CREATE TABLE IF NOT EXISTS eq_cash_trades (
                 id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -383,12 +388,12 @@ def _resolve_tr_fut(symbol, instruments, today):
 
     fut_rows = [d for d in rows
                 if d.get("instrument_type") == "FUT"
-                and d.get("expiry", "") >= today
+                and _expiry_str(d.get("expiry", 0)) >= today
                 and d.get("instrument_key")]
     if not fut_rows:
         return None
 
-    fut_rows.sort(key=lambda x: x["expiry"])
+    fut_rows.sort(key=lambda x: _expiry_str(x["expiry"]))
     fut_key = fut_rows[0]["instrument_key"]
     lot_size = int(fut_rows[0].get("lot_size") or lot_size)
 
@@ -421,11 +426,10 @@ def _scan_trending_stocks():
     Also resolves futures key + lot size for each qualifying stock.
     Returns (rising_list, falling_list).
     """
-    print(f"[{now_ist().strftime('%H:%M:%S')}] Trending scan started…")
+    print(f"[{now_ist().strftime('%H:%M:%S')}] Trending scan started...")
     instruments = _load_nse_instruments()
     today = ist_date_str()
 
-    # Build unique equity underlying list from FnO instruments
     stocks = []
     seen = set()
     for d in instruments:
@@ -457,22 +461,20 @@ def _scan_trending_stocks():
             time.sleep(0.05)
             continue
 
-        # Resolve futures key for qualifying stock
         fut_info = _resolve_tr_fut(s["symbol"], instruments, today)
         if not fut_info:
-            # No futures found — skip, we only trade futures
             time.sleep(0.05)
             continue
 
         entry = {
-            "symbol":       s["symbol"],
-            "instrument_key": s["instrument_key"],   # equity key (for price history)
-            "fut_key":      fut_info["fut_key"],
-            "lot_size":     fut_info["lot_size"],
-            "gain3d_pct":   gain3,
-            "close_d1":     d1,
-            "close_d2":     d2,
-            "close_d3":     d3,
+            "symbol":         s["symbol"],
+            "instrument_key": s["instrument_key"],
+            "fut_key":        fut_info["fut_key"],
+            "lot_size":       fut_info["lot_size"],
+            "gain3d_pct":     gain3,
+            "close_d1":       d1,
+            "close_d2":       d2,
+            "close_d3":       d3,
         }
 
         if qualifies_rising:
@@ -492,7 +494,6 @@ def _scan_trending_stocks():
 
 # ── Trending: enter a futures trade ───────────────────────────────────────────
 def _tr_enter(symbol, fut_key, lot_size, side, ltp, today):
-    """Enter a trending futures trade. Returns True if entered."""
     if trending_already_entered(symbol, today):
         return False
 
@@ -536,12 +537,12 @@ def _tr_check_exits(today):
             if not ltp:
                 continue
 
-            entry    = row["entry_price"]
-            is_long  = row["sl_price"] < entry
-            exit_p = result = None
+            entry   = row["entry_price"]
+            is_long = row["sl_price"] < entry
+            exit_p  = result = None
 
-            hit_sl  = (ltp <= row["sl_price"])     if is_long else (ltp >= row["sl_price"])
-            hit_tgt = (ltp >= row["target_price"])  if is_long else (ltp <= row["target_price"])
+            hit_sl  = (ltp <= row["sl_price"])    if is_long else (ltp >= row["sl_price"])
+            hit_tgt = (ltp >= row["target_price"]) if is_long else (ltp <= row["target_price"])
             sq_off  = cm >= TR_SQUAREOFF
 
             if hit_tgt and hit_sl:
@@ -564,19 +565,12 @@ def _tr_check_exits(today):
                     round(pnl_pts, 2), pnl_pct, pnl_inr
                 )
                 print(f"  [TR] EXIT {sym} @ {exit_p} {result} "
-                      f"| P&L={pnl_pts:+.2f}pts ₹{pnl_inr:+.0f} (lot={lot_size})")
+                      f"| P&L={pnl_pts:+.2f}pts Rs{pnl_inr:+.0f} (lot={lot_size})")
         except Exception as e:
             print(f"  [TR] exit check {sym}: {e}")
 
 # ── Trending scheduler ─────────────────────────────────────────────────────────
 def new_trending_scheduler():
-    """
-    Background thread:
-    - 09:00 IST: scan NSE FnO for 3-day rising/falling, resolve futures keys
-    - 09:15–14:30: every 3 min, track day high/low on FUTURES LTP, enter on breakout
-    - Check SL/TGT/squareoff every poll
-    - Square-off at 15:25 IST
-    """
     print(f"[{now_ist().strftime('%H:%M:%S')}] Trending scheduler started.")
     _scanned_today = [None]
 
@@ -585,7 +579,6 @@ def new_trending_scheduler():
         cm = t.hour * 60 + t.minute
         today = ist_date_str()
 
-        # ── 09:00 scan ────────────────────────────────────────────────────────
         if cm == TR_SCAN_HOUR * 60 + TR_SCAN_MIN and _scanned_today[0] != today:
             try:
                 rising, falling = _scan_trending_stocks()
@@ -600,7 +593,6 @@ def new_trending_scheduler():
             time.sleep(60)
             continue
 
-        # ── Intraday: futures breakout entry + exit checks ─────────────────────
         if TR_ENTRY_START <= cm <= TR_SQUAREOFF:
             all_stocks = _tr_all_active()
             if not all_stocks:
@@ -608,8 +600,8 @@ def new_trending_scheduler():
                 continue
 
             for s in all_stocks:
-                sym     = s["symbol"]
-                fut_key = s.get("fut_key")
+                sym      = s["symbol"]
+                fut_key  = s.get("fut_key")
                 lot_size = s.get("lot_size", 1)
                 if not fut_key:
                     continue
@@ -618,7 +610,6 @@ def new_trending_scheduler():
                 side = "LONG" if is_rising else "SHORT"
 
                 try:
-                    # Always fetch FUTURES LTP for tracking and entry
                     ltp = get_ltp(fut_key)
                     if not ltp:
                         continue
@@ -632,12 +623,10 @@ def new_trending_scheduler():
                         prev_low  = iday["day_low"]
                         iday["day_high"] = max(iday["day_high"], ltp)
                         iday["day_low"]  = min(iday["day_low"],  ltp)
-                        entered   = iday["entered"]
-                        day_high  = iday["day_high"]
-                        day_low   = iday["day_low"]
+                        entered  = iday["entered"]
+                        day_high = iday["day_high"]
+                        day_low  = iday["day_low"]
 
-                    # Entry: new day high (LONG) or new day low (SHORT)
-                    # Only enter within entry window and once per stock per day
                     if not entered and cm <= TR_ENTRY_END:
                         already = trending_already_entered(sym, today)
                         if not already:
@@ -656,13 +645,11 @@ def new_trending_scheduler():
                 except Exception as e:
                     print(f"  [TR] intraday {sym}: {e}")
 
-            # Check exits every poll cycle
             try:
                 _tr_check_exits(today)
             except Exception as e:
                 print(f"  [TR] exit check error: {e}")
 
-        # Force squareoff check even outside entry window
         elif cm > TR_SQUAREOFF:
             try:
                 _tr_check_exits(today)
@@ -717,12 +704,12 @@ def get_option_chain(instrument_key, expiry_date):
         call = item.get("call_options", {}).get("market_data", {}) or {}
         put  = item.get("put_options",  {}).get("market_data", {}) or {}
         rows.append({
-            "strike": item.get("strike_price"),
+            "strike":        item.get("strike_price"),
             "call_oi_change": (call.get("oi",0) or 0) - (call.get("prev_oi",0) or 0),
             "put_oi_change":  (put.get("oi",0) or 0)  - (put.get("prev_oi",0) or 0),
-            "call_oi": call.get("oi",0) or 0, "put_oi": put.get("oi",0) or 0,
+            "call_oi":    call.get("oi",0) or 0, "put_oi":    put.get("oi",0) or 0,
             "call_volume": call.get("volume",0) or 0, "put_volume": put.get("volume",0) or 0,
-            "call_ltp": call.get("ltp",0) or 0, "put_ltp": put.get("ltp",0) or 0,
+            "call_ltp":   call.get("ltp",0) or 0, "put_ltp":   put.get("ltp",0) or 0,
         })
     rows.sort(key=lambda x: (x["strike"] is None, x["strike"]))
     return {"rows": rows, "spot": spot, "pcr": pcr_vals[0] if pcr_vals else None, "ts": now_ist().strftime("%H:%M:%S")}
@@ -746,7 +733,7 @@ def compute_section_d(rows, atm, scrip, expiry):
     if put_oi  - call_oi > TEN_LAC: action = "BUY CALL"
     ts = now_ist().strftime("%H:%M:%S")
     db_insert_log(scrip, expiry, ts, call_oi, put_oi, diff, change_diff, action)
-    print(f"[{ts}] Logged {scrip} | diff={diff} action={action or '-'}")
+    print(f"[{ts} IST] Logged {scrip} | expiry={expiry} | callOI={call_oi} putOI={put_oi} diff={diff} action={action or '-'}")
 
 # ── Equity Cash DB helpers ─────────────────────────────────────────────────────
 def eq_trade_today(symbol, log_date):
@@ -806,7 +793,6 @@ def eq_trades_history(from_date, to_date, symbol=None):
              "exit_price":r[13],"exit_time":r[14],"result":r[15],
              "pnl_pts":r[16],"pnl_pct":r[17],"pnl_inr":r[18]} for r in rows]
 
-
 # ── FnO lot size + futures key ─────────────────────────────────────────────────
 _lot_cache    = {}
 _futkey_cache = {}
@@ -827,7 +813,7 @@ def resolve_lot_sizes_and_futures():
         if sym: fo_map.setdefault(sym, []).append(d)
 
     for s in FNO_STOCKS:
-        sym = s["symbol"]
+        sym  = s["symbol"]
         rows = fo_map.get(sym, [])
         if not rows:
             _lot_cache[sym] = s["lot_size"]
@@ -836,10 +822,10 @@ def resolve_lot_sizes_and_futures():
         _lot_cache[sym] = int(lot)
         fut_rows = [d for d in rows
                     if d.get("instrument_type") == "FUT"
-                    and d.get("expiry", "") >= today
+                    and _expiry_str(d.get("expiry", 0)) >= today
                     and d.get("instrument_key")]
         if fut_rows:
-            fut_rows.sort(key=lambda x: x["expiry"])
+            fut_rows.sort(key=lambda x: _expiry_str(x["expiry"]))
             best = fut_rows[0]
             _futkey_cache[sym] = best["instrument_key"]
         else:
@@ -981,7 +967,7 @@ def _check_fno_exits(today):
         if not trade or trade["result"] != "OPEN": continue
         ltp = get_fut_ltp(sym)
         if ltp is None: continue
-        side, lot_size = trade["side"], trade["lot_size"]
+        side, lot_size       = trade["side"], trade["lot_size"]
         sl_price, target_price = trade["sl_price"], trade["target_price"]
         entry_price, margin_used = trade["entry_price"], trade["margin_used"]
         exit_p = result = None
@@ -1001,7 +987,7 @@ def _check_fno_exits(today):
                 _fno_state["balance"] += returned
                 bal = _fno_state["balance"]
             fno_balance_log_insert("TRADE_EXIT", returned, bal,
-                                   f"{sym} {side} exit@{exit_p} {result} P&L=₹{pnl_inr:+.0f}")
+                                   f"{sym} {side} exit@{exit_p} {result} P&L=Rs{pnl_inr:+.0f}")
 
 def _build_or_and_scan(today):
     cm = cur_min_ist()
@@ -1022,8 +1008,8 @@ def _build_or_and_scan(today):
             or_high, or_low = od.get("or_high"), od.get("or_low")
             if or_high is None or or_low is None: continue
             side = entry_level = None
-            if ltp > or_high:   side, entry_level = "LONG", or_high
-            elif ltp < or_low:  side, entry_level = "SHORT", or_low
+            if ltp > or_high:  side, entry_level = "LONG", or_high
+            elif ltp < or_low: side, entry_level = "SHORT", or_low
             if side:
                 res = _try_enter_fno(sym, side, or_high, or_low, entry_level, today, "OR breakout")
                 if res == "ENTERED":
@@ -1040,8 +1026,8 @@ def _retry_pending_on_funds(today):
         ltp = get_fut_ltp(sym)
         if ltp is None:
             still_pending.append(p); continue
-        tolerance  = entry_level * FNO_REENTRY_TOLERANCE
-        near_entry = abs(ltp - entry_level) <= tolerance
+        tolerance    = entry_level * FNO_REENTRY_TOLERANCE
+        near_entry   = abs(ltp - entry_level) <= tolerance
         correct_side = (ltp > or_high) if side == "LONG" else (ltp < or_low)
         if near_entry and correct_side:
             res = _try_enter_fno(sym, side, or_high, or_low, entry_level, today, "re-entry after funds")
@@ -1077,7 +1063,7 @@ def fno_scheduler():
         except Exception as e:
             print(f"  FnO scheduler error: {e}")
 
-# ── Equity Cash Scheduler (Tab 4) ─────────────────────────────────────────────
+# ── Equity Cash Scheduler ─────────────────────────────────────────────────────
 def eq_cash_scheduler():
     print(f"[{now_ist().strftime('%H:%M:%S')}] Equity cash scheduler started.")
     while True:
@@ -1087,7 +1073,6 @@ def eq_cash_scheduler():
         today = ist_date_str()
         cm    = cur_min_ist()
 
-        # Get top 4 rising + top 4 falling from trending state
         with _tr_lock:
             rising  = list(_tr_state["rising"])[:EQ_TOP_N]
             falling = list(_tr_state["falling"])[:EQ_TOP_N]
@@ -1114,7 +1099,7 @@ def eq_cash_scheduler():
                     continue
 
                 if ltp > capital:
-                    print(f"  [EQ] {sym} LTP ₹{ltp} > capital ₹{capital}, skipping")
+                    print(f"  [EQ] {sym} LTP Rs{ltp} > capital Rs{capital}, skipping")
                     continue
 
                 qty = int(capital / ltp)
@@ -1161,15 +1146,15 @@ def eq_cash_scheduler():
                                 sl_pct, target_pct, sl_price, target_price)
                             with _eq_lock:
                                 _eq_state["intraday"][sym]["entered"] = True
-                            print(f"  [EQ] ENTRY {sym} {side} @ ₹{ltp} qty={qty} "
-                                  f"capital=₹{capital_used} SL={sl_price} TGT={target_price}")
+                            print(f"  [EQ] ENTRY {sym} {side} @ Rs{ltp} qty={qty} "
+                                  f"capital=Rs{capital_used} SL={sl_price} TGT={target_price}")
 
                 trade = eq_trade_today(sym, today)
                 if trade and trade["result"] == "OPEN":
-                    is_long  = trade["side"] == "LONG"
-                    hit_sl   = (ltp <= trade["sl_price"])     if is_long else (ltp >= trade["sl_price"])
-                    hit_tgt  = (ltp >= trade["target_price"]) if is_long else (ltp <= trade["target_price"])
-                    sq_off   = cm >= EQ_SQUAREOFF
+                    is_long = trade["side"] == "LONG"
+                    hit_sl  = (ltp <= trade["sl_price"])     if is_long else (ltp >= trade["sl_price"])
+                    hit_tgt = (ltp >= trade["target_price"]) if is_long else (ltp <= trade["target_price"])
+                    sq_off  = cm >= EQ_SQUAREOFF
 
                     exit_p = result = None
                     if hit_tgt and hit_sl:
@@ -1189,11 +1174,12 @@ def eq_cash_scheduler():
                             trade["id"], exit_p,
                             now_ist().strftime("%H:%M:%S"),
                             result, round(pnl_pts, 2), pnl_pct, pnl_inr)
-                        print(f"  [EQ] EXIT {sym} @ ₹{exit_p} {result} "
-                              f"P&L=₹{pnl_inr:+.2f} ({pnl_pct:+.2f}%)")
+                        print(f"  [EQ] EXIT {sym} @ Rs{exit_p} {result} "
+                              f"P&L=Rs{pnl_inr:+.2f} ({pnl_pct:+.2f}%)")
 
             except Exception as e:
                 print(f"  [EQ] {sym}: {e}")
+
 # ── OI Scheduler ───────────────────────────────────────────────────────────────
 def scheduler():
     print(f"[{now_ist().strftime('%H:%M:%S')}] OI Scheduler started.")
@@ -1438,7 +1424,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         "longs":longs,"shorts":len(trades)-longs,
                         "win_rate":round(wins/len(trades)*100,1) if trades else 0,"total_pnl":pnl}})
 
-            # ── Trending endpoints ─────────────────────────────────────────────
             elif p == "/trending_state":
                 today = ist_date_str()
                 with _tr_lock:
@@ -1505,14 +1490,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     qs.get("symbol",[None])[0], int(qs.get("days",["30"])[0]))})
 
             elif p == "/trending_ltp":
-                # Fetch FUTURES LTP for all tracked stocks
                 with _tr_lock:
                     all_stocks = list(_tr_state["rising"]) + list(_tr_state["falling"])
                 if not all_stocks:
                     self._send(200, {"ltps": {}})
                     return
-                # Collect futures keys
-                fut_keys = []
+                fut_keys   = []
                 sym_to_key = {}
                 for s in all_stocks:
                     fk = s.get("fut_key")
@@ -1528,10 +1511,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     try:
                         data = upstox_get("/market-quote/ltp",
                                           {"instrument_key": ",".join(chunk)})
-                        # Map back by fut_key → symbol
                         key_to_sym = {v: k for k, v in sym_to_key.items()}
                         for raw_key, v in (data.get("data") or {}).items():
-                            # raw_key format: "NSE_FO:DIXON25JUNFUT" → match by fut_key
                             for fk, sym in key_to_sym.items():
                                 if fk.split("|")[-1] in raw_key or raw_key in fk:
                                     ltps[sym] = v.get("last_price")
@@ -1540,24 +1521,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         print(f"  trending_ltp batch error: {e}")
                 self._send(200, {"ltps": ltps})
 
-            # ── FnO endpoints ──────────────────────────────────────────────────
             elif p == "/fno_state":
                 today = ist_date_str()
                 with _fno_lock:
-                    balance=_fno_state["balance"]; sl_pct=_fno_state["sl_pct"]
-                    target_pct=_fno_state["target_pct"]; pending=list(_fno_state["pending_funds"])
+                    balance    = _fno_state["balance"]
+                    sl_pct     = _fno_state["sl_pct"]
+                    target_pct = _fno_state["target_pct"]
+                    pending    = list(_fno_state["pending_funds"])
                 fut_keys = [_futkey_cache.get(s["symbol"], s["eq_key"]) for s in FNO_STOCKS]
                 ltps_raw = get_ltp_multi(fut_keys)
                 stocks_status = []
                 for s in FNO_STOCKS:
-                    sym=s["symbol"]; trade=fno_trade_today(sym,today)
-                    lot=get_lot_size(sym); fut_k=_futkey_cache.get(sym,s["eq_key"])
-                    ltp=None
-                    for k,v in ltps_raw.items():
+                    sym   = s["symbol"]
+                    trade = fno_trade_today(sym, today)
+                    lot   = get_lot_size(sym)
+                    fut_k = _futkey_cache.get(sym, s["eq_key"])
+                    ltp   = None
+                    for k, v in ltps_raw.items():
                         if sym.upper() in k.upper() or k.upper() in sym.upper():
-                            ltp=v; break
+                            ltp = v; break
                     with _fno_lock:
-                        or_d=dict(_fno_state["or_data"].get(sym,{}))
+                        or_d = dict(_fno_state["or_data"].get(sym, {}))
                     stocks_status.append({"symbol":sym,"lot_size":lot,"fut_key":fut_k,"ltp":ltp,
                         "trade":trade,"or_high":or_d.get("or_high"),"or_low":or_d.get("or_low"),
                         "or_done":or_d.get("or_done",False),
@@ -1566,29 +1550,34 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "stocks":stocks_status,"pending":pending,"date":today,"market_open":is_market_open()})
 
             elif p == "/fno_params":
-                sl=float(qs.get("sl_pct",["-1"])[0]); tgt=float(qs.get("target_pct",["-1"])[0])
+                sl  = float(qs.get("sl_pct",["-1"])[0])
+                tgt = float(qs.get("target_pct",["-1"])[0])
                 if sl > 0 and tgt > 0:
                     with _fno_lock:
-                        _fno_state["sl_pct"]=sl; _fno_state["target_pct"]=tgt
+                        _fno_state["sl_pct"]  = sl
+                        _fno_state["target_pct"] = tgt
                 with _fno_lock:
                     self._send(200,{"sl_pct":_fno_state["sl_pct"],"target_pct":_fno_state["target_pct"]})
 
             elif p == "/fno_add_funds":
-                amount=float(qs.get("amount",["0"])[0])
+                amount = float(qs.get("amount",["0"])[0])
                 if amount <= 0:
                     self._send(400,{"error":"amount must be positive"})
                 else:
                     with _fno_lock:
-                        _fno_state["balance"]+=amount; new_bal=_fno_state["balance"]
-                    fno_balance_log_insert("FUND_ADD",amount,new_bal,f"Manual top-up ₹{amount:,.0f}")
+                        _fno_state["balance"] += amount
+                        new_bal = _fno_state["balance"]
+                    fno_balance_log_insert("FUND_ADD", amount, new_bal, f"Manual top-up Rs{amount:,.0f}")
                     _retry_pending_on_funds(ist_date_str())
                     with _fno_lock:
-                        pending=list(_fno_state["pending_funds"])
+                        pending = list(_fno_state["pending_funds"])
                     self._send(200,{"balance":round(new_bal,2),"pending_count":len(pending)})
 
             elif p == "/fno_history":
-                sym=qs.get("symbol",[None])[0]; days=int(qs.get("days",["30"])[0])
+                sym  = qs.get("symbol",[None])[0]
+                days = int(qs.get("days",["30"])[0])
                 self._send(200,{"trades":fno_trades_history(days,sym),"balance_log":fno_balance_history(days)})
+
             elif p == "/eq_state":
                 today = ist_date_str()
                 with _tr_lock:
@@ -1611,16 +1600,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     except Exception:
                         ltp = None
                     stocks_out.append({
-                        "symbol":    sym,
-                        "eq_key":    s.get("instrument_key"),
-                        "side":      side,
-                        "gain3d":    s.get("gain3d_pct"),
-                        "ltp":       ltp,
-                        "day_high":  iday.get("day_high"),
-                        "day_low":   iday.get("day_low"),
-                        "entered":   iday.get("entered", False),
-                        "qty":       iday.get("qty"),
-                        "trade":     trade,
+                        "symbol":   sym,
+                        "eq_key":   s.get("instrument_key"),
+                        "side":     side,
+                        "gain3d":   s.get("gain3d_pct"),
+                        "ltp":      ltp,
+                        "day_high": iday.get("day_high"),
+                        "day_low":  iday.get("day_low"),
+                        "entered":  iday.get("entered", False),
+                        "qty":      iday.get("qty"),
+                        "trade":    trade,
                     })
                 self._send(200, {
                     "stocks":      stocks_out,
@@ -1636,9 +1625,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 sl      = float(qs.get("sl_pct",["-1"])[0])
                 tgt     = float(qs.get("target_pct",["-1"])[0])
                 with _eq_lock:
-                    if capital > 0:  _eq_state["capital"]    = capital
-                    if sl > 0:       _eq_state["sl_pct"]     = sl
-                    if tgt > 0:      _eq_state["target_pct"] = tgt
+                    if capital > 0: _eq_state["capital"]    = capital
+                    if sl > 0:      _eq_state["sl_pct"]     = sl
+                    if tgt > 0:     _eq_state["target_pct"] = tgt
                     self._send(200, {
                         "capital":    _eq_state["capital"],
                         "sl_pct":     _eq_state["sl_pct"],
@@ -1646,14 +1635,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     })
 
             elif p == "/eq_history":
-                from_d  = qs.get("from_date", [None])[0]
-                to_d    = qs.get("to_date",   [None])[0]
-                sym     = qs.get("symbol",    [None])[0]
+                from_d = qs.get("from_date",[None])[0]
+                to_d   = qs.get("to_date",  [None])[0]
+                sym    = qs.get("symbol",   [None])[0]
                 if not from_d or not to_d:
                     self._send(400, {"error": "from_date and to_date required"})
                 else:
                     self._send(200, {"trades": eq_trades_history(from_d, to_d, sym)})
-                    
+
             elif p == "/fno_lot_sizes":
                 self._send(200,{s["symbol"]:get_lot_size(s["symbol"]) for s in FNO_STOCKS})
 
@@ -1676,6 +1665,6 @@ if __name__ == "__main__":
     threading.Thread(target=eq_cash_scheduler,       daemon=True).start()
     threading.Thread(target=fno_scheduler,           daemon=True).start()
     server = http.server.ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
-    print(f"JAGOAR OI server → http://0.0.0.0:{PORT}")
-    print(f"Market open: {is_market_open()} | FnO Balance: ₹{INITIAL_BALANCE:,.0f}")
+    print(f"JAGOAR OI server -> http://0.0.0.0:{PORT}")
+    print(f"Market open: {is_market_open()} | FnO Balance: Rs{INITIAL_BALANCE:,.0f}")
     server.serve_forever()
