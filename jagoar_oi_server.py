@@ -543,7 +543,7 @@ def _fetch_daily_data(instrument_key, n_days=5):
     from datetime import timedelta
 
     today = datetime.now().date()
-    # Fetching a wider window to ensure we get 5 valid trading days (skipping weekends)
+    # Fetching a wider window to ensure we get 5 valid trading days (skipping weekends/holidays)
     from_date = (today - timedelta(days=n_days * 3)).isoformat()
     to_date = (today - timedelta(days=1)).isoformat()
     try:
@@ -572,11 +572,13 @@ def _scan_trending_stocks():
     stocks = []
     seen = set()
     for d in instruments:
-        if (d.get("segment") == "NSE_FO"
-                and d.get("instrument_type") == "CE"
-                and d.get("underlying_type") == "EQUITY"
-                and d.get("underlying_symbol")
-                and d.get("underlying_key")):
+        if (
+            d.get("segment") == "NSE_FO"
+            and d.get("instrument_type") == "CE"
+            and d.get("underlying_type") == "EQUITY"
+            and d.get("underlying_symbol")
+            and d.get("underlying_key")
+        ):
             sym = d["underlying_symbol"]
             if sym not in seen:
                 seen.add(sym)
@@ -596,7 +598,7 @@ def _scan_trending_stocks():
 
         d1, d2, d3 = closes[-1], closes[-2], closes[-3]
         v1 = volumes[-1]
-        
+
         # Calculate 5-Day Simple Moving Average of Volume
         vol_sma5 = sum(volumes) / 5
 
@@ -605,7 +607,7 @@ def _scan_trending_stocks():
         # The new Volume rule: Yesterday's volume must be higher than the 5-day average
         vol_qualifies = v1 > vol_sma5
 
-        qualifies_rising  = (d1 > d2 > d3) and vol_qualifies
+        qualifies_rising = (d1 > d2 > d3) and vol_qualifies
         qualifies_falling = (d1 < d2 < d3) and vol_qualifies
 
         if not qualifies_rising and not qualifies_falling:
@@ -618,14 +620,14 @@ def _scan_trending_stocks():
             continue
 
         entry = {
-            "symbol":         s["symbol"],
+            "symbol": s["symbol"],
             "instrument_key": s["instrument_key"],
-            "fut_key":        fut_info["fut_key"],
-            "lot_size":       fut_info["lot_size"],
-            "gain3d_pct":     gain3,
-            "close_d1":       d1,
-            "close_d2":       d2,
-            "close_d3":       d3,
+            "fut_key": fut_info["fut_key"],
+            "lot_size": fut_info["lot_size"],
+            "gain3d_pct": gain3,
+            "close_d1": d1,
+            "close_d2": d2,
+            "close_d3": d3,
         }
 
         if qualifies_rising:
@@ -637,10 +639,12 @@ def _scan_trending_stocks():
 
     rising.sort(key=lambda x: x["gain3d_pct"], reverse=True)
     falling.sort(key=lambda x: x["gain3d_pct"])
-    rising  = rising[:TR_TOP_N]
+    rising = rising[:TR_TOP_N]
     falling = falling[:TR_TOP_N]
 
-    print(f"  Trending scan done: {len(rising)} rising, {len(falling)} falling (futures only)")
+    print(
+        f"  Trending scan done: {len(rising)} rising, {len(falling)} falling (futures only)"
+    )
     return rising, falling
 
 
