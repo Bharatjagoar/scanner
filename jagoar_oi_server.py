@@ -191,6 +191,7 @@ def get_conn():
 
 def db_init():
     with _db_lock, get_conn() as conn:
+        # --- EXISTING TABLES ---
         conn.execute("""
             CREATE TABLE IF NOT EXISTS section_d_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -271,6 +272,7 @@ def db_init():
                 balance  REAL  NOT NULL,
                 note     TEXT
             )""")
+
         conn.execute("""
             CREATE TABLE IF NOT EXISTS eq_cash_trades (
                 id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -296,7 +298,47 @@ def db_init():
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_eq_date_sym ON eq_cash_trades(log_date,symbol)"
         )
+
+        # --- NEW SETTINGS TABLE ---
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS user_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                tr_sl REAL DEFAULT 1.0,
+                tr_tgt REAL DEFAULT 1.0,
+                eq_cap REAL DEFAULT 10000.0,
+                eq_sl REAL DEFAULT 1.0,
+                eq_tgt REAL DEFAULT 1.0,
+                fno_sl REAL DEFAULT 1.0,
+                fno_tgt REAL DEFAULT 1.0
+            )""")
+        conn.execute("INSERT OR IGNORE INTO user_settings (id) VALUES (1)")
         conn.commit()
+
+
+# --- NEW SETTINGS LOAD/SAVE HELPERS ---
+def db_update_setting(column, value):
+    with _db_lock, get_conn() as conn:
+        conn.execute(f"UPDATE user_settings SET {column}=? WHERE id=1", (value,))
+        conn.commit()
+
+
+def db_load_settings():
+    with _db_lock, get_conn() as conn:
+        row = conn.execute(
+            "SELECT tr_sl, tr_tgt, eq_cap, eq_sl, eq_tgt, fno_sl, fno_tgt FROM user_settings WHERE id=1"
+        ).fetchone()
+        if row:
+            with _tr_lock:
+                _tr_state["sl_pct"] = row[0]
+                _tr_state["target_pct"] = row[1]
+            with _eq_lock:
+                _eq_state["capital"] = row[2]
+                _eq_state["sl_pct"] = row[3]
+                _eq_state["target_pct"] = row[4]
+            with _fno_lock:
+                _fno_state["sl_pct"] = row[5]
+                _fno_state["target_pct"] = row[6]
+            print(f"[{now_ist().strftime('%H:%M:%S')}] Loaded user settings from DB.")
 
 
 # ── OI scanner DB helpers ──────────────────────────────────────────────────────
@@ -2118,6 +2160,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     with _tr_lock:
                         _tr_state["sl_pct"] = sl
                         _tr_state["target_pct"] = tgt
+                    # Save to DB permanently
+                    db_update_setting("tr_sl", sl)
+                    db_update_setting("tr_tgt", tgt)
                 with _tr_lock:
                     self._send(
                         200,
@@ -2245,6 +2290,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     with _fno_lock:
                         _fno_state["sl_pct"] = sl
                         _fno_state["target_pct"] = tgt
+                    # Save to DB permanently
+                    db_update_setting("fno_sl", sl)
+                    db_update_setting("fno_tgt", tgt)
                 with _fno_lock:
                     self._send(
                         200,
@@ -2340,10 +2388,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 with _eq_lock:
                     if capital > 0:
                         _eq_state["capital"] = capital
+                        db_update_setting("eq_cap", capital)
                     if sl > 0:
                         _eq_state["sl_pct"] = sl
+                        db_update_setting("eq_sl", sl)
                     if tgt > 0:
                         _eq_state["target_pct"] = tgt
+                        db_update_setting("eq_tgt", tgt)
                     self._send(
                         200,
                         {
@@ -2388,6 +2439,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 # ── Entry point ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     db_init()
+    db_load_settings()  # <-- ADD THIS LINE HERE
     candle_cache_init()
     threading.Thread(target=midnight_wiper, daemon=True).start()
     threading.Thread(target=scheduler, daemon=True).start()
