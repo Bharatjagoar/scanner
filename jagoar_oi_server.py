@@ -191,7 +191,7 @@ def get_conn():
 
 def db_init():
     with _db_lock, get_conn() as conn:
-        # --- EXISTING TABLES ---
+        # --- Existing Tables ---
         conn.execute("""
             CREATE TABLE IF NOT EXISTS section_d_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -299,7 +299,7 @@ def db_init():
             "CREATE INDEX IF NOT EXISTS idx_eq_date_sym ON eq_cash_trades(log_date,symbol)"
         )
 
-        # --- NEW SETTINGS TABLE ---
+        # --- New Settings Table Configuration ---
         conn.execute("""
             CREATE TABLE IF NOT EXISTS user_settings (
                 id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -313,6 +313,33 @@ def db_init():
             )""")
         conn.execute("INSERT OR IGNORE INTO user_settings (id) VALUES (1)")
         conn.commit()
+
+
+def db_update_setting(column, value):
+    """Updates a single setting column in the database."""
+    with _db_lock, get_conn() as conn:
+        conn.execute(f"UPDATE user_settings SET {column}=? WHERE id=1", (value,))
+        conn.commit()
+
+
+def db_load_settings():
+    """Loads saved settings from the database into memory states at startup."""
+    with _db_lock, get_conn() as conn:
+        row = conn.execute(
+            "SELECT tr_sl, tr_tgt, eq_cap, eq_sl, eq_tgt, fno_sl, fno_tgt FROM user_settings WHERE id=1"
+        ).fetchone()
+        if row:
+            with _tr_lock:
+                _tr_state["sl_pct"] = row[0]
+                _tr_state["target_pct"] = row[1]
+            with _eq_lock:
+                _eq_state["capital"] = row[2]
+                _eq_state["sl_pct"] = row[3]
+                _eq_state["target_pct"] = row[4]
+            with _fno_lock:
+                _fno_state["sl_pct"] = row[5]
+                _fno_state["target_pct"] = row[6]
+            print(f"[{now_ist().strftime('%H:%M:%S')}] Loaded user settings from DB.")
 
 
 # --- NEW SETTINGS LOAD/SAVE HELPERS ---
@@ -2160,7 +2187,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     with _tr_lock:
                         _tr_state["sl_pct"] = sl
                         _tr_state["target_pct"] = tgt
-                    # Save to DB permanently
                     db_update_setting("tr_sl", sl)
                     db_update_setting("tr_tgt", tgt)
                 with _tr_lock:
@@ -2290,7 +2316,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     with _fno_lock:
                         _fno_state["sl_pct"] = sl
                         _fno_state["target_pct"] = tgt
-                    # Save to DB permanently
                     db_update_setting("fno_sl", sl)
                     db_update_setting("fno_tgt", tgt)
                 with _fno_lock:
