@@ -2591,6 +2591,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 if __name__ == "__main__":
     db_init()
     db_load_settings()
+    _load_deployed_capital()
     candle_cache_init()
     threading.Thread(target=midnight_wiper, daemon=True).start()
     threading.Thread(target=scheduler, daemon=True).start()
