@@ -894,7 +894,6 @@ def new_trending_scheduler():
                     _tr_state["falling"] = falling
                     _tr_state["scanned_date"] = today
                     _tr_state["intraday"] = {}
-                    _tr_state["capital_deployed"] = 0.0
                 _scanned_today[0] = today
                 print(f"  [TR] Scan done. Watching OR from 9:15...")
             except Exception as e:
