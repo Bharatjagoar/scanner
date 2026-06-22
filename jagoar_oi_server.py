@@ -55,74 +55,99 @@ STRIKE_STEP = {
 
 # ── FnO stocks (for FNO TRADES tab only) ──────────────────────────────────────
 FNO_STOCKS = [
-    {"symbol": "DIXON",      "eq_key": "NSE_EQ|INE935N01020", "fut_key": None, "lot_size": 25},
-    {"symbol": "FORCEMOT",   "eq_key": "NSE_EQ|INE451H01013", "fut_key": None, "lot_size": 50},
-    {"symbol": "POWERINDIA", "eq_key": "NSE_EQ|INE195N01010", "fut_key": None, "lot_size": 100},
-    {"symbol": "BSE",        "eq_key": "NSE_EQ|INE118H01025", "fut_key": None, "lot_size": 150},
-    {"symbol": "MCX",        "eq_key": "NSE_EQ|INE745G01035", "fut_key": None, "lot_size": 125},
+    {
+        "symbol": "DIXON",
+        "eq_key": "NSE_EQ|INE935N01020",
+        "fut_key": None,
+        "lot_size": 25,
+    },
+    {
+        "symbol": "FORCEMOT",
+        "eq_key": "NSE_EQ|INE451H01013",
+        "fut_key": None,
+        "lot_size": 50,
+    },
+    {
+        "symbol": "POWERINDIA",
+        "eq_key": "NSE_EQ|INE195N01010",
+        "fut_key": None,
+        "lot_size": 100,
+    },
+    {
+        "symbol": "BSE",
+        "eq_key": "NSE_EQ|INE118H01025",
+        "fut_key": None,
+        "lot_size": 150,
+    },
+    {
+        "symbol": "MCX",
+        "eq_key": "NSE_EQ|INE745G01035",
+        "fut_key": None,
+        "lot_size": 125,
+    },
 ]
 
 # ── FnO trade defaults ─────────────────────────────────────────────────────────
-FNO_DEFAULT_SL_PCT    = 1.0
+FNO_DEFAULT_SL_PCT = 1.0
 FNO_DEFAULT_TARGET_PCT = 1.0
-FNO_MARGIN_PCT        = 0.15
+FNO_MARGIN_PCT = 0.15
 FNO_REENTRY_TOLERANCE = 0.005
-FNO_OR_START          = 9 * 60 + 15
-FNO_OR_END            = 9 * 60 + 45
-FNO_SQUAREOFF         = 15 * 60 + 25
-INITIAL_BALANCE       = 500_000.0
+FNO_OR_START = 9 * 60 + 15
+FNO_OR_END = 9 * 60 + 45
+FNO_SQUAREOFF = 15 * 60 + 25
+INITIAL_BALANCE = 500_000.0
 
 # ── Trending config ────────────────────────────────────────────────────────────
-TR_TOP_N           = 10
-TR_DAYS_CONSEC     = 3
-TR_SCAN_HOUR       = 9       # scan triggers at >= 9:00
-TR_SCAN_MIN        = 0
-TR_OR_START        = 9 * 60 + 15   # start building OR
-TR_OR_END          = 9 * 60 + 45   # OR locks, breakout watch begins
-TR_ENTRY_END       = 14 * 60 + 30  # no new entries after 14:30
-TR_SQUAREOFF       = 15 * 60 + 25  # square off at 15:25
-TR_DEFAULT_SL_PCT  = 1.0
+TR_TOP_N = 10
+TR_DAYS_CONSEC = 3
+TR_SCAN_HOUR = 9  # scan triggers at >= 9:00
+TR_SCAN_MIN = 0
+TR_OR_START = 9 * 60 + 15  # start building OR
+TR_OR_END = 9 * 60 + 45  # OR locks, breakout watch begins
+TR_ENTRY_END = 14 * 60 + 30  # no new entries after 14:30
+TR_SQUAREOFF = 15 * 60 + 25  # square off at 15:25
+TR_DEFAULT_SL_PCT = 1.0
 TR_DEFAULT_TGT_PCT = 1.0
-TR_CAPITAL         = 20_00_000      # 20 lac total capital for trending tab
+TR_CAPITAL = 20_00_000  # 20 lac total capital for trending tab
 
 # Trending shared state
-_tr_lock  = threading.Lock()
+_tr_lock = threading.Lock()
 _tr_state = {
-    "rising":            [],
-    "falling":           [],
-    "scanned_date":      None,
-    "sl_pct":            TR_DEFAULT_SL_PCT,
-    "target_pct":        TR_DEFAULT_TGT_PCT,
-    "intraday":          {},   # sym -> {or_high, or_low, or_locked, entered}
-    "capital_deployed":  0.0,  # notional currently in open trades
-    "capital":           TR_CAPITAL,  # effective capital (can be set next-day)
-    "capital_next":      TR_CAPITAL,  # pending capital for next trading day
+    "rising": [],
+    "falling": [],
+    "scanned_date": None,
+    "sl_pct": TR_DEFAULT_SL_PCT,
+    "target_pct": TR_DEFAULT_TGT_PCT,
+    "intraday": {},  # sym -> {or_high, or_low, or_locked, entered}
+    "capital_deployed": 0.0,  # notional currently in open trades
+    "capital": TR_CAPITAL,  # effective capital (can be set next-day)
+    "capital_next": TR_CAPITAL,  # pending capital for next trading day
 }
 
 # Futures key + lot size cache for trending stocks
 _tr_fut_cache = {}
-_tr_fut_lock  = threading.Lock()
+_tr_fut_lock = threading.Lock()
 
 # ── Equity Cash (Tab 4) shared state ──────────────────────────────────────────
-_eq_lock  = threading.Lock()
+_eq_lock = threading.Lock()
 _eq_state = {
-    "capital":      10_000.0,
-    "sl_pct":       1.0,
-    "target_pct":   1.0,
-    "intraday":     {},
+    "capital": 10_000.0,
+    "sl_pct": 1.0,
+    "target_pct": 1.0,
+    "intraday": {},
 }
-EQ_TOP_N       = 4
+EQ_TOP_N = 4
 EQ_ENTRY_START = 9 * 60 + 15
-EQ_ENTRY_END   = 14 * 60 + 30
-EQ_SQUAREOFF   = 15 * 60 + 25
+EQ_ENTRY_END = 14 * 60 + 30
+EQ_SQUAREOFF = 15 * 60 + 25
 
 # ── FnO shared state ───────────────────────────────────────────────────────────
-_fno_lock  = threading.Lock()
+_fno_lock = threading.Lock()
 _fno_state = {
-    "balance":       INITIAL_BALANCE,
-    "sl_pct":        FNO_DEFAULT_SL_PCT,
-    "target_pct":    FNO_DEFAULT_TARGET_PCT,
-    "or_data":       {},
+    "balance": INITIAL_BALANCE,
+    "sl_pct": FNO_DEFAULT_SL_PCT,
+    "target_pct": FNO_DEFAULT_TARGET_PCT,
+    "or_data": {},
     "pending_funds": [],
 }
 
@@ -131,8 +156,10 @@ _fno_state = {
 def now_ist():
     return datetime.now()
 
+
 def ist_date_str():
     return now_ist().strftime("%Y-%m-%d")
+
 
 def cur_min_ist():
     t = now_ist()
@@ -163,8 +190,10 @@ def is_market_open():
 # ── SQLite ─────────────────────────────────────────────────────────────────────
 _db_lock = threading.Lock()
 
+
 def get_conn():
     return sqlite3.connect(DB_FILE, check_same_thread=False)
+
 
 def db_init():
     with _db_lock, get_conn() as conn:
@@ -204,12 +233,12 @@ def db_init():
             )""")
         # Safe column additions for existing DBs
         for col, defn in [
-            ("fut_key",    "TEXT"),
-            ("lot_size",   "INTEGER NOT NULL DEFAULT 1"),
+            ("fut_key", "TEXT"),
+            ("lot_size", "INTEGER NOT NULL DEFAULT 1"),
             ("lots_taken", "INTEGER NOT NULL DEFAULT 1"),
-            ("side",       "TEXT NOT NULL DEFAULT 'LONG'"),
-            ("pnl_inr",    "REAL"),
-            ("notional",   "REAL"),
+            ("side", "TEXT NOT NULL DEFAULT 'LONG'"),
+            ("pnl_inr", "REAL"),
+            ("notional", "REAL"),
         ]:
             try:
                 conn.execute(f"ALTER TABLE trending_logs ADD COLUMN {col} {defn}")
@@ -297,7 +326,7 @@ def db_init():
             )""")
         # Safe column additions for existing user_settings
         for col, defn in [
-            ("tr_capital",      "REAL DEFAULT 2000000.0"),
+            ("tr_capital", "REAL DEFAULT 2000000.0"),
             ("tr_capital_next", "REAL DEFAULT 2000000.0"),
         ]:
             try:
@@ -322,17 +351,17 @@ def db_load_settings():
         ).fetchone()
         if row:
             with _tr_lock:
-                _tr_state["sl_pct"]        = row[0]
-                _tr_state["target_pct"]    = row[1]
-                _tr_state["capital"]       = row[2] if row[2] else TR_CAPITAL
-                _tr_state["capital_next"]  = row[3] if row[3] else TR_CAPITAL
+                _tr_state["sl_pct"] = row[0]
+                _tr_state["target_pct"] = row[1]
+                _tr_state["capital"] = row[2] if row[2] else TR_CAPITAL
+                _tr_state["capital_next"] = row[3] if row[3] else TR_CAPITAL
             with _eq_lock:
-                _eq_state["capital"]       = row[4]
-                _eq_state["sl_pct"]        = row[5]
-                _eq_state["target_pct"]    = row[6]
+                _eq_state["capital"] = row[4]
+                _eq_state["sl_pct"] = row[5]
+                _eq_state["target_pct"] = row[6]
             with _fno_lock:
-                _fno_state["sl_pct"]       = row[7]
-                _fno_state["target_pct"]   = row[8]
+                _fno_state["sl_pct"] = row[7]
+                _fno_state["target_pct"] = row[8]
             print(f"[{now_ist().strftime('%H:%M:%S')}] Loaded user settings from DB.")
 
 
@@ -342,9 +371,20 @@ def db_insert_log(scrip, expiry, ts, call_oi, put_oi, diff, change_diff, action)
         conn.execute(
             "INSERT INTO section_d_logs (log_date,scrip,expiry,ts,call_oi,put_oi,diff,change_diff,action) "
             "VALUES (?,?,?,?,?,?,?,?,?)",
-            (ist_date_str(), scrip, expiry, ts, call_oi, put_oi, diff, change_diff, action),
+            (
+                ist_date_str(),
+                scrip,
+                expiry,
+                ts,
+                call_oi,
+                put_oi,
+                diff,
+                change_diff,
+                action,
+            ),
         )
         conn.commit()
+
 
 def db_get_last_diff(scrip, expiry):
     today = ist_date_str()
@@ -356,6 +396,7 @@ def db_get_last_diff(scrip, expiry):
         row = cur.fetchone()
     return row[0] if row else None
 
+
 def db_get_logs(scrip, expiry):
     today = ist_date_str()
     with _db_lock, get_conn() as conn:
@@ -364,7 +405,18 @@ def db_get_logs(scrip, expiry):
             "WHERE log_date=? AND scrip=? AND expiry=? ORDER BY id ASC",
             (today, scrip, expiry),
         ).fetchall()
-    return [{"ts": r[0], "callOI": r[1], "putOI": r[2], "diff": r[3], "changeDiff": r[4], "action": r[5]} for r in rows]
+    return [
+        {
+            "ts": r[0],
+            "callOI": r[1],
+            "putOI": r[2],
+            "diff": r[3],
+            "changeDiff": r[4],
+            "action": r[5],
+        }
+        for r in rows
+    ]
+
 
 def db_wipe_today():
     today = ist_date_str()
@@ -387,43 +439,71 @@ def trending_already_entered(symbol, log_date):
     if not row:
         return None
     return {
-        "id":           row[0],
-        "fut_key":      row[1],
-        "lot_size":     row[2],
-        "lots_taken":   row[3],
-        "side":         row[4],
-        "entry_price":  row[5],
-        "entry_time":   row[6],
-        "sl_pct":       row[7],
-        "target_pct":   row[8],
-        "sl_price":     row[9],
+        "id": row[0],
+        "fut_key": row[1],
+        "lot_size": row[2],
+        "lots_taken": row[3],
+        "side": row[4],
+        "entry_price": row[5],
+        "entry_time": row[6],
+        "sl_pct": row[7],
+        "target_pct": row[8],
+        "sl_price": row[9],
         "target_price": row[10],
-        "notional":     row[11],
-        "exit_price":   row[12],
-        "exit_time":    row[13],
-        "result":       row[14],
-        "pnl_pts":      row[15],
-        "pnl_pct":      row[16],
-        "pnl_inr":      row[17],
+        "notional": row[11],
+        "exit_price": row[12],
+        "exit_time": row[13],
+        "result": row[14],
+        "pnl_pts": row[15],
+        "pnl_pct": row[16],
+        "pnl_inr": row[17],
     }
 
-def trending_insert(symbol, log_date, fut_key, lot_size, lots_taken, side,
-                    entry_price, entry_time, sl_pct, target_pct,
-                    sl_price, target_price, notional):
+
+def trending_insert(
+    symbol,
+    log_date,
+    fut_key,
+    lot_size,
+    lots_taken,
+    side,
+    entry_price,
+    entry_time,
+    sl_pct,
+    target_pct,
+    sl_price,
+    target_price,
+    notional,
+):
     with _db_lock, get_conn() as conn:
         cur = conn.execute(
             "INSERT INTO trending_logs "
             "(log_date,symbol,fut_key,lot_size,lots_taken,side,entry_price,entry_time,"
             "sl_pct,target_pct,sl_price,target_price,notional,result) "
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'OPEN')",
-            (log_date, symbol, fut_key, lot_size, lots_taken, side,
-             entry_price, entry_time, sl_pct, target_pct,
-             sl_price, target_price, notional),
+            (
+                log_date,
+                symbol,
+                fut_key,
+                lot_size,
+                lots_taken,
+                side,
+                entry_price,
+                entry_time,
+                sl_pct,
+                target_pct,
+                sl_price,
+                target_price,
+                notional,
+            ),
         )
         conn.commit()
         return cur.lastrowid
 
-def trending_update_exit(row_id, exit_price, exit_time, result, pnl_pts, pnl_pct, pnl_inr):
+
+def trending_update_exit(
+    row_id, exit_price, exit_time, result, pnl_pts, pnl_pct, pnl_inr
+):
     with _db_lock, get_conn() as conn:
         conn.execute(
             "UPDATE trending_logs SET exit_price=?,exit_time=?,result=?,"
@@ -431,6 +511,7 @@ def trending_update_exit(row_id, exit_price, exit_time, result, pnl_pts, pnl_pct
             (exit_price, exit_time, result, pnl_pts, pnl_pct, pnl_inr, row_id),
         )
         conn.commit()
+
 
 def trending_get_history(symbol=None, days=30):
     with _db_lock, get_conn() as conn:
@@ -453,19 +534,29 @@ def trending_get_history(symbol=None, days=30):
             ).fetchall()
     return [
         {
-            "log_date":     r[0],  "symbol":       r[1],
-            "fut_key":      r[2],  "lot_size":     r[3],
-            "lots_taken":   r[4],  "side":         r[5],
-            "entry_price":  r[6],  "entry_time":   r[7],
-            "sl_pct":       r[8],  "target_pct":   r[9],
-            "sl_price":     r[10], "target_price": r[11],
-            "notional":     r[12], "exit_price":   r[13],
-            "exit_time":    r[14], "result":       r[15],
-            "pnl_pts":      r[16], "pnl_pct":      r[17],
-            "pnl_inr":      r[18],
+            "log_date": r[0],
+            "symbol": r[1],
+            "fut_key": r[2],
+            "lot_size": r[3],
+            "lots_taken": r[4],
+            "side": r[5],
+            "entry_price": r[6],
+            "entry_time": r[7],
+            "sl_pct": r[8],
+            "target_pct": r[9],
+            "sl_price": r[10],
+            "target_price": r[11],
+            "notional": r[12],
+            "exit_price": r[13],
+            "exit_time": r[14],
+            "result": r[15],
+            "pnl_pts": r[16],
+            "pnl_pct": r[17],
+            "pnl_inr": r[18],
         }
         for r in rows
     ]
+
 
 def trending_daily_summary():
     """Per-day aggregated P&L for history view."""
@@ -508,7 +599,8 @@ def _resolve_tr_fut(symbol, instruments, today):
             return _tr_fut_cache[symbol]
 
     rows = [
-        d for d in instruments
+        d
+        for d in instruments
         if d.get("underlying_symbol") == symbol and d.get("segment") == "NSE_FO"
     ]
     if not rows:
@@ -516,7 +608,8 @@ def _resolve_tr_fut(symbol, instruments, today):
 
     lot_size = int(rows[0].get("lot_size") or 1)
     fut_rows = [
-        d for d in rows
+        d
+        for d in rows
         if d.get("instrument_type") == "FUT"
         and _expiry_str(d.get("expiry", 0)) >= today
         and d.get("instrument_key")
@@ -525,10 +618,11 @@ def _resolve_tr_fut(symbol, instruments, today):
         return None
 
     fut_rows.sort(key=lambda x: _expiry_str(x["expiry"]))
-    fut_key  = fut_rows[0]["instrument_key"]
+    fut_key = fut_rows[0]["instrument_key"]
     lot_size = int(fut_rows[0].get("lot_size") or lot_size)
 
     result = {"fut_key": fut_key, "lot_size": lot_size}
+    print(f"  [TR] RESOLVED {symbol}: fut={fut_key} lot_size={lot_size}")
     with _tr_fut_lock:
         _tr_fut_cache[symbol] = result
     return result
@@ -537,16 +631,17 @@ def _resolve_tr_fut(symbol, instruments, today):
 # ── Trending: 3-day scan ───────────────────────────────────────────────────────
 def _fetch_daily_data(instrument_key, n_days=5):
     from datetime import timedelta
-    today     = datetime.now().date()
+
+    today = datetime.now().date()
     from_date = (today - timedelta(days=n_days * 3)).isoformat()
-    to_date   = (today - timedelta(days=1)).isoformat()
+    to_date = (today - timedelta(days=1)).isoformat()
     try:
         ik_enc = instrument_key.replace("|", "%7C")
-        url    = f"{V3_BASE}/historical-candle/{ik_enc}/days/1/{to_date}/{from_date}"
-        r      = requests.get(url, headers=HEADERS, timeout=(8, 20))
+        url = f"{V3_BASE}/historical-candle/{ik_enc}/days/1/{to_date}/{from_date}"
+        r = requests.get(url, headers=HEADERS, timeout=(8, 20))
         r.raise_for_status()
         candles = r.json().get("data", {}).get("candles", [])
-        data    = [{"close": c[4], "volume": c[5]} for c in candles if len(c) >= 6]
+        data = [{"close": c[4], "volume": c[5]} for c in candles if len(c) >= 6]
         data.reverse()
         return data[-n_days:] if len(data) >= n_days else []
     except Exception:
@@ -560,10 +655,10 @@ def _scan_trending_stocks():
     """
     print(f"[{now_ist().strftime('%H:%M:%S')}] Trending scan started...")
     instruments = _load_nse_instruments()
-    today       = ist_date_str()
+    today = ist_date_str()
 
     stocks = []
-    seen   = set()
+    seen = set()
     for d in instruments:
         if (
             d.get("segment") == "NSE_FO"
@@ -585,16 +680,16 @@ def _scan_trending_stocks():
             time.sleep(0.05)
             continue
 
-        closes  = [d["close"]  for d in daily_data]
+        closes = [d["close"] for d in daily_data]
         volumes = [d["volume"] for d in daily_data]
 
         d1, d2, d3 = closes[-1], closes[-2], closes[-3]
-        v1      = volumes[-1]
+        v1 = volumes[-1]
         vol_sma5 = sum(volumes) / 5
-        gain3   = round((d1 - closes[-4]) / closes[-4] * 100, 3) if closes[-4] else 0
-        vol_ok  = v1 > vol_sma5
+        gain3 = round((d1 - closes[-4]) / closes[-4] * 100, 3) if closes[-4] else 0
+        vol_ok = v1 > vol_sma5
 
-        qualifies_rising  = (d1 > d2 > d3) and vol_ok
+        qualifies_rising = (d1 > d2 > d3) and vol_ok
         qualifies_falling = (d1 < d2 < d3) and vol_ok
 
         if not qualifies_rising and not qualifies_falling:
@@ -607,14 +702,14 @@ def _scan_trending_stocks():
             continue
 
         entry = {
-            "symbol":         s["symbol"],
+            "symbol": s["symbol"],
             "instrument_key": s["instrument_key"],
-            "fut_key":        fut_info["fut_key"],
-            "lot_size":       fut_info["lot_size"],
-            "gain3d_pct":     gain3,
-            "close_d1":       d1,
-            "close_d2":       d2,
-            "close_d3":       d3,
+            "fut_key": fut_info["fut_key"],
+            "lot_size": fut_info["lot_size"],
+            "gain3d_pct": gain3,
+            "close_d1": d1,
+            "close_d2": d2,
+            "close_d3": d3,
         }
 
         if qualifies_rising:
@@ -626,7 +721,7 @@ def _scan_trending_stocks():
 
     rising.sort(key=lambda x: x["gain3d_pct"], reverse=True)
     falling.sort(key=lambda x: x["gain3d_pct"])
-    rising  = rising[:TR_TOP_N]
+    rising = rising[:TR_TOP_N]
     falling = falling[:TR_TOP_N]
 
     print(f"  Trending scan done: {len(rising)} rising, {len(falling)} falling")
@@ -643,34 +738,46 @@ def _tr_enter(symbol, fut_key, lot_size, side, ltp, today):
         return False
 
     with _tr_lock:
-        sl_pct      = _tr_state["sl_pct"]
-        tgt_pct     = _tr_state["target_pct"]
-        capital     = _tr_state["capital"]
-        deployed    = _tr_state["capital_deployed"]
+        sl_pct = _tr_state["sl_pct"]
+        tgt_pct = _tr_state["target_pct"]
+        capital = _tr_state["capital"]
+        deployed = _tr_state["capital_deployed"]
 
-    remaining        = capital - deployed
+    remaining = capital - deployed
     notional_per_lot = ltp * lot_size
 
     if notional_per_lot <= 0 or remaining < notional_per_lot:
-        print(f"  [TR] {symbol}: no room. remaining=₹{remaining:,.0f} need=₹{notional_per_lot:,.0f}")
+        print(
+            f"  [TR] {symbol}: no room. remaining=₹{remaining:,.0f} need=₹{notional_per_lot:,.0f}"
+        )
         return False
 
     # Take as many lots as remaining capital allows
-    lots_taken = max(1, int(remaining / notional_per_lot))
+    lots_taken = 1
     total_notional = round(lots_taken * notional_per_lot, 2)
 
     if side == "LONG":
-        sl_price     = round(ltp * (1 - sl_pct / 100), 2)
+        sl_price = round(ltp * (1 - sl_pct / 100), 2)
         target_price = round(ltp * (1 + tgt_pct / 100), 2)
     else:
-        sl_price     = round(ltp * (1 + sl_pct / 100), 2)
+        sl_price = round(ltp * (1 + sl_pct / 100), 2)
         target_price = round(ltp * (1 - tgt_pct / 100), 2)
 
     entry_time = now_ist().strftime("%H:%M:%S")
     trending_insert(
-        symbol, today, fut_key, lot_size, lots_taken, side,
-        ltp, entry_time, sl_pct, tgt_pct,
-        sl_price, target_price, total_notional,
+        symbol,
+        today,
+        fut_key,
+        lot_size,
+        lots_taken,
+        side,
+        ltp,
+        entry_time,
+        sl_pct,
+        tgt_pct,
+        sl_price,
+        target_price,
+        total_notional,
     )
 
     with _tr_lock:
@@ -689,6 +796,7 @@ def _tr_all_active():
     with _tr_lock:
         return list(_tr_state["rising"]) + list(_tr_state["falling"])
 
+
 def _tr_check_exits(today):
     cm = cur_min_ist()
     for s in _tr_all_active():
@@ -697,8 +805,8 @@ def _tr_check_exits(today):
         if not row or row["result"] != "OPEN":
             continue
         try:
-            fut_key    = row.get("fut_key") or s.get("fut_key")
-            lot_size   = row.get("lot_size") or s.get("lot_size") or 1
+            fut_key = row.get("fut_key") or s.get("fut_key")
+            lot_size = row.get("lot_size") or s.get("lot_size") or 1
             lots_taken = row.get("lots_taken") or 1
             if not fut_key:
                 continue
@@ -707,14 +815,18 @@ def _tr_check_exits(today):
             if not ltp:
                 continue
 
-            entry  = row["entry_price"]
-            side   = row.get("side", "LONG")
-            is_long = (side == "LONG")
+            entry = row["entry_price"]
+            side = row.get("side", "LONG")
+            is_long = side == "LONG"
             exit_p = result = None
 
-            hit_sl  = (ltp <= row["sl_price"])  if is_long else (ltp >= row["sl_price"])
-            hit_tgt = (ltp >= row["target_price"]) if is_long else (ltp <= row["target_price"])
-            sq_off  = cm >= TR_SQUAREOFF
+            hit_sl = (ltp <= row["sl_price"]) if is_long else (ltp >= row["sl_price"])
+            hit_tgt = (
+                (ltp >= row["target_price"])
+                if is_long
+                else (ltp <= row["target_price"])
+            )
+            sq_off = cm >= TR_SQUAREOFF
 
             if hit_tgt and hit_sl:
                 exit_p, result = row["sl_price"], "SL HIT"
@@ -730,9 +842,13 @@ def _tr_check_exits(today):
                 pnl_inr = round(pnl_pts * lot_size * lots_taken, 2)
                 pnl_pct = round((pnl_pts / entry) * 100, 2)
                 trending_update_exit(
-                    row["id"], exit_p,
+                    row["id"],
+                    exit_p,
                     now_ist().strftime("%H:%M:%S"),
-                    result, round(pnl_pts, 2), pnl_pct, pnl_inr,
+                    result,
+                    round(pnl_pts, 2),
+                    pnl_pct,
+                    pnl_inr,
                 )
                 # Release capital
                 notional = row.get("notional") or (entry * lot_size * lots_taken)
@@ -754,8 +870,8 @@ def new_trending_scheduler():
     _scanned_today = [None]
 
     while True:
-        t     = now_ist()
-        cm    = t.hour * 60 + t.minute
+        t = now_ist()
+        cm = t.hour * 60 + t.minute
         today = ist_date_str()
 
         # ── Scan: triggers at >= 9:00, once per day ────────────────────────
@@ -764,10 +880,10 @@ def new_trending_scheduler():
             try:
                 rising, falling = _scan_trending_stocks()
                 with _tr_lock:
-                    _tr_state["rising"]           = rising
-                    _tr_state["falling"]          = falling
-                    _tr_state["scanned_date"]     = today
-                    _tr_state["intraday"]         = {}
+                    _tr_state["rising"] = rising
+                    _tr_state["falling"] = falling
+                    _tr_state["scanned_date"] = today
+                    _tr_state["intraday"] = {}
                     _tr_state["capital_deployed"] = 0.0
                 _scanned_today[0] = today
                 print(f"  [TR] Scan done. Watching OR from 9:15...")
@@ -779,7 +895,7 @@ def new_trending_scheduler():
         # ── OR build phase: 9:15 to 9:44 ──────────────────────────────────
         if TR_OR_START <= cm < TR_OR_END:
             for s in _tr_all_active():
-                sym     = s["symbol"]
+                sym = s["symbol"]
                 fut_key = s.get("fut_key")
                 if not fut_key:
                     continue
@@ -788,15 +904,26 @@ def new_trending_scheduler():
                     if not ltp:
                         continue
                     with _tr_lock:
-                        iday = _tr_state["intraday"].setdefault(sym, {
-                            "or_high":  None,
-                            "or_low":   None,
-                            "or_locked": False,
-                            "entered":  False,
-                        })
+                        iday = _tr_state["intraday"].setdefault(
+                            sym,
+                            {
+                                "or_high": None,
+                                "or_low": None,
+                                "or_locked": False,
+                                "entered": False,
+                            },
+                        )
                         if not iday["or_locked"]:
-                            iday["or_high"] = ltp if iday["or_high"] is None else max(iday["or_high"], ltp)
-                            iday["or_low"]  = ltp if iday["or_low"]  is None else min(iday["or_low"],  ltp)
+                            iday["or_high"] = (
+                                ltp
+                                if iday["or_high"] is None
+                                else max(iday["or_high"], ltp)
+                            )
+                            iday["or_low"] = (
+                                ltp
+                                if iday["or_low"] is None
+                                else min(iday["or_low"], ltp)
+                            )
                 except Exception as e:
                     print(f"  [TR] OR build {sym}: {e}")
 
@@ -807,11 +934,13 @@ def new_trending_scheduler():
                 for sym2, iday2 in _tr_state["intraday"].items():
                     if not iday2["or_locked"] and iday2["or_high"] is not None:
                         iday2["or_locked"] = True
-                        print(f"  [TR] OR LOCKED {sym2}: H=₹{iday2['or_high']} L=₹{iday2['or_low']}")
+                        print(
+                            f"  [TR] OR LOCKED {sym2}: H=₹{iday2['or_high']} L=₹{iday2['or_low']}"
+                        )
 
             for s in _tr_all_active():
-                sym      = s["symbol"]
-                fut_key  = s.get("fut_key")
+                sym = s["symbol"]
+                fut_key = s.get("fut_key")
                 lot_size = s.get("lot_size", 1)
                 if not fut_key:
                     continue
@@ -824,7 +953,7 @@ def new_trending_scheduler():
                     continue
 
                 or_high = iday["or_high"]
-                or_low  = iday["or_low"]
+                or_low = iday["or_low"]
                 entered = iday["entered"]
 
                 is_rising = any(r["symbol"] == sym for r in _tr_state.get("rising", []))
@@ -839,9 +968,8 @@ def new_trending_scheduler():
                     if not entered and cm <= TR_ENTRY_END:
                         already = trending_already_entered(sym, today)
                         if not already:
-                            trigger = (
-                                (side == "LONG"  and ltp > or_high) or
-                                (side == "SHORT" and ltp < or_low)
+                            trigger = (side == "LONG" and ltp > or_high) or (
+                                side == "SHORT" and ltp < or_low
                             )
                             if trigger:
                                 ok = _tr_enter(sym, fut_key, lot_size, side, ltp, today)
@@ -858,7 +986,7 @@ def new_trending_scheduler():
             except Exception as e:
                 print(f"  [TR] exit error: {e}")
 
-        time.sleep(60)   # 1-min poll — needed for clean OR window coverage
+        time.sleep(60)  # 1-min poll — needed for clean OR window coverage
 
 
 # ── Upstox API helpers ─────────────────────────────────────────────────────────
@@ -866,6 +994,7 @@ def upstox_get(path, params):
     r = requests.get(f"{BASE}{path}", headers=HEADERS, params=params, timeout=(5, 10))
     r.raise_for_status()
     return r.json()
+
 
 def get_ltp(instrument_key):
     data = upstox_get("/market-quote/ltp", {"instrument_key": instrument_key})
@@ -875,12 +1004,13 @@ def get_ltp(instrument_key):
             return float(ltp)
     return None
 
+
 def get_ltp_multi(keys_list):
     if not keys_list:
         return {}
     combined = ",".join(keys_list)
     try:
-        data   = upstox_get("/market-quote/ltp", {"instrument_key": combined})
+        data = upstox_get("/market-quote/ltp", {"instrument_key": combined})
         result = {}
         for k, v in (data.get("data") or {}).items():
             sym = k.split(":")[-1].split("|")[-1]
@@ -889,67 +1019,80 @@ def get_ltp_multi(keys_list):
     except Exception:
         return {}
 
+
 def get_nearest_expiry(instrument_key):
-    data    = upstox_get("/option/contract", {"instrument_key": instrument_key})
-    expiries = sorted({d.get("expiry") for d in data.get("data", []) if d.get("expiry")})
-    today   = ist_date_str()
+    data = upstox_get("/option/contract", {"instrument_key": instrument_key})
+    expiries = sorted(
+        {d.get("expiry") for d in data.get("data", []) if d.get("expiry")}
+    )
+    today = ist_date_str()
     for exp in expiries:
         if exp >= today:
             return exp
     return expiries[-1] if expiries else None
 
+
 def get_option_chain(instrument_key, expiry_date):
-    data     = upstox_get("/option/chain", {"instrument_key": instrument_key, "expiry_date": expiry_date})
+    data = upstox_get(
+        "/option/chain", {"instrument_key": instrument_key, "expiry_date": expiry_date}
+    )
     rows, pcr_vals, spot = [], [], None
     for item in data.get("data", []):
         spot = item.get("underlying_spot_price")
         if item.get("pcr") is not None:
             pcr_vals.append(item["pcr"])
         call = item.get("call_options", {}).get("market_data", {}) or {}
-        put  = item.get("put_options",  {}).get("market_data", {}) or {}
-        rows.append({
-            "strike":        item.get("strike_price"),
-            "call_oi_change": (call.get("oi", 0) or 0) - (call.get("prev_oi", 0) or 0),
-            "put_oi_change":  (put.get("oi",  0) or 0) - (put.get("prev_oi",  0) or 0),
-            "call_oi":        call.get("oi", 0) or 0,
-            "put_oi":         put.get("oi",  0) or 0,
-            "call_volume":    call.get("volume", 0) or 0,
-            "put_volume":     put.get("volume",  0) or 0,
-            "call_ltp":       call.get("ltp", 0) or 0,
-            "put_ltp":        put.get("ltp",  0) or 0,
-        })
+        put = item.get("put_options", {}).get("market_data", {}) or {}
+        rows.append(
+            {
+                "strike": item.get("strike_price"),
+                "call_oi_change": (call.get("oi", 0) or 0)
+                - (call.get("prev_oi", 0) or 0),
+                "put_oi_change": (put.get("oi", 0) or 0) - (put.get("prev_oi", 0) or 0),
+                "call_oi": call.get("oi", 0) or 0,
+                "put_oi": put.get("oi", 0) or 0,
+                "call_volume": call.get("volume", 0) or 0,
+                "put_volume": put.get("volume", 0) or 0,
+                "call_ltp": call.get("ltp", 0) or 0,
+                "put_ltp": put.get("ltp", 0) or 0,
+            }
+        )
     rows.sort(key=lambda x: (x["strike"] is None, x["strike"]))
     return {
-        "rows":  rows,
-        "spot":  spot,
-        "pcr":   pcr_vals[0] if pcr_vals else None,
-        "ts":    now_ist().strftime("%H:%M:%S"),
+        "rows": rows,
+        "spot": spot,
+        "pcr": pcr_vals[0] if pcr_vals else None,
+        "ts": now_ist().strftime("%H:%M:%S"),
     }
+
 
 def atm_index(rows, spot):
     best, bd = 0, float("inf")
     for i, r in enumerate(rows):
         d = abs((r["strike"] or 0) - (spot or 0))
         if d < bd:
-            bd   = d
+            bd = d
             best = i
     return best
 
+
 def compute_section_d(rows, atm, scrip, expiry):
-    start, end   = max(0, atm - 1), min(len(rows), atm + 2)
-    call_oi      = sum(rows[i]["call_oi_change"] for i in range(start, end))
-    put_oi       = sum(rows[i]["put_oi_change"]  for i in range(start, end))
-    diff         = call_oi - put_oi
-    last_diff    = db_get_last_diff(scrip, expiry)
-    change_diff  = 0 if last_diff is None else diff - last_diff
-    action       = ""
+    start, end = max(0, atm - 1), min(len(rows), atm + 2)
+    call_oi = sum(rows[i]["call_oi_change"] for i in range(start, end))
+    put_oi = sum(rows[i]["put_oi_change"] for i in range(start, end))
+    diff = call_oi - put_oi
+    last_diff = db_get_last_diff(scrip, expiry)
+    change_diff = 0 if last_diff is None else diff - last_diff
+    action = ""
     if call_oi - put_oi > TEN_LAC:
         action = "BUY PUT"
     if put_oi - call_oi > TEN_LAC:
         action = "BUY CALL"
     ts = now_ist().strftime("%H:%M:%S")
     db_insert_log(scrip, expiry, ts, call_oi, put_oi, diff, change_diff, action)
-    print(f"[{ts} IST] Logged {scrip} | expiry={expiry} | callOI={call_oi} putOI={put_oi} diff={diff} action={action or '-'}")
+    print(
+        f"[{ts} IST] Logged {scrip} | expiry={expiry} | callOI={call_oi} putOI={put_oi} diff={diff} action={action or '-'}"
+    )
 
 
 # ── Equity Cash DB helpers ─────────────────────────────────────────────────────
@@ -964,28 +1107,67 @@ def eq_trade_today(symbol, log_date):
     if not row:
         return None
     return {
-        "id": row[0], "side": row[1], "qty": row[2], "capital_used": row[3],
-        "entry_price": row[4], "entry_time": row[5], "sl_pct": row[6],
-        "target_pct": row[7], "sl_price": row[8], "target_price": row[9],
-        "exit_price": row[10], "exit_time": row[11], "result": row[12],
-        "pnl_pts": row[13], "pnl_pct": row[14], "pnl_inr": row[15],
+        "id": row[0],
+        "side": row[1],
+        "qty": row[2],
+        "capital_used": row[3],
+        "entry_price": row[4],
+        "entry_time": row[5],
+        "sl_pct": row[6],
+        "target_pct": row[7],
+        "sl_price": row[8],
+        "target_price": row[9],
+        "exit_price": row[10],
+        "exit_time": row[11],
+        "result": row[12],
+        "pnl_pts": row[13],
+        "pnl_pct": row[14],
+        "pnl_inr": row[15],
     }
 
-def eq_trade_insert(log_date, symbol, eq_key, side, qty, capital_used,
-                    entry_price, entry_time, sl_pct, target_pct, sl_price, target_price):
+
+def eq_trade_insert(
+    log_date,
+    symbol,
+    eq_key,
+    side,
+    qty,
+    capital_used,
+    entry_price,
+    entry_time,
+    sl_pct,
+    target_pct,
+    sl_price,
+    target_price,
+):
     with _db_lock, get_conn() as conn:
         cur = conn.execute(
             "INSERT INTO eq_cash_trades "
             "(log_date,symbol,eq_key,side,qty,capital_used,entry_price,entry_time,"
             "sl_pct,target_pct,sl_price,target_price,result) "
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,'OPEN')",
-            (log_date, symbol, eq_key, side, qty, capital_used,
-             entry_price, entry_time, sl_pct, target_pct, sl_price, target_price),
+            (
+                log_date,
+                symbol,
+                eq_key,
+                side,
+                qty,
+                capital_used,
+                entry_price,
+                entry_time,
+                sl_pct,
+                target_pct,
+                sl_price,
+                target_price,
+            ),
         )
         conn.commit()
         return cur.lastrowid
 
-def eq_trade_update_exit(trade_id, exit_price, exit_time, result, pnl_pts, pnl_pct, pnl_inr):
+
+def eq_trade_update_exit(
+    trade_id, exit_price, exit_time, result, pnl_pts, pnl_pct, pnl_inr
+):
     with _db_lock, get_conn() as conn:
         conn.execute(
             "UPDATE eq_cash_trades SET exit_price=?,exit_time=?,result=?,"
@@ -993,6 +1175,7 @@ def eq_trade_update_exit(trade_id, exit_price, exit_time, result, pnl_pts, pnl_p
             (exit_price, exit_time, result, pnl_pts, pnl_pct, pnl_inr, trade_id),
         )
         conn.commit()
+
 
 def eq_trades_history(from_date, to_date, symbol=None):
     with _db_lock, get_conn() as conn:
@@ -1014,25 +1197,40 @@ def eq_trades_history(from_date, to_date, symbol=None):
             ).fetchall()
     return [
         {
-            "id": r[0], "log_date": r[1], "symbol": r[2], "eq_key": r[3],
-            "side": r[4], "qty": r[5], "capital_used": r[6],
-            "entry_price": r[7], "entry_time": r[8],
-            "sl_pct": r[9], "target_pct": r[10],
-            "sl_price": r[11], "target_price": r[12],
-            "exit_price": r[13], "exit_time": r[14], "result": r[15],
-            "pnl_pts": r[16], "pnl_pct": r[17], "pnl_inr": r[18],
+            "id": r[0],
+            "log_date": r[1],
+            "symbol": r[2],
+            "eq_key": r[3],
+            "side": r[4],
+            "qty": r[5],
+            "capital_used": r[6],
+            "entry_price": r[7],
+            "entry_time": r[8],
+            "sl_pct": r[9],
+            "target_pct": r[10],
+            "sl_price": r[11],
+            "target_price": r[12],
+            "exit_price": r[13],
+            "exit_time": r[14],
+            "result": r[15],
+            "pnl_pts": r[16],
+            "pnl_pct": r[17],
+            "pnl_inr": r[18],
         }
         for r in rows
     ]
 
 
 # ── FnO lot size + futures key ─────────────────────────────────────────────────
-_lot_cache    = {}
+_lot_cache = {}
 _futkey_cache = {}
 
+
 def resolve_lot_sizes_and_futures():
-    print(f"[{now_ist().strftime('%H:%M:%S')}] Resolving FnO tab lot sizes and futures keys...")
-    today       = ist_date_str()
+    print(
+        f"[{now_ist().strftime('%H:%M:%S')}] Resolving FnO tab lot sizes and futures keys..."
+    )
+    today = ist_date_str()
     instruments = _load_nse_instruments()
     if not instruments:
         for s in FNO_STOCKS:
@@ -1048,7 +1246,7 @@ def resolve_lot_sizes_and_futures():
             fo_map.setdefault(sym, []).append(d)
 
     for s in FNO_STOCKS:
-        sym  = s["symbol"]
+        sym = s["symbol"]
         rows = fo_map.get(sym, [])
         if not rows:
             _lot_cache[sym] = s["lot_size"]
@@ -1056,7 +1254,8 @@ def resolve_lot_sizes_and_futures():
         lot = rows[0].get("lot_size") or s["lot_size"]
         _lot_cache[sym] = int(lot)
         fut_rows = [
-            d for d in rows
+            d
+            for d in rows
             if d.get("instrument_type") == "FUT"
             and _expiry_str(d.get("expiry", 0)) >= today
             and d.get("instrument_key")
@@ -1067,10 +1266,12 @@ def resolve_lot_sizes_and_futures():
         else:
             _futkey_cache[sym] = s["eq_key"]
 
+
 def get_lot_size(symbol):
     return _lot_cache.get(symbol) or next(
         (s["lot_size"] for s in FNO_STOCKS if s["symbol"] == symbol), 100
     )
+
 
 def get_fut_ltp(symbol):
     ik = _futkey_cache.get(symbol)
@@ -1080,14 +1281,26 @@ def get_fut_ltp(symbol):
         return None
     return get_ltp(ik)
 
+
 def estimate_margin(symbol, entry_price, lot_size):
     notional = entry_price * lot_size
     try:
         fut_key = _futkey_cache.get(symbol)
         if fut_key:
-            payload = {"instruments": [{"instrument_token": fut_key, "transaction_type": "BUY",
-                                         "quantity": lot_size, "price": entry_price, "product": "D"}]}
-            r = requests.post(f"{BASE}/charges/margin", headers=HEADERS, json=payload, timeout=(5, 10))
+            payload = {
+                "instruments": [
+                    {
+                        "instrument_token": fut_key,
+                        "transaction_type": "BUY",
+                        "quantity": lot_size,
+                        "price": entry_price,
+                        "product": "D",
+                    }
+                ]
+            }
+            r = requests.post(
+                f"{BASE}/charges/margin", headers=HEADERS, json=payload, timeout=(5, 10)
+            )
             if r.ok:
                 margin = r.json().get("data", {}).get("required_margin")
                 if margin:
@@ -1109,25 +1322,65 @@ def fno_trade_today(symbol, log_date):
     if not row:
         return None
     return {
-        "id": row[0], "side": row[1], "lot_size": row[2], "entry_price": row[3],
-        "entry_time": row[4], "sl_pct": row[5], "target_pct": row[6],
-        "sl_price": row[7], "target_price": row[8], "margin_used": row[9],
-        "or_high": row[10], "or_low": row[11], "exit_price": row[12],
-        "exit_time": row[13], "result": row[14], "pnl_pts": row[15], "pnl_inr": row[16],
+        "id": row[0],
+        "side": row[1],
+        "lot_size": row[2],
+        "entry_price": row[3],
+        "entry_time": row[4],
+        "sl_pct": row[5],
+        "target_pct": row[6],
+        "sl_price": row[7],
+        "target_price": row[8],
+        "margin_used": row[9],
+        "or_high": row[10],
+        "or_low": row[11],
+        "exit_price": row[12],
+        "exit_time": row[13],
+        "result": row[14],
+        "pnl_pts": row[15],
+        "pnl_inr": row[16],
     }
 
-def fno_trade_insert(log_date, symbol, side, lot_size, entry_price, entry_time,
-                     sl_pct, target_pct, sl_price, target_price, margin_used, or_high, or_low):
+
+def fno_trade_insert(
+    log_date,
+    symbol,
+    side,
+    lot_size,
+    entry_price,
+    entry_time,
+    sl_pct,
+    target_pct,
+    sl_price,
+    target_price,
+    margin_used,
+    or_high,
+    or_low,
+):
     with _db_lock, get_conn() as conn:
         cur = conn.execute(
             "INSERT INTO fno_trades (log_date,symbol,side,lot_size,entry_price,entry_time,"
             "sl_pct,target_pct,sl_price,target_price,margin_used,or_high,or_low,result) "
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'OPEN')",
-            (log_date, symbol, side, lot_size, entry_price, entry_time,
-             sl_pct, target_pct, sl_price, target_price, margin_used, or_high, or_low),
+            (
+                log_date,
+                symbol,
+                side,
+                lot_size,
+                entry_price,
+                entry_time,
+                sl_pct,
+                target_pct,
+                sl_price,
+                target_price,
+                margin_used,
+                or_high,
+                or_low,
+            ),
         )
         conn.commit()
         return cur.lastrowid
+
 
 def fno_trade_update_exit(trade_id, exit_price, exit_time, result, pnl_pts, pnl_inr):
     with _db_lock, get_conn() as conn:
@@ -1136,6 +1389,7 @@ def fno_trade_update_exit(trade_id, exit_price, exit_time, result, pnl_pts, pnl_
             (exit_price, exit_time, result, pnl_pts, pnl_inr, trade_id),
         )
         conn.commit()
+
 
 def fno_trades_history(days=30, symbol=None):
     with _db_lock, get_conn() as conn:
@@ -1155,14 +1409,28 @@ def fno_trades_history(days=30, symbol=None):
             ).fetchall()
     return [
         {
-            "log_date": r[0], "symbol": r[1], "side": r[2], "lot_size": r[3],
-            "entry_price": r[4], "entry_time": r[5], "sl_pct": r[6], "target_pct": r[7],
-            "sl_price": r[8], "target_price": r[9], "margin_used": r[10],
-            "or_high": r[11], "or_low": r[12], "exit_price": r[13],
-            "exit_time": r[14], "result": r[15], "pnl_pts": r[16], "pnl_inr": r[17],
+            "log_date": r[0],
+            "symbol": r[1],
+            "side": r[2],
+            "lot_size": r[3],
+            "entry_price": r[4],
+            "entry_time": r[5],
+            "sl_pct": r[6],
+            "target_pct": r[7],
+            "sl_price": r[8],
+            "target_price": r[9],
+            "margin_used": r[10],
+            "or_high": r[11],
+            "or_low": r[12],
+            "exit_price": r[13],
+            "exit_time": r[14],
+            "result": r[15],
+            "pnl_pts": r[16],
+            "pnl_inr": r[17],
         }
         for r in rows
     ]
+
 
 def fno_balance_log_insert(event, amount, balance, note=""):
     ts = now_ist().strftime("%H:%M:%S")
@@ -1173,6 +1441,7 @@ def fno_balance_log_insert(event, amount, balance, note=""):
         )
         conn.commit()
 
+
 def fno_balance_history(days=30):
     with _db_lock, get_conn() as conn:
         rows = conn.execute(
@@ -1181,9 +1450,17 @@ def fno_balance_history(days=30):
             (days * 50,),
         ).fetchall()
     return [
-        {"log_date": r[0], "ts": r[1], "event": r[2], "amount": r[3], "balance": r[4], "note": r[5]}
+        {
+            "log_date": r[0],
+            "ts": r[1],
+            "event": r[2],
+            "amount": r[3],
+            "balance": r[4],
+            "note": r[5],
+        }
         for r in rows
     ]
+
 
 def _try_enter_fno(symbol, side, or_high, or_low, entry_level, today, note=""):
     existing = fno_trade_today(symbol, today)
@@ -1193,76 +1470,108 @@ def _try_enter_fno(symbol, side, or_high, or_low, entry_level, today, note=""):
     if ltp is None:
         return "LTP_FAIL"
     lot_size = get_lot_size(symbol)
-    margin   = estimate_margin(symbol, ltp, lot_size)
+    margin = estimate_margin(symbol, ltp, lot_size)
     with _fno_lock:
-        balance    = _fno_state["balance"]
-        sl_pct     = _fno_state["sl_pct"]
+        balance = _fno_state["balance"]
+        sl_pct = _fno_state["sl_pct"]
         target_pct = _fno_state["target_pct"]
     if balance < margin:
         with _fno_lock:
-            already_pending = any(p["symbol"] == symbol for p in _fno_state["pending_funds"])
+            already_pending = any(
+                p["symbol"] == symbol for p in _fno_state["pending_funds"]
+            )
             if not already_pending:
-                _fno_state["pending_funds"].append({
-                    "symbol": symbol, "side": side,
-                    "or_high": or_high, "or_low": or_low, "entry_level": entry_level,
-                })
+                _fno_state["pending_funds"].append(
+                    {
+                        "symbol": symbol,
+                        "side": side,
+                        "or_high": or_high,
+                        "or_low": or_low,
+                        "entry_level": entry_level,
+                    }
+                )
         return "INSUFFICIENT_FUNDS"
     if side == "LONG":
-        sl_price     = round(ltp * (1 - sl_pct / 100), 2)
+        sl_price = round(ltp * (1 - sl_pct / 100), 2)
         target_price = round(ltp * (1 + target_pct / 100), 2)
     else:
-        sl_price     = round(ltp * (1 + sl_pct / 100), 2)
+        sl_price = round(ltp * (1 + sl_pct / 100), 2)
         target_price = round(ltp * (1 - target_pct / 100), 2)
-    fno_trade_insert(today, symbol, side, lot_size, ltp,
-                     now_ist().strftime("%H:%M:%S"),
-                     sl_pct, target_pct, sl_price, target_price,
-                     margin, or_high, or_low)
+    fno_trade_insert(
+        today,
+        symbol,
+        side,
+        lot_size,
+        ltp,
+        now_ist().strftime("%H:%M:%S"),
+        sl_pct,
+        target_pct,
+        sl_price,
+        target_price,
+        margin,
+        or_high,
+        or_low,
+    )
     with _fno_lock:
         _fno_state["balance"] -= margin
     fno_balance_log_insert(
-        "TRADE_ENTRY", -margin, _fno_state["balance"],
+        "TRADE_ENTRY",
+        -margin,
+        _fno_state["balance"],
         f"{symbol} {side} 1lot@{ltp:.2f} margin={margin:.0f} {note}",
     )
     print(f"  FnO ENTRY {symbol} {side} @ {ltp} | SL={sl_price} TGT={target_price}")
     return "ENTERED"
 
+
 def _check_fno_exits(today):
     cm = cur_min_ist()
     for s in FNO_STOCKS:
-        sym   = s["symbol"]
+        sym = s["symbol"]
         trade = fno_trade_today(sym, today)
         if not trade or trade["result"] != "OPEN":
             continue
         ltp = get_fut_ltp(sym)
         if ltp is None:
             continue
-        side, lot_size   = trade["side"], trade["lot_size"]
+        side, lot_size = trade["side"], trade["lot_size"]
         sl_price, target_price = trade["sl_price"], trade["target_price"]
         entry_price, margin_used = trade["entry_price"], trade["margin_used"]
         exit_p = result = None
-        hit_sl  = (ltp <= sl_price)     if side == "LONG" else (ltp >= sl_price)
+        hit_sl = (ltp <= sl_price) if side == "LONG" else (ltp >= sl_price)
         hit_tgt = (ltp >= target_price) if side == "LONG" else (ltp <= target_price)
         if hit_tgt and hit_sl:
-            exit_p, result = sl_price,     "SL HIT"
+            exit_p, result = sl_price, "SL HIT"
         elif hit_tgt:
             exit_p, result = target_price, "TGT HIT"
         elif hit_sl:
-            exit_p, result = sl_price,     "SL HIT"
+            exit_p, result = sl_price, "SL HIT"
         elif cm >= FNO_SQUAREOFF:
-            exit_p, result = ltp,          "SQUAREOFF"
+            exit_p, result = ltp, "SQUAREOFF"
         if result:
-            pnl_pts = (exit_p - entry_price) if side == "LONG" else (entry_price - exit_p)
+            pnl_pts = (
+                (exit_p - entry_price) if side == "LONG" else (entry_price - exit_p)
+            )
             pnl_inr = round(pnl_pts * lot_size, 2)
-            fno_trade_update_exit(trade["id"], exit_p, now_ist().strftime("%H:%M:%S"),
-                                  result, round(pnl_pts, 2), pnl_inr)
+            fno_trade_update_exit(
+                trade["id"],
+                exit_p,
+                now_ist().strftime("%H:%M:%S"),
+                result,
+                round(pnl_pts, 2),
+                pnl_inr,
+            )
             returned = margin_used + pnl_inr
             with _fno_lock:
                 _fno_state["balance"] += returned
                 bal = _fno_state["balance"]
             fno_balance_log_insert(
-                "TRADE_EXIT", returned, bal,
+                "TRADE_EXIT",
+                returned,
+                bal,
                 f"{sym} {side} exit@{exit_p} {result} P&L=Rs{pnl_inr:+.0f}",
             )
+
 
 def _build_or_and_scan(today):
     cm = cur_min_ist()
@@ -1271,15 +1580,19 @@ def _build_or_and_scan(today):
         if fno_trade_today(sym, today):
             continue
         with _fno_lock:
-            od = _fno_state["or_data"].setdefault(sym, {"or_high": None, "or_low": None, "or_done": False})
+            od = _fno_state["or_data"].setdefault(
+                sym, {"or_high": None, "or_low": None, "or_done": False}
+            )
         ltp = get_fut_ltp(sym)
         if ltp is None:
             continue
         if FNO_OR_START <= cm < FNO_OR_END:
             with _fno_lock:
                 od = _fno_state["or_data"][sym]
-                od["or_high"] = ltp if od["or_high"] is None else max(od["or_high"], ltp)
-                od["or_low"]  = ltp if od["or_low"]  is None else min(od["or_low"],  ltp)
+                od["or_high"] = (
+                    ltp if od["or_high"] is None else max(od["or_high"], ltp)
+                )
+                od["or_low"] = ltp if od["or_low"] is None else min(od["or_low"], ltp)
                 od["or_done"] = False
         elif cm >= FNO_OR_END and not od.get("or_done"):
             or_high, or_low = od.get("or_high"), od.get("or_low")
@@ -1287,14 +1600,17 @@ def _build_or_and_scan(today):
                 continue
             side = entry_level = None
             if ltp > or_high:
-                side, entry_level = "LONG",  or_high
+                side, entry_level = "LONG", or_high
             elif ltp < or_low:
                 side, entry_level = "SHORT", or_low
             if side:
-                res = _try_enter_fno(sym, side, or_high, or_low, entry_level, today, "OR breakout")
+                res = _try_enter_fno(
+                    sym, side, or_high, or_low, entry_level, today, "OR breakout"
+                )
                 if res == "ENTERED":
                     with _fno_lock:
                         _fno_state["or_data"][sym]["or_done"] = True
+
 
 def _retry_pending_on_funds(today):
     with _fno_lock:
@@ -1307,16 +1623,19 @@ def _retry_pending_on_funds(today):
         if ltp is None:
             still_pending.append(p)
             continue
-        tolerance   = entry_level * FNO_REENTRY_TOLERANCE
-        near_entry  = abs(ltp - entry_level) <= tolerance
+        tolerance = entry_level * FNO_REENTRY_TOLERANCE
+        near_entry = abs(ltp - entry_level) <= tolerance
         correct_side = (ltp > or_high) if side == "LONG" else (ltp < or_low)
         if near_entry and correct_side:
-            res = _try_enter_fno(sym, side, or_high, or_low, entry_level, today, "re-entry after funds")
+            res = _try_enter_fno(
+                sym, side, or_high, or_low, entry_level, today, "re-entry after funds"
+            )
             if res != "INSUFFICIENT_FUNDS":
                 continue
         still_pending.append(p)
     with _fno_lock:
         _fno_state["pending_funds"] = still_pending
+
 
 def fno_scheduler():
     print(f"[{now_ist().strftime('%H:%M:%S')}] FnO scheduler started.")
@@ -1325,12 +1644,16 @@ def fno_scheduler():
     except Exception as e:
         print(f"  lot-size resolve error: {e}")
     with _db_lock, get_conn() as conn:
-        row = conn.execute("SELECT balance FROM fno_balance_log ORDER BY id DESC LIMIT 1").fetchone()
+        row = conn.execute(
+            "SELECT balance FROM fno_balance_log ORDER BY id DESC LIMIT 1"
+        ).fetchone()
     if row:
         with _fno_lock:
             _fno_state["balance"] = row[0]
     else:
-        fno_balance_log_insert("FUND_ADD", INITIAL_BALANCE, INITIAL_BALANCE, "Initial capital")
+        fno_balance_log_insert(
+            "FUND_ADD", INITIAL_BALANCE, INITIAL_BALANCE, "Initial capital"
+        )
     while True:
         time.sleep(180)
         if not is_market_open():
@@ -1353,24 +1676,24 @@ def eq_cash_scheduler():
         if not is_market_open():
             continue
         today = ist_date_str()
-        cm    = cur_min_ist()
+        cm = cur_min_ist()
 
         with _tr_lock:
-            rising  = list(_tr_state["rising"])[:EQ_TOP_N]
+            rising = list(_tr_state["rising"])[:EQ_TOP_N]
             falling = list(_tr_state["falling"])[:EQ_TOP_N]
 
         if not rising and not falling:
             continue
 
         with _eq_lock:
-            capital    = _eq_state["capital"]
-            sl_pct     = _eq_state["sl_pct"]
+            capital = _eq_state["capital"]
+            sl_pct = _eq_state["sl_pct"]
             target_pct = _eq_state["target_pct"]
 
         all_stocks = [(s, "LONG") for s in rising] + [(s, "SHORT") for s in falling]
 
         for s, side in all_stocks:
-            sym    = s["symbol"]
+            sym = s["symbol"]
             eq_key = s.get("instrument_key")
             if not eq_key:
                 continue
@@ -1385,30 +1708,55 @@ def eq_cash_scheduler():
                     continue
 
                 with _eq_lock:
-                    iday = _eq_state["intraday"].setdefault(sym, {
-                        "day_high": ltp, "day_low": ltp,
-                        "entered": False, "side": side, "eq_key": eq_key, "qty": qty,
-                    })
-                    prev_high  = iday["day_high"]
-                    prev_low   = iday["day_low"]
+                    iday = _eq_state["intraday"].setdefault(
+                        sym,
+                        {
+                            "day_high": ltp,
+                            "day_low": ltp,
+                            "entered": False,
+                            "side": side,
+                            "eq_key": eq_key,
+                            "qty": qty,
+                        },
+                    )
+                    prev_high = iday["day_high"]
+                    prev_low = iday["day_low"]
                     iday["day_high"] = max(iday["day_high"], ltp)
-                    iday["day_low"]  = min(iday["day_low"],  ltp)
-                    entered    = iday["entered"]
+                    iday["day_low"] = min(iday["day_low"], ltp)
+                    entered = iday["entered"]
 
                 if not entered and EQ_ENTRY_START <= cm <= EQ_ENTRY_END:
                     existing = eq_trade_today(sym, today)
                     if not existing:
-                        trigger = (
-                            (side == "LONG"  and ltp > prev_high) or
-                            (side == "SHORT" and ltp < prev_low)
+                        trigger = (side == "LONG" and ltp > prev_high) or (
+                            side == "SHORT" and ltp < prev_low
                         )
                         if trigger:
                             capital_used = round(qty * ltp, 2)
-                            sl_price     = round(ltp * (1 - sl_pct / 100), 2) if side == "LONG" else round(ltp * (1 + sl_pct / 100), 2)
-                            target_price = round(ltp * (1 + target_pct / 100), 2) if side == "LONG" else round(ltp * (1 - target_pct / 100), 2)
-                            eq_trade_insert(today, sym, eq_key, side, qty, capital_used,
-                                            ltp, now_ist().strftime("%H:%M:%S"),
-                                            sl_pct, target_pct, sl_price, target_price)
+                            sl_price = (
+                                round(ltp * (1 - sl_pct / 100), 2)
+                                if side == "LONG"
+                                else round(ltp * (1 + sl_pct / 100), 2)
+                            )
+                            target_price = (
+                                round(ltp * (1 + target_pct / 100), 2)
+                                if side == "LONG"
+                                else round(ltp * (1 - target_pct / 100), 2)
+                            )
+                            eq_trade_insert(
+                                today,
+                                sym,
+                                eq_key,
+                                side,
+                                qty,
+                                capital_used,
+                                ltp,
+                                now_ist().strftime("%H:%M:%S"),
+                                sl_pct,
+                                target_pct,
+                                sl_price,
+                                target_price,
+                            )
                             with _eq_lock:
                                 _eq_state["intraday"][sym]["entered"] = True
                             print(f"  [EQ] ENTRY {sym} {side} @ Rs{ltp} qty={qty}")
@@ -1416,25 +1764,46 @@ def eq_cash_scheduler():
                 trade = eq_trade_today(sym, today)
                 if trade and trade["result"] == "OPEN":
                     is_long = trade["side"] == "LONG"
-                    hit_sl  = (ltp <= trade["sl_price"])     if is_long else (ltp >= trade["sl_price"])
-                    hit_tgt = (ltp >= trade["target_price"]) if is_long else (ltp <= trade["target_price"])
-                    sq_off  = cm >= EQ_SQUAREOFF
-                    exit_p  = result = None
+                    hit_sl = (
+                        (ltp <= trade["sl_price"])
+                        if is_long
+                        else (ltp >= trade["sl_price"])
+                    )
+                    hit_tgt = (
+                        (ltp >= trade["target_price"])
+                        if is_long
+                        else (ltp <= trade["target_price"])
+                    )
+                    sq_off = cm >= EQ_SQUAREOFF
+                    exit_p = result = None
                     if hit_tgt and hit_sl:
-                        exit_p, result = trade["sl_price"],     "SL HIT"
+                        exit_p, result = trade["sl_price"], "SL HIT"
                     elif hit_tgt:
                         exit_p, result = trade["target_price"], "TGT HIT"
                     elif hit_sl:
-                        exit_p, result = trade["sl_price"],     "SL HIT"
+                        exit_p, result = trade["sl_price"], "SL HIT"
                     elif sq_off:
-                        exit_p, result = ltp,                   "SQUAREOFF"
+                        exit_p, result = ltp, "SQUAREOFF"
                     if result:
-                        pnl_pts = (exit_p - trade["entry_price"]) if is_long else (trade["entry_price"] - exit_p)
+                        pnl_pts = (
+                            (exit_p - trade["entry_price"])
+                            if is_long
+                            else (trade["entry_price"] - exit_p)
+                        )
                         pnl_inr = round(pnl_pts * trade["qty"], 2)
                         pnl_pct = round((pnl_pts / trade["entry_price"]) * 100, 2)
-                        eq_trade_update_exit(trade["id"], exit_p, now_ist().strftime("%H:%M:%S"),
-                                             result, round(pnl_pts, 2), pnl_pct, pnl_inr)
-                        print(f"  [EQ] EXIT {sym} @ Rs{exit_p} {result} P&L=Rs{pnl_inr:+.2f}")
+                        eq_trade_update_exit(
+                            trade["id"],
+                            exit_p,
+                            now_ist().strftime("%H:%M:%S"),
+                            result,
+                            round(pnl_pts, 2),
+                            pnl_pct,
+                            pnl_inr,
+                        )
+                        print(
+                            f"  [EQ] EXIT {sym} @ Rs{exit_p} {result} P&L=Rs{pnl_inr:+.2f}"
+                        )
             except Exception as e:
                 print(f"  [EQ] {sym}: {e}")
 
@@ -1451,7 +1820,7 @@ def scheduler():
                 expiry = get_nearest_expiry(ik)
                 if not expiry:
                     continue
-                chain      = get_option_chain(ik, expiry)
+                chain = get_option_chain(ik, expiry)
                 rows, spot = chain["rows"], chain["spot"]
                 if not rows or spot is None:
                     continue
@@ -1459,9 +1828,10 @@ def scheduler():
             except Exception as e:
                 print(f"  OI {scrip}: {e}")
 
+
 def midnight_wiper():
     while True:
-        t    = now_ist()
+        t = now_ist()
         secs = (23 - t.hour) * 3600 + (59 - t.minute) * 60 + (60 - t.second)
         time.sleep(secs + 5)
         db_wipe_today()
@@ -1479,11 +1849,11 @@ def midnight_wiper():
             print(f"  [TR] Capital updated for new day: ₹{new_cap:,.0f}")
 
         with _fno_lock:
-            _fno_state["or_data"]       = {}
+            _fno_state["or_data"] = {}
             _fno_state["pending_funds"] = []
         with _tr_lock:
-            _tr_state["intraday"]         = {}
-            _tr_state["scanned_date"]     = None
+            _tr_state["intraday"] = {}
+            _tr_state["scanned_date"] = None
             _tr_state["capital_deployed"] = 0.0
         with _eq_lock:
             _eq_state["intraday"] = {}
@@ -1508,10 +1878,13 @@ def get_fno_stocks():
                 sym = d["underlying_symbol"]
                 if sym not in seen:
                     seen.add(sym)
-                    result.append({"symbol": sym, "instrument_key": d["underlying_key"]})
+                    result.append(
+                        {"symbol": sym, "instrument_key": d["underlying_key"]}
+                    )
         return sorted(result, key=lambda x: x["symbol"])
     except Exception:
         return []
+
 
 def candle_cache_init():
     with _db_lock, get_conn() as conn:
@@ -1523,6 +1896,7 @@ def candle_cache_init():
                 PRIMARY KEY (instrument_key, interval, ts))""")
         conn.commit()
 
+
 def candle_cache_get(instrument_key, interval, from_date, to_date):
     with _db_lock, get_conn() as conn:
         rows = conn.execute(
@@ -1530,7 +1904,18 @@ def candle_cache_get(instrument_key, interval, from_date, to_date):
             "WHERE instrument_key=? AND interval=? AND substr(ts,1,10) BETWEEN ? AND ? ORDER BY ts ASC",
             (instrument_key, interval, from_date, to_date),
         ).fetchall()
-    return [{"ts": r[0], "open": r[1], "high": r[2], "low": r[3], "close": r[4], "volume": r[5]} for r in rows]
+    return [
+        {
+            "ts": r[0],
+            "open": r[1],
+            "high": r[2],
+            "low": r[3],
+            "close": r[4],
+            "volume": r[5],
+        }
+        for r in rows
+    ]
+
 
 def candle_cache_put(instrument_key, interval, candles):
     if not candles:
@@ -1538,22 +1923,37 @@ def candle_cache_put(instrument_key, interval, candles):
     with _db_lock, get_conn() as conn:
         conn.executemany(
             "INSERT OR REPLACE INTO candle_cache (instrument_key,interval,ts,open,high,low,close,volume) VALUES (?,?,?,?,?,?,?,?)",
-            [(instrument_key, interval, c["ts"], c["open"], c["high"], c["low"], c["close"], c["volume"]) for c in candles],
+            [
+                (
+                    instrument_key,
+                    interval,
+                    c["ts"],
+                    c["open"],
+                    c["high"],
+                    c["low"],
+                    c["close"],
+                    c["volume"],
+                )
+                for c in candles
+            ],
         )
         conn.commit()
 
+
 TIMEFRAMES = {
-    "1min":  ("minutes", "1",  20),
-    "3min":  ("minutes", "3",  20),
-    "5min":  ("minutes", "5",  25),
+    "1min": ("minutes", "1", 20),
+    "3min": ("minutes", "3", 20),
+    "5min": ("minutes", "5", 25),
     "15min": ("minutes", "15", 90),
-    "day":   ("days",    "1",  365),
+    "day": ("days", "1", 365),
 }
+
 
 def _date_chunks(from_date, to_date, max_days):
     from datetime import timedelta
-    d0     = datetime.strptime(from_date, "%Y-%m-%d").date()
-    d1     = datetime.strptime(to_date,   "%Y-%m-%d").date()
+
+    d0 = datetime.strptime(from_date, "%Y-%m-%d").date()
+    d1 = datetime.strptime(to_date, "%Y-%m-%d").date()
     chunks, cur = [], d0
     while cur <= d1:
         end = min(cur + timedelta(days=max_days - 1), d1)
@@ -1561,20 +1961,29 @@ def _date_chunks(from_date, to_date, max_days):
         cur = end + timedelta(days=1)
     return chunks
 
+
 def _fetch_v3(instrument_key, unit, interval, chunk_from, chunk_to):
     ik_enc = instrument_key.replace("|", "%7C")
-    url    = f"{V3_BASE}/historical-candle/{ik_enc}/{unit}/{interval}/{chunk_to}/{chunk_from}"
-    r      = requests.get(url, headers=HEADERS, timeout=(10, 30))
+    url = f"{V3_BASE}/historical-candle/{ik_enc}/{unit}/{interval}/{chunk_to}/{chunk_from}"
+    r = requests.get(url, headers=HEADERS, timeout=(10, 30))
     r.raise_for_status()
     return [
-        {"ts": c[0], "open": c[1], "high": c[2], "low": c[3], "close": c[4], "volume": c[5]}
+        {
+            "ts": c[0],
+            "open": c[1],
+            "high": c[2],
+            "low": c[3],
+            "close": c[4],
+            "volume": c[5],
+        }
         for c in r.json().get("data", {}).get("candles", [])
     ]
+
 
 def get_candles(instrument_key, timeframe, from_date, to_date):
     unit, interval, max_days = TIMEFRAMES[timeframe]
     cache_key = f"{unit}/{interval}"
-    cached    = candle_cache_get(instrument_key, cache_key, from_date, to_date)
+    cached = candle_cache_get(instrument_key, cache_key, from_date, to_date)
     if cached:
         return cached
     all_candles = []
@@ -1584,12 +1993,13 @@ def get_candles(instrument_key, timeframe, from_date, to_date):
             time.sleep(0.25)
         except requests.HTTPError:
             time.sleep(0.5)
-    seen   = {}
+    seen = {}
     for c in all_candles:
         seen[c["ts"]] = c
     merged = sorted(seen.values(), key=lambda x: x["ts"])
     candle_cache_put(instrument_key, cache_key, merged)
     return merged
+
 
 def _group_by_day(candles):
     days = {}
@@ -1599,31 +2009,40 @@ def _group_by_day(candles):
         days[d].sort(key=lambda x: x["ts"])
     return days
 
+
 def _minutes_of(ts):
     return int(ts[11:13]) * 60 + int(ts[14:16])
 
-OR_START   = 9 * 60 + 15
-OR_END     = 9 * 60 + 45
+
+OR_START = 9 * 60 + 15
+OR_END = 9 * 60 + 45
 SQUARE_OFF = 15 * 60
 
-def run_orb_backtest(instrument_key, symbol, timeframe, from_date, to_date, x_pts, y_pts):
+
+def run_orb_backtest(
+    instrument_key, symbol, timeframe, from_date, to_date, x_pts, y_pts
+):
     candles = get_candles(instrument_key, timeframe, from_date, to_date)
-    trades  = []
+    trades = []
     for day, bars in sorted(_group_by_day(candles).items()):
         or_bars = [b for b in bars if OR_START <= _minutes_of(b["ts"]) < OR_END]
         if not or_bars:
             continue
         or_high = max(b["high"] for b in or_bars)
-        or_low  = min(b["low"]  for b in or_bars)
-        post    = [b for b in bars if _minutes_of(b["ts"]) >= OR_END]
+        or_low = min(b["low"] for b in or_bars)
+        post = [b for b in bars if _minutes_of(b["ts"]) >= OR_END]
         side = entry = entry_idx = None
         for i, b in enumerate(post):
             bu, bd = b["high"] > or_high, b["low"] < or_low
             if bu and bd:
-                side  = "LONG" if abs(b["open"] - or_high) <= abs(b["open"] - or_low) else "SHORT"
+                side = (
+                    "LONG"
+                    if abs(b["open"] - or_high) <= abs(b["open"] - or_low)
+                    else "SHORT"
+                )
                 entry = or_high if side == "LONG" else or_low
             elif bu:
-                side, entry = "LONG",  or_high
+                side, entry = "LONG", or_high
             elif bd:
                 side, entry = "SHORT", or_low
             if side:
@@ -1631,44 +2050,46 @@ def run_orb_backtest(instrument_key, symbol, timeframe, from_date, to_date, x_pt
                 break
         if side is None:
             continue
-        target  = round(entry + x_pts, 2) if side == "LONG" else round(entry - x_pts, 2)
-        sl      = round(entry - y_pts, 2) if side == "LONG" else round(entry + y_pts, 2)
-        exit_p  = result = exit_time = None
+        target = round(entry + x_pts, 2) if side == "LONG" else round(entry - x_pts, 2)
+        sl = round(entry - y_pts, 2) if side == "LONG" else round(entry + y_pts, 2)
+        exit_p = result = exit_time = None
         for b in post[entry_idx:]:
             ht = (b["high"] >= target) if side == "LONG" else (b["low"] <= target)
-            hs = (b["low"]  <= sl)     if side == "LONG" else (b["high"] >= sl)
+            hs = (b["low"] <= sl) if side == "LONG" else (b["high"] >= sl)
             if ht and hs:
-                exit_p, result = sl,     "LOSS"
+                exit_p, result = sl, "LOSS"
             elif ht:
                 exit_p, result = target, "WIN"
             elif hs:
-                exit_p, result = sl,     "LOSS"
+                exit_p, result = sl, "LOSS"
             if result:
                 exit_time = b["ts"][11:16]
                 break
             if _minutes_of(b["ts"]) >= SQUARE_OFF:
-                exit_p    = b["close"]
+                exit_p = b["close"]
                 exit_time = b["ts"][11:16]
                 break
         if exit_p is None:
-            exit_p    = post[-1]["close"]
+            exit_p = post[-1]["close"]
             exit_time = post[-1]["ts"][11:16]
-        pnl    = round((exit_p - entry if side == "LONG" else entry - exit_p), 2)
+        pnl = round((exit_p - entry if side == "LONG" else entry - exit_p), 2)
         if result is None:
             result = "WIN" if pnl > 0 else "LOSS"
-        trades.append({
-            "symbol":     symbol,
-            "entry_date": day,
-            "side":       side,
-            "entry":      round(entry, 2),
-            "sl":         sl,
-            "target":     target,
-            "exit":       round(exit_p, 2),
-            "exit_time":  exit_time,
-            "result":     result,
-            "pnl":        pnl,
-            "pnl_pct":    round((pnl / entry) * 100, 2) if entry else 0,
-        })
+        trades.append(
+            {
+                "symbol": symbol,
+                "entry_date": day,
+                "side": side,
+                "entry": round(entry, 2),
+                "sl": sl,
+                "target": target,
+                "exit": round(exit_p, 2),
+                "exit_time": exit_time,
+                "result": result,
+                "pnl": pnl,
+                "pnl_pct": round((pnl / entry) * 100, 2) if entry else 0,
+            }
+        )
     return trades
 
 
@@ -1688,38 +2109,67 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
-        qs     = urllib.parse.parse_qs(parsed.query)
+        qs = urllib.parse.parse_qs(parsed.query)
         try:
             p = parsed.path
 
             if p == "/indices":
-                self._send(200, upstox_get("/market-quote/ltp", {"instrument_key": ",".join(INDEX_KEYS.values())}))
+                self._send(
+                    200,
+                    upstox_get(
+                        "/market-quote/ltp",
+                        {"instrument_key": ",".join(INDEX_KEYS.values())},
+                    ),
+                )
 
             elif p == "/expiries":
-                ik   = qs.get("instrument_key", [""])[0]
+                ik = qs.get("instrument_key", [""])[0]
                 data = upstox_get("/option/contract", {"instrument_key": ik})
-                self._send(200, {"expiries": sorted({d.get("expiry") for d in data.get("data", []) if d.get("expiry")})})
+                self._send(
+                    200,
+                    {
+                        "expiries": sorted(
+                            {
+                                d.get("expiry")
+                                for d in data.get("data", [])
+                                if d.get("expiry")
+                            }
+                        )
+                    },
+                )
 
             elif p == "/chain":
-                chain = get_option_chain(qs.get("instrument_key", [""])[0], qs.get("expiry_date", [""])[0])
+                chain = get_option_chain(
+                    qs.get("instrument_key", [""])[0], qs.get("expiry_date", [""])[0]
+                )
                 chain["market_open"] = is_market_open()
                 self._send(200, chain)
 
             elif p == "/logs":
-                self._send(200, {"logs": db_get_logs(qs.get("scrip", [""])[0], qs.get("expiry", [""])[0])})
+                self._send(
+                    200,
+                    {
+                        "logs": db_get_logs(
+                            qs.get("scrip", [""])[0], qs.get("expiry", [""])[0]
+                        )
+                    },
+                )
 
             elif p == "/log":
-                scrip   = qs.get("scrip",    [""])[0]
-                exp     = qs.get("expiry",   [""])[0]
-                call_oi = qs.get("call_oi",  [None])[0]
+                scrip = qs.get("scrip", [""])[0]
+                exp = qs.get("expiry", [""])[0]
+                call_oi = qs.get("call_oi", [None])[0]
                 if scrip and exp and call_oi is not None and is_market_open():
-                    db_insert_log(scrip, exp,
-                                  qs.get("ts", [now_ist().strftime("%H:%M:%S")])[0],
-                                  int(call_oi),
-                                  int(qs.get("put_oi",      [0])[0]),
-                                  int(qs.get("diff",        [0])[0]),
-                                  int(qs.get("change_diff", [0])[0]),
-                                  qs.get("action", [""])[0])
+                    db_insert_log(
+                        scrip,
+                        exp,
+                        qs.get("ts", [now_ist().strftime("%H:%M:%S")])[0],
+                        int(call_oi),
+                        int(qs.get("put_oi", [0])[0]),
+                        int(qs.get("diff", [0])[0]),
+                        int(qs.get("change_diff", [0])[0]),
+                        qs.get("action", [""])[0],
+                    )
                 self._send(200, {"ok": True})
 
             elif p in ("/", "/index.html"):
@@ -1740,85 +2190,103 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._send(200, {"stocks": get_fno_stocks()})
 
             elif p == "/backtest":
-                ik  = qs.get("instrument_key", [""])[0]
-                sym = qs.get("symbol",         [""])[0]
-                tf  = qs.get("timeframe",      ["3min"])[0]
-                fd  = qs.get("from_date",      [""])[0]
-                td  = qs.get("to_date",        [ist_date_str()])[0]
-                xp  = float(qs.get("x_pts",   ["50"])[0])
-                yp  = float(qs.get("y_pts",   ["30"])[0])
+                ik = qs.get("instrument_key", [""])[0]
+                sym = qs.get("symbol", [""])[0]
+                tf = qs.get("timeframe", ["3min"])[0]
+                fd = qs.get("from_date", [""])[0]
+                td = qs.get("to_date", [ist_date_str()])[0]
+                xp = float(qs.get("x_pts", ["50"])[0])
+                yp = float(qs.get("y_pts", ["30"])[0])
                 if not ik or not fd:
                     self._send(400, {"error": "instrument_key and from_date required"})
                 else:
                     trades = run_orb_backtest(ik, sym, tf, fd, td, xp, yp)
-                    wins   = sum(1 for t in trades if t["result"] == "WIN")
-                    longs  = sum(1 for t in trades if t["side"] == "LONG")
-                    pnl    = round(sum(t["pnl"] for t in trades), 2)
-                    self._send(200, {
-                        "trades": trades,
-                        "summary": {
-                            "total":    len(trades), "wins": wins,
-                            "losses":   len(trades) - wins, "longs": longs,
-                            "shorts":   len(trades) - longs,
-                            "win_rate": round(wins / len(trades) * 100, 1) if trades else 0,
-                            "total_pnl": pnl,
+                    wins = sum(1 for t in trades if t["result"] == "WIN")
+                    longs = sum(1 for t in trades if t["side"] == "LONG")
+                    pnl = round(sum(t["pnl"] for t in trades), 2)
+                    self._send(
+                        200,
+                        {
+                            "trades": trades,
+                            "summary": {
+                                "total": len(trades),
+                                "wins": wins,
+                                "losses": len(trades) - wins,
+                                "longs": longs,
+                                "shorts": len(trades) - longs,
+                                "win_rate": (
+                                    round(wins / len(trades) * 100, 1) if trades else 0
+                                ),
+                                "total_pnl": pnl,
+                            },
                         },
-                    })
+                    )
 
             # ── TRENDING endpoints ─────────────────────────────────────────
             elif p == "/trending_state":
                 today = ist_date_str()
                 with _tr_lock:
-                    rising   = list(_tr_state["rising"])
-                    falling  = list(_tr_state["falling"])
-                    scanned  = _tr_state["scanned_date"]
-                    sl_pct   = _tr_state["sl_pct"]
-                    tgt_pct  = _tr_state["target_pct"]
+                    rising = list(_tr_state["rising"])
+                    falling = list(_tr_state["falling"])
+                    scanned = _tr_state["scanned_date"]
+                    sl_pct = _tr_state["sl_pct"]
+                    tgt_pct = _tr_state["target_pct"]
                     intraday = dict(_tr_state["intraday"])
                     deployed = _tr_state["capital_deployed"]
-                    capital  = _tr_state["capital"]
+                    capital = _tr_state["capital"]
 
                 def enrich(stocks, direction):
                     out = []
                     for s in stocks:
-                        sym  = s["symbol"]
+                        sym = s["symbol"]
                         iday = intraday.get(sym, {})
                         trade = trending_already_entered(sym, today)
-                        out.append({
-                            **s,
-                            "direction":  direction,
-                            "or_high":    iday.get("or_high"),
-                            "or_low":     iday.get("or_low"),
-                            "or_locked":  iday.get("or_locked", False),
-                            "entered":    iday.get("entered", False),
-                            "trade":      trade,
-                        })
+                        out.append(
+                            {
+                                **s,
+                                "direction": direction,
+                                "or_high": iday.get("or_high"),
+                                "or_low": iday.get("or_low"),
+                                "or_locked": iday.get("or_locked", False),
+                                "entered": iday.get("entered", False),
+                                "trade": trade,
+                            }
+                        )
                     return out
 
-                self._send(200, {
-                    "rising":           enrich(rising,  "LONG"),
-                    "falling":          enrich(falling, "SHORT"),
-                    "scanned_date":     scanned,
-                    "sl_pct":           sl_pct,
-                    "target_pct":       tgt_pct,
-                    "date":             today,
-                    "market_open":      is_market_open(),
-                    "capital":          capital,
-                    "capital_deployed": round(deployed, 2),
-                    "capital_free":     round(capital - deployed, 2),
-                })
+                self._send(
+                    200,
+                    {
+                        "rising": enrich(rising, "LONG"),
+                        "falling": enrich(falling, "SHORT"),
+                        "scanned_date": scanned,
+                        "sl_pct": sl_pct,
+                        "target_pct": tgt_pct,
+                        "date": today,
+                        "market_open": is_market_open(),
+                        "capital": capital,
+                        "capital_deployed": round(deployed, 2),
+                        "capital_free": round(capital - deployed, 2),
+                    },
+                )
 
             elif p == "/trending_params":
-                sl  = float(qs.get("sl_pct",     ["-1"])[0])
+                sl = float(qs.get("sl_pct", ["-1"])[0])
                 tgt = float(qs.get("target_pct", ["-1"])[0])
                 if sl > 0 and tgt > 0:
                     with _tr_lock:
-                        _tr_state["sl_pct"]     = sl
+                        _tr_state["sl_pct"] = sl
                         _tr_state["target_pct"] = tgt
-                    db_update_setting("tr_sl",  sl)
+                    db_update_setting("tr_sl", sl)
                     db_update_setting("tr_tgt", tgt)
                 with _tr_lock:
-                    self._send(200, {"sl_pct": _tr_state["sl_pct"], "target_pct": _tr_state["target_pct"]})
+                    self._send(
+                        200,
+                        {
+                            "sl_pct": _tr_state["sl_pct"],
+                            "target_pct": _tr_state["target_pct"],
+                        },
+                    )
 
             elif p == "/trending_set_capital":
                 amount = float(qs.get("amount", ["0"])[0])
@@ -1829,35 +2297,45 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     with _tr_lock:
                         _tr_state["capital_next"] = amount
                         current = _tr_state["capital"]
-                    self._send(200, {
-                        "ok":      True,
-                        "msg":     f"Capital ₹{amount:,.0f} will apply from next trading day",
-                        "current": current,
-                        "next":    amount,
-                    })
+                    self._send(
+                        200,
+                        {
+                            "ok": True,
+                            "msg": f"Capital ₹{amount:,.0f} will apply from next trading day",
+                            "current": current,
+                            "next": amount,
+                        },
+                    )
 
             elif p == "/trending_scan_now":
+
                 def _bg():
                     try:
                         r, f = _scan_trending_stocks()
                         with _tr_lock:
-                            _tr_state["rising"]           = r
-                            _tr_state["falling"]          = f
-                            _tr_state["scanned_date"]     = ist_date_str()
-                            _tr_state["intraday"]         = {}
+                            _tr_state["rising"] = r
+                            _tr_state["falling"] = f
+                            _tr_state["scanned_date"] = ist_date_str()
+                            _tr_state["intraday"] = {}
                             _tr_state["capital_deployed"] = 0.0
                     except Exception as e:
                         print(f"  [TR] manual scan error: {e}")
+
                 threading.Thread(target=_bg, daemon=True).start()
-                self._send(200, {"ok": True, "msg": "Scan started in background (~2-3 min)"})
+                self._send(
+                    200, {"ok": True, "msg": "Scan started in background (~2-3 min)"}
+                )
 
             elif p == "/trending_history":
-                self._send(200, {
-                    "history": trending_get_history(
-                        qs.get("symbol", [None])[0],
-                        int(qs.get("days", ["30"])[0]),
-                    )
-                })
+                self._send(
+                    200,
+                    {
+                        "history": trending_get_history(
+                            qs.get("symbol", [None])[0],
+                            int(qs.get("days", ["30"])[0]),
+                        )
+                    },
+                )
 
             elif p == "/trending_daily_summary":
                 self._send(200, {"summary": trending_daily_summary()})
@@ -1868,7 +2346,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if not all_stocks:
                     self._send(200, {"ltps": {}})
                     return
-                fut_keys   = []
+                fut_keys = []
                 sym_to_key = {}
                 for s in all_stocks:
                     fk = s.get("fut_key")
@@ -1880,9 +2358,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     return
                 ltps = {}
                 for i in range(0, len(fut_keys), 50):
-                    chunk = fut_keys[i:i + 50]
+                    chunk = fut_keys[i : i + 50]
                     try:
-                        data       = upstox_get("/market-quote/ltp", {"instrument_key": ",".join(chunk)})
+                        data = upstox_get(
+                            "/market-quote/ltp", {"instrument_key": ",".join(chunk)}
+                        )
                         key_to_sym = {v: k for k, v in sym_to_key.items()}
                         for raw_key, v in (data.get("data") or {}).items():
                             for fk, sym in key_to_sym.items():
@@ -1897,49 +2377,70 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif p == "/fno_state":
                 today = ist_date_str()
                 with _fno_lock:
-                    balance    = _fno_state["balance"]
-                    sl_pct     = _fno_state["sl_pct"]
+                    balance = _fno_state["balance"]
+                    sl_pct = _fno_state["sl_pct"]
                     target_pct = _fno_state["target_pct"]
-                    pending    = list(_fno_state["pending_funds"])
-                fut_keys  = [_futkey_cache.get(s["symbol"], s["eq_key"]) for s in FNO_STOCKS]
-                ltps_raw  = get_ltp_multi(fut_keys)
+                    pending = list(_fno_state["pending_funds"])
+                fut_keys = [
+                    _futkey_cache.get(s["symbol"], s["eq_key"]) for s in FNO_STOCKS
+                ]
+                ltps_raw = get_ltp_multi(fut_keys)
                 stocks_status = []
                 for s in FNO_STOCKS:
-                    sym   = s["symbol"]
+                    sym = s["symbol"]
                     trade = fno_trade_today(sym, today)
-                    lot   = get_lot_size(sym)
+                    lot = get_lot_size(sym)
                     fut_k = _futkey_cache.get(sym, s["eq_key"])
-                    ltp   = None
+                    ltp = None
                     for k, v in ltps_raw.items():
                         if sym.upper() in k.upper() or k.upper() in sym.upper():
                             ltp = v
                             break
                     with _fno_lock:
                         or_d = dict(_fno_state["or_data"].get(sym, {}))
-                    stocks_status.append({
-                        "symbol": sym, "lot_size": lot, "fut_key": fut_k,
-                        "ltp": ltp, "trade": trade,
-                        "or_high": or_d.get("or_high"), "or_low": or_d.get("or_low"),
-                        "or_done": or_d.get("or_done", False),
-                        "is_pending": any(pp["symbol"] == sym for pp in pending),
-                    })
-                self._send(200, {
-                    "balance": round(balance, 2), "sl_pct": sl_pct,
-                    "target_pct": target_pct, "stocks": stocks_status,
-                    "pending": pending, "date": today, "market_open": is_market_open(),
-                })
+                    stocks_status.append(
+                        {
+                            "symbol": sym,
+                            "lot_size": lot,
+                            "fut_key": fut_k,
+                            "ltp": ltp,
+                            "trade": trade,
+                            "or_high": or_d.get("or_high"),
+                            "or_low": or_d.get("or_low"),
+                            "or_done": or_d.get("or_done", False),
+                            "is_pending": any(pp["symbol"] == sym for pp in pending),
+                        }
+                    )
+                self._send(
+                    200,
+                    {
+                        "balance": round(balance, 2),
+                        "sl_pct": sl_pct,
+                        "target_pct": target_pct,
+                        "stocks": stocks_status,
+                        "pending": pending,
+                        "date": today,
+                        "market_open": is_market_open(),
+                    },
+                )
 
             elif p == "/fno_params":
-                sl  = float(qs.get("sl_pct",     ["-1"])[0])
+                sl = float(qs.get("sl_pct", ["-1"])[0])
                 tgt = float(qs.get("target_pct", ["-1"])[0])
                 if sl > 0 and tgt > 0:
                     with _fno_lock:
-                        _fno_state["sl_pct"]     = sl
+                        _fno_state["sl_pct"] = sl
                         _fno_state["target_pct"] = tgt
-                    db_update_setting("fno_sl",  sl)
+                    db_update_setting("fno_sl", sl)
                     db_update_setting("fno_tgt", tgt)
                 with _fno_lock:
-                    self._send(200, {"sl_pct": _fno_state["sl_pct"], "target_pct": _fno_state["target_pct"]})
+                    self._send(
+                        200,
+                        {
+                            "sl_pct": _fno_state["sl_pct"],
+                            "target_pct": _fno_state["target_pct"],
+                        },
+                    )
 
             elif p == "/fno_add_funds":
                 amount = float(qs.get("amount", ["0"])[0])
@@ -1949,95 +2450,130 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     with _fno_lock:
                         _fno_state["balance"] += amount
                         new_bal = _fno_state["balance"]
-                    fno_balance_log_insert("FUND_ADD", amount, new_bal, f"Manual top-up Rs{amount:,.0f}")
+                    fno_balance_log_insert(
+                        "FUND_ADD", amount, new_bal, f"Manual top-up Rs{amount:,.0f}"
+                    )
                     _retry_pending_on_funds(ist_date_str())
                     with _fno_lock:
                         pending = list(_fno_state["pending_funds"])
-                    self._send(200, {"balance": round(new_bal, 2), "pending_count": len(pending)})
+                    self._send(
+                        200,
+                        {"balance": round(new_bal, 2), "pending_count": len(pending)},
+                    )
 
             elif p == "/fno_history":
-                sym  = qs.get("symbol", [None])[0]
+                sym = qs.get("symbol", [None])[0]
                 days = int(qs.get("days", ["30"])[0])
-                self._send(200, {
-                    "trades":      fno_trades_history(days, sym),
-                    "balance_log": fno_balance_history(days),
-                })
+                self._send(
+                    200,
+                    {
+                        "trades": fno_trades_history(days, sym),
+                        "balance_log": fno_balance_history(days),
+                    },
+                )
 
             # ── Equity Cash endpoints ──────────────────────────────────────
             elif p == "/eq_state":
                 today = ist_date_str()
                 with _tr_lock:
-                    rising  = list(_tr_state["rising"])[:EQ_TOP_N]
+                    rising = list(_tr_state["rising"])[:EQ_TOP_N]
                     falling = list(_tr_state["falling"])[:EQ_TOP_N]
                 with _eq_lock:
-                    capital    = _eq_state["capital"]
-                    sl_pct     = _eq_state["sl_pct"]
+                    capital = _eq_state["capital"]
+                    sl_pct = _eq_state["sl_pct"]
                     target_pct = _eq_state["target_pct"]
-                    intraday   = dict(_eq_state["intraday"])
+                    intraday = dict(_eq_state["intraday"])
 
-                all_stocks = [(s, "LONG") for s in rising] + [(s, "SHORT") for s in falling]
+                all_stocks = [(s, "LONG") for s in rising] + [
+                    (s, "SHORT") for s in falling
+                ]
                 stocks_out = []
                 for s, side in all_stocks:
-                    sym   = s["symbol"]
+                    sym = s["symbol"]
                     trade = eq_trade_today(sym, today)
-                    iday  = intraday.get(sym, {})
+                    iday = intraday.get(sym, {})
                     try:
                         ltp = get_ltp(s.get("instrument_key"))
                     except Exception:
                         ltp = None
-                    stocks_out.append({
-                        "symbol":   sym, "eq_key": s.get("instrument_key"),
-                        "side":     side, "gain3d": s.get("gain3d_pct"),
-                        "ltp":      ltp,
-                        "day_high": iday.get("day_high"), "day_low": iday.get("day_low"),
-                        "entered":  iday.get("entered", False), "qty": iday.get("qty"),
-                        "trade":    trade,
-                    })
-                self._send(200, {
-                    "stocks":     stocks_out, "capital": capital,
-                    "sl_pct":     sl_pct, "target_pct": target_pct,
-                    "date":       today, "market_open": is_market_open(),
-                })
+                    stocks_out.append(
+                        {
+                            "symbol": sym,
+                            "eq_key": s.get("instrument_key"),
+                            "side": side,
+                            "gain3d": s.get("gain3d_pct"),
+                            "ltp": ltp,
+                            "day_high": iday.get("day_high"),
+                            "day_low": iday.get("day_low"),
+                            "entered": iday.get("entered", False),
+                            "qty": iday.get("qty"),
+                            "trade": trade,
+                        }
+                    )
+                self._send(
+                    200,
+                    {
+                        "stocks": stocks_out,
+                        "capital": capital,
+                        "sl_pct": sl_pct,
+                        "target_pct": target_pct,
+                        "date": today,
+                        "market_open": is_market_open(),
+                    },
+                )
 
             elif p == "/eq_params":
-                capital = float(qs.get("capital",    ["-1"])[0])
-                sl      = float(qs.get("sl_pct",     ["-1"])[0])
-                tgt     = float(qs.get("target_pct", ["-1"])[0])
+                capital = float(qs.get("capital", ["-1"])[0])
+                sl = float(qs.get("sl_pct", ["-1"])[0])
+                tgt = float(qs.get("target_pct", ["-1"])[0])
                 with _eq_lock:
                     if capital > 0:
-                        _eq_state["capital"]     = capital
+                        _eq_state["capital"] = capital
                         db_update_setting("eq_cap", capital)
                     if sl > 0:
-                        _eq_state["sl_pct"]      = sl
+                        _eq_state["sl_pct"] = sl
                         db_update_setting("eq_sl", sl)
                     if tgt > 0:
-                        _eq_state["target_pct"]  = tgt
+                        _eq_state["target_pct"] = tgt
                         db_update_setting("eq_tgt", tgt)
-                    self._send(200, {
-                        "capital":    _eq_state["capital"],
-                        "sl_pct":     _eq_state["sl_pct"],
-                        "target_pct": _eq_state["target_pct"],
-                    })
+                    self._send(
+                        200,
+                        {
+                            "capital": _eq_state["capital"],
+                            "sl_pct": _eq_state["sl_pct"],
+                            "target_pct": _eq_state["target_pct"],
+                        },
+                    )
 
             elif p == "/eq_history":
                 from_d = qs.get("from_date", [None])[0]
-                to_d   = qs.get("to_date",   [None])[0]
-                sym    = qs.get("symbol",    [None])[0]
+                to_d = qs.get("to_date", [None])[0]
+                sym = qs.get("symbol", [None])[0]
                 if not from_d or not to_d:
                     self._send(400, {"error": "from_date and to_date required"})
                 else:
                     self._send(200, {"trades": eq_trades_history(from_d, to_d, sym)})
 
             elif p == "/fno_lot_sizes":
-                self._send(200, {s["symbol"]: get_lot_size(s["symbol"]) for s in FNO_STOCKS})
+                self._send(
+                    200, {s["symbol"]: get_lot_size(s["symbol"]) for s in FNO_STOCKS}
+                )
 
             else:
                 self._send(404, {"error": "unknown path"})
 
         except requests.HTTPError as e:
-            self._send(502, {"error": "upstox", "detail": str(e), "body": getattr(e.response, "text", "")})
+            self._send(
+                502,
+                {
+                    "error": "upstox",
+                    "detail": str(e),
+                    "body": getattr(e.response, "text", ""),
+                },
+            )
         except Exception as e:
             import traceback
+
             self._send(500, {"error": str(e), "trace": traceback.format_exc()[-500:]})
 
 
@@ -2046,12 +2582,14 @@ if __name__ == "__main__":
     db_init()
     db_load_settings()
     candle_cache_init()
-    threading.Thread(target=midnight_wiper,        daemon=True).start()
-    threading.Thread(target=scheduler,             daemon=True).start()
+    threading.Thread(target=midnight_wiper, daemon=True).start()
+    threading.Thread(target=scheduler, daemon=True).start()
     threading.Thread(target=new_trending_scheduler, daemon=True).start()
-    threading.Thread(target=eq_cash_scheduler,     daemon=True).start()
-    threading.Thread(target=fno_scheduler,         daemon=True).start()
+    threading.Thread(target=eq_cash_scheduler, daemon=True).start()
+    threading.Thread(target=fno_scheduler, daemon=True).start()
     server = http.server.ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"JAGOAR OI server -> http://0.0.0.0:{PORT}")
-    print(f"Market open: {is_market_open()} | TR Capital: ₹{_tr_state['capital']:,.0f} | FnO Balance: ₹{INITIAL_BALANCE:,.0f}")
+    print(
+        f"Market open: {is_market_open()} | TR Capital: ₹{_tr_state['capital']:,.0f} | FnO Balance: ₹{INITIAL_BALANCE:,.0f}"
+    )
     server.serve_forever()
