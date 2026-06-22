@@ -364,6 +364,16 @@ def db_load_settings():
                 _fno_state["target_pct"] = row[8]
             print(f"[{now_ist().strftime('%H:%M:%S')}] Loaded user settings from DB.")
 
+def _load_deployed_capital():
+    with _db_lock, get_conn() as conn:
+        rows = conn.execute(
+            "SELECT notional FROM trending_logs WHERE result='OPEN'"
+        ).fetchall()
+    total = sum(r[0] for r in rows if r[0])
+    with _tr_lock:
+        _tr_state["capital_deployed"] = total
+    print(f"  [TR] Restored capital_deployed: ₹{total:,.0f}")
+
 
 # ── OI scanner DB helpers ──────────────────────────────────────────────────────
 def db_insert_log(scrip, expiry, ts, call_oi, put_oi, diff, change_diff, action):
