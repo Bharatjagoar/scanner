@@ -364,6 +364,7 @@ def db_load_settings():
                 _fno_state["target_pct"] = row[8]
             print(f"[{now_ist().strftime('%H:%M:%S')}] Loaded user settings from DB.")
 
+
 def _load_deployed_capital():
     with _db_lock, get_conn() as conn:
         rows = conn.execute(
@@ -874,10 +875,63 @@ def _tr_check_exits(today):
             print(f"  [TR] exit check {sym}: {e}")
 
 
+def _tr_check_exits_batched(today, ltps):
+    cm = cur_min_ist()
+    for s in _tr_all_active():
+        sym = s["symbol"]
+        row = trending_already_entered(sym, today)
+        if not row or row["result"] != "OPEN":
+            continue
+        ltp = ltps.get(sym)
+        if not ltp:
+            continue
+        lot_size = row.get("lot_size") or s.get("lot_size") or 1
+        lots_taken = row.get("lots_taken") or 1
+        entry = row["entry_price"]
+        side = row.get("side", "LONG")
+        is_long = side == "LONG"
+        hit_sl = (ltp <= row["sl_price"]) if is_long else (ltp >= row["sl_price"])
+        hit_tgt = (
+            (ltp >= row["target_price"]) if is_long else (ltp <= row["target_price"])
+        )
+        exit_p = result = None
+        if hit_tgt and hit_sl:
+            exit_p, result = row["sl_price"], "SL HIT"
+        elif hit_tgt:
+            exit_p, result = row["target_price"], "TGT HIT"
+        elif hit_sl:
+            exit_p, result = row["sl_price"], "SL HIT"
+        elif cm >= TR_SQUAREOFF:
+            exit_p, result = ltp, "SQUAREOFF"
+        if result:
+            pnl_pts = (exit_p - entry) if is_long else (entry - exit_p)
+            pnl_inr = round(pnl_pts * lot_size * lots_taken, 2)
+            pnl_pct = round((pnl_pts / entry) * 100, 2)
+            trending_update_exit(
+                row["id"],
+                exit_p,
+                now_ist().strftime("%H:%M:%S"),
+                result,
+                round(pnl_pts, 2),
+                pnl_pct,
+                pnl_inr,
+            )
+            notional = row.get("notional") or (entry * lot_size * lots_taken)
+            with _tr_lock:
+                _tr_state["capital_deployed"] = max(
+                    0.0, _tr_state["capital_deployed"] - notional
+                )
+            print(
+                f"  [TR] EXIT {sym} {side} @ {exit_p} {result} | lots={lots_taken} P&L=₹{pnl_inr:+.0f} ({pnl_pct:+.2f}%)"
+            )
+
+
 # ── Trending scheduler ─────────────────────────────────────────────────────────
+_scanned_today = [None]
+
+
 def new_trending_scheduler():
     print(f"[{now_ist().strftime('%H:%M:%S')}] Trending scheduler started.")
-    _scanned_today = [None]
 
     while True:
         t = now_ist()
@@ -901,44 +955,41 @@ def new_trending_scheduler():
             time.sleep(60)
             continue
 
+        # ── Batch LTP fetch ────────────────────────────────────────────────
+        active = _tr_all_active()
+        fut_keys = [s["fut_key"] for s in active if s.get("fut_key")]
+        key_to_sym = {s["fut_key"]: s["symbol"] for s in active if s.get("fut_key")}
+        ltps = get_ltp_multi(fut_keys, key_to_sym) if fut_keys else {}
+
         # ── OR build phase: 9:15 to 9:44 ──────────────────────────────────
         if TR_OR_START <= cm < TR_OR_END:
-            for s in _tr_all_active():
+            for s in active:
                 sym = s["symbol"]
-                fut_key = s.get("fut_key")
-                if not fut_key:
+                ltp = ltps.get(sym)
+                if not ltp:
                     continue
-                try:
-                    ltp = get_ltp(fut_key)
-                    if not ltp:
-                        continue
-                    with _tr_lock:
-                        iday = _tr_state["intraday"].setdefault(
-                            sym,
-                            {
-                                "or_high": None,
-                                "or_low": None,
-                                "or_locked": False,
-                                "entered": False,
-                            },
+                with _tr_lock:
+                    iday = _tr_state["intraday"].setdefault(
+                        sym,
+                        {
+                            "or_high": None,
+                            "or_low": None,
+                            "or_locked": False,
+                            "entered": False,
+                        },
+                    )
+                    if not iday["or_locked"]:
+                        iday["or_high"] = (
+                            ltp
+                            if iday["or_high"] is None
+                            else max(iday["or_high"], ltp)
                         )
-                        if not iday["or_locked"]:
-                            iday["or_high"] = (
-                                ltp
-                                if iday["or_high"] is None
-                                else max(iday["or_high"], ltp)
-                            )
-                            iday["or_low"] = (
-                                ltp
-                                if iday["or_low"] is None
-                                else min(iday["or_low"], ltp)
-                            )
-                except Exception as e:
-                    print(f"  [TR] OR build {sym}: {e}")
+                        iday["or_low"] = (
+                            ltp if iday["or_low"] is None else min(iday["or_low"], ltp)
+                        )
 
         # ── Entry + exit phase: 9:45 onwards ──────────────────────────────
         elif cm >= TR_OR_END:
-            # Lock OR for all symbols the moment we cross 9:45
             with _tr_lock:
                 for sym2, iday2 in _tr_state["intraday"].items():
                     if not iday2["or_locked"] and iday2["or_high"] is not None:
@@ -947,55 +998,43 @@ def new_trending_scheduler():
                             f"  [TR] OR LOCKED {sym2}: H=₹{iday2['or_high']} L=₹{iday2['or_low']}"
                         )
 
-            for s in _tr_all_active():
+            for s in active:
                 sym = s["symbol"]
-                fut_key = s.get("fut_key")
                 lot_size = s.get("lot_size", 1)
+                fut_key = s.get("fut_key")
                 if not fut_key:
                     continue
-
                 with _tr_lock:
                     iday = _tr_state["intraday"].get(sym)
-
-                # OR not built for this symbol
                 if not iday or not iday["or_locked"]:
                     continue
-
-                or_high = iday["or_high"]
-                or_low = iday["or_low"]
-                entered = iday["entered"]
-
+                ltp = ltps.get(sym)
+                if not ltp:
+                    continue
                 is_rising = any(r["symbol"] == sym for r in _tr_state.get("rising", []))
                 side = "LONG" if is_rising else "SHORT"
-
-                try:
-                    ltp = get_ltp(fut_key)
-                    if not ltp:
-                        continue
-
-                    # ── Entry trigger ─────────────────────────────────────
-                    if not entered and cm <= TR_ENTRY_END:
-                        already = trending_already_entered(sym, today)
-                        if not already:
-                            trigger = (side == "LONG" and ltp > or_high) or (
-                                side == "SHORT" and ltp < or_low
-                            )
-                            if trigger:
-                                ok = _tr_enter(sym, fut_key, lot_size, side, ltp, today)
-                                if ok:
-                                    with _tr_lock:
-                                        _tr_state["intraday"][sym]["entered"] = True
-
-                except Exception as e:
-                    print(f"  [TR] entry {sym}: {e}")
-
-            # ── Exit check ─────────────────────────────────────────────────
+                if not iday["entered"] and cm <= TR_ENTRY_END:
+                    already = trending_already_entered(sym, today)
+                    if not already:
+                        trigger = (side == "LONG" and ltp > iday["or_high"]) or (
+                            side == "SHORT" and ltp < iday["or_low"]
+                        )
+                        if trigger:
+                            ok = _tr_enter(sym, fut_key, lot_size, side, ltp, today)
+                            if ok:
+                                with _tr_lock:
+                                    _tr_state["intraday"][sym]["entered"] = True
             try:
-                _tr_check_exits(today)
+                _tr_check_exits_batched(today, ltps)
             except Exception as e:
                 print(f"  [TR] exit error: {e}")
 
-        time.sleep(60)  # 1-min poll — needed for clean OR window coverage
+        # ── Sleep ──────────────────────────────────────────────────────────
+        cm = cur_min_ist()
+        if TR_OR_START <= cm <= 10 * 60:
+            time.sleep(10)
+        else:
+            time.sleep(60)
 
 
 # ── Upstox API helpers ─────────────────────────────────────────────────────────
@@ -1014,16 +1053,24 @@ def get_ltp(instrument_key):
     return None
 
 
-def get_ltp_multi(keys_list):
+def get_ltp_multi(keys_list, key_to_sym=None):
     if not keys_list:
         return {}
     combined = ",".join(keys_list)
     try:
         data = upstox_get("/market-quote/ltp", {"instrument_key": combined})
         result = {}
-        for k, v in (data.get("data") or {}).items():
-            sym = k.split(":")[-1].split("|")[-1]
-            result[sym] = v.get("last_price")
+        for raw_key, v in (data.get("data") or {}).items():
+            ltp = v.get("last_price")
+            if key_to_sym:
+                name_part = raw_key.split(":")[-1]
+                for fut_key, sym in key_to_sym.items():
+                    if name_part.startswith(sym):
+                        result[sym] = ltp
+                        break
+            else:
+                # fallback: symbol name is in the raw key e.g. "NSE_FO:DIXON26JUNFUT"
+                result[raw_key] = ltp
         return result
     except Exception:
         return {}
