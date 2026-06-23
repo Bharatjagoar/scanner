@@ -1031,7 +1031,7 @@ def new_trending_scheduler():
 
         # ── Sleep ──────────────────────────────────────────────────────────
         cm = cur_min_ist()
-        if TR_OR_START <= cm <= 10 * 60:
+        if TR_OR_START <= cm <= TR_SQUAREOFF:
             time.sleep(10)
         else:
             time.sleep(60)
