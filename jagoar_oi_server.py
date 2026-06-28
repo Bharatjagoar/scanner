@@ -2080,7 +2080,11 @@ def _date_chunks(from_date, to_date, max_days):
 def _fetch_v3(instrument_key, unit, interval, chunk_from, chunk_to):
     ik_enc = instrument_key.replace("|", "%7C")
     url = f"{V3_BASE}/historical-candle/{ik_enc}/{unit}/{interval}/{chunk_to}/{chunk_from}"
+    print(f"  [BT] {url}")
     r = requests.get(url, headers=HEADERS, timeout=(10, 30))
+    print(
+        f"  [BT] status={r.status_code} candles={len(r.json().get('data',{}).get('candles',[]))}"
+    )
     r.raise_for_status()
     return [
         {
@@ -2304,7 +2308,7 @@ def run_momentum_backtest(
     days_map = _group_by_day(candles)
     trades = []
     for day, bars in sorted(days_map.items()):
-        if len(bars) < 30:
+        if len(bars) < 22:
             continue
         closes = [b["close"] for b in bars]
         highs = [b["high"] for b in bars]
@@ -2326,7 +2330,7 @@ def run_momentum_backtest(
         for i in range(19, len(bars)):
             vol_sma20[i] = sum(volumes[i - 19 : i + 1]) / 20
         in_trade = False
-        for i in range(21, len(bars)):
+        for i in range(20, len(bars)):
             if in_trade:
                 continue
             e9, e21, r, dx, vw, vs = (
@@ -2340,8 +2344,16 @@ def run_momentum_backtest(
             if None in (e9, e21, r, dx, vw, vs):
                 continue
             cl, vol = closes[i], volumes[i]
-            adx_ok = dx > 20
-            vol_ok = vol > 1.5 * vs
+            # Relax filters for larger timeframes
+            adx_threshold = 15 if timeframe in ("15min", "day") else 20
+            vol_threshold = 1.2 if timeframe in ("15min", "day") else 1.5
+            adx_threshold = 15 if timeframe in ("15min", "day") else 20
+            vol_threshold = 1.2 if timeframe in ("15min", "day") else 1.5
+            adx_ok = dx > adx_threshold
+            vol_ok = (vol > vol_threshold * vs) if vs else True
+            # For 15min/day, volume filter is optional — skip if SMA not ready
+            if timeframe in ("15min", "day") and not vol_ok:
+                vol_ok = True
             long_sig = (e9 > e21) and (r > 50) and adx_ok and (cl > vw) and vol_ok
             short_sig = (e9 < e21) and (r < 50) and adx_ok and (cl < vw) and vol_ok
             if not long_sig and not short_sig:

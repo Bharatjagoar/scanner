@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>MANJIT JAGOAR OI DATA SCANNER</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -280,7 +280,7 @@
         display: flex;
         flex-direction: column;
         gap: 3px;
-        flex: 1 1 120px;
+        flex: 1 1 100px;
       }
       .bt-controls input,
       .bt-controls select {
@@ -900,6 +900,12 @@
         .bt-controls input,
         .bt-controls select {
           width: auto;
+        }
+        #bt-orb-inputs {
+          display: contents;
+        }
+        #bt-momentum-inputs {
+          display: none;
         }
         .bt-run {
           flex: 0 0 auto;
@@ -2226,7 +2232,10 @@
           (res.stocks || []).forEach((s) => {
             if (lastType !== s.type) {
               const grp = document.createElement("optgroup");
-              grp.label = s.type === "index" ? "── INDICES ──" : "── FnO STOCKS (Futures) ──";
+              grp.label =
+                s.type === "index"
+                  ? "── INDICES ──"
+                  : "── FnO STOCKS (Futures) ──";
               sel.appendChild(grp);
               lastType = s.type;
             }
@@ -2237,7 +2246,8 @@
             o.textContent = s.symbol;
             sel.appendChild(o);
           });
-          $("bt-status").textContent = `${res.stocks.length} futures instruments loaded.`;
+          $("bt-status").textContent =
+            `${res.stocks.length} futures instruments loaded.`;
         } catch (e) {
           $("bt-status").textContent = "Failed: " + e.message;
         }
