@@ -1920,25 +1920,84 @@ def midnight_wiper():
 
 # ── Backtest helpers ───────────────────────────────────────────────────────────
 def get_fno_stocks():
+    """
+    Returns only stocks that have an active futures contract.
+    instrument_key is the FUTURES key (not equity spot).
+    Also includes indices.
+    """
+    today = ist_date_str()
     try:
         instruments = _load_nse_instruments()
-        seen, result = set(), []
+        # Build a set of symbols that have a valid future
+        fut_map = {}  # symbol -> {instrument_key: fut_key, lot_size: n}
         for d in instruments:
             if (
                 d.get("segment") == "NSE_FO"
-                and d.get("instrument_type") == "CE"
+                and d.get("instrument_type") == "FUT"
                 and d.get("underlying_type") == "EQUITY"
                 and d.get("underlying_symbol")
-                and d.get("underlying_key")
+                and d.get("instrument_key")
+                and _expiry_str(d.get("expiry", 0)) >= today
             ):
                 sym = d["underlying_symbol"]
-                if sym not in seen:
-                    seen.add(sym)
-                    result.append(
-                        {"symbol": sym, "instrument_key": d["underlying_key"]}
-                    )
-        return sorted(result, key=lambda x: x["symbol"])
-    except Exception:
+                exp = _expiry_str(d["expiry"])
+                # Keep nearest expiry only
+                if sym not in fut_map or exp < fut_map[sym]["expiry"]:
+                    fut_map[sym] = {
+                        "symbol": sym,
+                        "instrument_key": d["instrument_key"],  # FUTURES key
+                        "lot_size": int(d.get("lot_size") or 1),
+                        "expiry": exp,
+                        "type": "stock",
+                    }
+
+        stocks = sorted(fut_map.values(), key=lambda x: x["symbol"])
+
+        # Add indices — futures keys fetched from instruments
+        index_fut_keys = {
+            "NIFTY 50": ("NSE_INDEX|Nifty 50", "NIFTY", 65, "index"),
+            "BANK NIFTY": ("NSE_INDEX|Nifty Bank", "BANKNIFTY", 30, "index"),
+            "FINNIFTY": ("NSE_INDEX|Nifty Fin Service", "FINNIFTY", 65, "index"),
+            "SENSEX": ("BSE_INDEX|SENSEX", "SENSEX", 20, "index"),
+        }
+        indices = []
+        for label, (eq_key, sym, lot, typ) in index_fut_keys.items():
+            # Try to find index futures in instruments
+            idx_futs = [
+                d
+                for d in instruments
+                if d.get("segment") == "NSE_FO"
+                and d.get("instrument_type") == "FUT"
+                and d.get("underlying_symbol") == sym
+                and d.get("instrument_key")
+                and _expiry_str(d.get("expiry", 0)) >= today
+            ]
+            if idx_futs:
+                idx_futs.sort(key=lambda x: _expiry_str(x["expiry"]))
+                indices.append(
+                    {
+                        "symbol": label,
+                        "instrument_key": idx_futs[0]["instrument_key"],
+                        "lot_size": int(idx_futs[0].get("lot_size") or lot),
+                        "expiry": _expiry_str(idx_futs[0]["expiry"]),
+                        "type": typ,
+                    }
+                )
+            else:
+                # Fallback: use spot key (candles still available)
+                indices.append(
+                    {
+                        "symbol": label,
+                        "instrument_key": eq_key,
+                        "lot_size": lot,
+                        "expiry": "",
+                        "type": typ,
+                    }
+                )
+
+        return indices + stocks  # indices first
+    except Exception as e:
+        print(f"  get_fno_stocks error: {e}")
         return []
 
 
@@ -2076,7 +2135,7 @@ SQUARE_OFF = 15 * 60
 
 
 def run_orb_backtest(
-    instrument_key, symbol, timeframe, from_date, to_date, x_pts, y_pts
+    instrument_key, symbol, timeframe, from_date, to_date, x_pts, y_pts, lot_size=1
 ):
     candles = get_candles(instrument_key, timeframe, from_date, to_date)
     trades = []
@@ -2144,8 +2203,219 @@ def run_orb_backtest(
                 "result": result,
                 "pnl": pnl,
                 "pnl_pct": round((pnl / entry) * 100, 2) if entry else 0,
+                "pnl_inr": round(pnl * lot_size, 2),
             }
         )
+    return trades
+
+
+# ── Momentum backtest helpers ──────────────────────────────────────────────────
+def _calc_ema(values, period):
+    ema = []
+    k = 2 / (period + 1)
+    for i, v in enumerate(values):
+        if i < period - 1:
+            ema.append(None)
+        elif i == period - 1:
+            ema.append(sum(values[:period]) / period)
+        else:
+            ema.append(v * k + ema[-1] * (1 - k))
+    return ema
+
+
+def _calc_rsi(closes, period=14):
+    rsi = [None] * period
+    rsi_gain_prev = rsi_loss_prev = 0.0
+    gains, losses = [], []
+    for i in range(1, len(closes)):
+        delta = closes[i] - closes[i - 1]
+        gains.append(max(delta, 0))
+        losses.append(max(-delta, 0))
+        if i >= period:
+            if i == period:
+                avg_gain = sum(gains[-period:]) / period
+                avg_loss = sum(losses[-period:]) / period
+            else:
+                avg_gain = (rsi_gain_prev * (period - 1) + gains[-1]) / period
+                avg_loss = (rsi_loss_prev * (period - 1) + losses[-1]) / period
+            rsi_gain_prev = avg_gain
+            rsi_loss_prev = avg_loss
+            rsi.append(
+                100.0 if avg_loss == 0 else 100 - 100 / (1 + avg_gain / avg_loss)
+            )
+    return rsi
+
+
+def _calc_adx(highs, lows, closes, period=14):
+    n = len(closes)
+    adx = [None] * n
+    if n < period * 2 + 1:
+        return adx
+    tr_list, pdm_list, ndm_list = [], [], []
+    for i in range(1, n):
+        tr = max(
+            highs[i] - lows[i],
+            abs(highs[i] - closes[i - 1]),
+            abs(lows[i] - closes[i - 1]),
+        )
+        up = highs[i] - highs[i - 1]
+        down = lows[i - 1] - lows[i]
+        pdm_list.append(max(up, 0) if up > down else 0)
+        ndm_list.append(max(down, 0) if down > up else 0)
+        tr_list.append(tr)
+
+    def smooth(lst, p):
+        out = [sum(lst[:p])]
+        for v in lst[p:]:
+            out.append(out[-1] - out[-1] / p + v)
+        return out
+
+    atr_s = smooth(tr_list, period)
+    pdm_s = smooth(pdm_list, period)
+    ndm_s = smooth(ndm_list, period)
+    di_plus = [100 * p / a if a else 0 for p, a in zip(pdm_s, atr_s)]
+    di_minus = [100 * m / a if a else 0 for m, a in zip(ndm_s, atr_s)]
+    dx_list = [
+        100 * abs(p - m) / (p + m) if (p + m) else 0 for p, m in zip(di_plus, di_minus)
+    ]
+    adx_vals = [sum(dx_list[:period]) / period]
+    for v in dx_list[period:]:
+        adx_vals.append((adx_vals[-1] * (period - 1) + v) / period)
+    offset = 2 * period - 1
+    for i, val in enumerate(adx_vals):
+        if offset + i < n:
+            adx[offset + i] = val
+    return adx
+
+
+def run_momentum_backtest(
+    instrument_key,
+    symbol,
+    timeframe,
+    from_date,
+    to_date,
+    target_pct,
+    sl_pct,
+    lot_size=1,
+):
+    candles = get_candles(instrument_key, timeframe, from_date, to_date)
+    if not candles:
+        return []
+    days_map = _group_by_day(candles)
+    trades = []
+    for day, bars in sorted(days_map.items()):
+        if len(bars) < 30:
+            continue
+        closes = [b["close"] for b in bars]
+        highs = [b["high"] for b in bars]
+        lows = [b["low"] for b in bars]
+        volumes = [b["volume"] for b in bars]
+        ema9 = _calc_ema(closes, 9)
+        ema21 = _calc_ema(closes, 21)
+        rsi = _calc_rsi(closes, 14)
+        adx = _calc_adx(highs, lows, closes, 14)
+        # VWAP — resets per day
+        vwap, cum_tpv, cum_vol = [], 0.0, 0.0
+        for b in bars:
+            tp = (b["high"] + b["low"] + b["close"]) / 3
+            cum_tpv += tp * b["volume"]
+            cum_vol += b["volume"]
+            vwap.append(cum_tpv / cum_vol if cum_vol else b["close"])
+        # Volume SMA-20
+        vol_sma20 = [None] * len(bars)
+        for i in range(19, len(bars)):
+            vol_sma20[i] = sum(volumes[i - 19 : i + 1]) / 20
+        in_trade = False
+        for i in range(21, len(bars)):
+            if in_trade:
+                continue
+            e9, e21, r, dx, vw, vs = (
+                ema9[i],
+                ema21[i],
+                rsi[i],
+                adx[i],
+                vwap[i],
+                vol_sma20[i],
+            )
+            if None in (e9, e21, r, dx, vw, vs):
+                continue
+            cl, vol = closes[i], volumes[i]
+            adx_ok = dx > 20
+            vol_ok = vol > 1.5 * vs
+            long_sig = (e9 > e21) and (r > 50) and adx_ok and (cl > vw) and vol_ok
+            short_sig = (e9 < e21) and (r < 50) and adx_ok and (cl < vw) and vol_ok
+            if not long_sig and not short_sig:
+                continue
+            side = "LONG" if long_sig else "SHORT"
+            entry_price = cl
+            tgt_price = (
+                round(entry_price * (1 + target_pct / 100), 2)
+                if side == "LONG"
+                else round(entry_price * (1 - target_pct / 100), 2)
+            )
+            sl_price = (
+                round(entry_price * (1 - sl_pct / 100), 2)
+                if side == "LONG"
+                else round(entry_price * (1 + sl_pct / 100), 2)
+            )
+            exit_p = exit_time = result = None
+            for j in range(i + 1, len(bars)):
+                b = bars[j]
+                hit_tgt = (
+                    (b["high"] >= tgt_price)
+                    if side == "LONG"
+                    else (b["low"] <= tgt_price)
+                )
+                hit_sl = (
+                    (b["low"] <= sl_price)
+                    if side == "LONG"
+                    else (b["high"] >= sl_price)
+                )
+                if hit_tgt and hit_sl:
+                    exit_p, result = sl_price, "LOSS"
+                elif hit_tgt:
+                    exit_p, result = tgt_price, "WIN"
+                elif hit_sl:
+                    exit_p, result = sl_price, "LOSS"
+                if result:
+                    exit_time = b["ts"][11:16]
+                    break
+                if _minutes_of(b["ts"]) >= SQUARE_OFF:
+                    exit_p = b["close"]
+                    exit_time = b["ts"][11:16]
+                    break
+            if exit_p is None:
+                exit_p = bars[-1]["close"]
+                exit_time = bars[-1]["ts"][11:16]
+            pnl = round(
+                (exit_p - entry_price) if side == "LONG" else (entry_price - exit_p), 2
+            )
+            if result is None:
+                result = "WIN" if pnl > 0 else "LOSS"
+            trades.append(
+                {
+                    "symbol": symbol,
+                    "entry_date": day,
+                    "side": side,
+                    "entry": round(entry_price, 2),
+                    "sl": sl_price,
+                    "target": tgt_price,
+                    "exit": round(exit_p, 2),
+                    "exit_time": exit_time,
+                    "result": result,
+                    "pnl": pnl,
+                    "pnl_pct": (
+                        round((pnl / entry_price) * 100, 2) if entry_price else 0
+                    ),
+                    "ema9": round(e9, 2),
+                    "ema21": round(e21, 2),
+                    "rsi": round(r, 2),
+                    "adx": round(dx, 2),
+                    "vwap": round(vw, 2),
+                    "pnl_inr": round(pnl * lot_size, 2),
+                }
+            )
+            in_trade = True
     return trades
 
 
@@ -2251,19 +2521,31 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 tf = qs.get("timeframe", ["3min"])[0]
                 fd = qs.get("from_date", [""])[0]
                 td = qs.get("to_date", [ist_date_str()])[0]
-                xp = float(qs.get("x_pts", ["50"])[0])
-                yp = float(qs.get("y_pts", ["30"])[0])
+                strategy = qs.get("strategy", ["orb"])[0]
+                lot_size = int(qs.get("lot_size", ["1"])[0])
                 if not ik or not fd:
                     self._send(400, {"error": "instrument_key and from_date required"})
                 else:
-                    trades = run_orb_backtest(ik, sym, tf, fd, td, xp, yp)
+                    if strategy == "momentum":
+                        tgt_pct = float(qs.get("target_pct", ["1.5"])[0])
+                        sl_pct = float(qs.get("sl_pct", ["1.0"])[0])
+                        trades = run_momentum_backtest(
+                            ik, sym, tf, fd, td, tgt_pct, sl_pct, lot_size
+                        )
+                    else:
+                        xp = float(qs.get("x_pts", ["50"])[0])
+                        yp = float(qs.get("y_pts", ["30"])[0])
+                        trades = run_orb_backtest(ik, sym, tf, fd, td, xp, yp, lot_size)
                     wins = sum(1 for t in trades if t["result"] == "WIN")
                     longs = sum(1 for t in trades if t["side"] == "LONG")
                     pnl = round(sum(t["pnl"] for t in trades), 2)
+                    pnl_inr = round(sum(t.get("pnl_inr", 0) for t in trades), 2)
                     self._send(
                         200,
                         {
                             "trades": trades,
+                            "strategy": strategy,
+                            "lot_size": lot_size,
                             "summary": {
                                 "total": len(trades),
                                 "wins": wins,
@@ -2274,6 +2556,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                                     round(wins / len(trades) * 100, 1) if trades else 0
                                 ),
                                 "total_pnl": pnl,
+                                "total_pnl_inr": pnl_inr,
                             },
                         },
                     )

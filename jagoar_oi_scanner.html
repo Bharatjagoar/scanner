@@ -2,250 +2,1246 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
     <title>MANJIT JAGOAR OI DATA SCANNER</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
       :root {
-        --grid: #c9ccd1; --hdr: #1f3a5f; --hdrtext: #fff;
-        --red: #e74c3c; --darkred: #a01818; --green: #1e8449; --darkgreen: #0b5d2e;
-        --lightred: #fdecea; --lightgreen: #eafaf1;
-        --secA: #eef4fb; --secB: #fbf7ee; --secC: #f1eefb; --secD: #eefbf6;
+        --grid: #c9ccd1;
+        --hdr: #1f3a5f;
+        --hdrtext: #fff;
+        --red: #e74c3c;
+        --darkred: #a01818;
+        --green: #1e8449;
+        --darkgreen: #0b5d2e;
+        --lightred: #fdecea;
+        --lightgreen: #eafaf1;
+        --secA: #eef4fb;
+        --secB: #fbf7ee;
+        --secC: #f1eefb;
+        --secD: #eefbf6;
       }
-      *, *::before, *::after { box-sizing: border-box; }
-      body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; font-size: 13px; background: #dde1e7; color: #1a1a1a; -webkit-text-size-adjust: 100%; }
-      h1 { font-size: clamp(14px,4vw,18px); margin: 0; padding: 10px 12px; background: var(--hdr); color: var(--hdrtext); letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .tabs { display: flex; background: #152d4a; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 0 4px; gap: 0; }
-      .tabs::-webkit-scrollbar { display: none; }
-      .tab-btn { flex: 0 0 auto; padding: 10px 14px; border: none; background: transparent; color: #aac4e0; font-size: 12px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
-      .tab-btn.active { color: #fff; border-bottom: 3px solid #5dd886; }
-      .tab-panel { display: none; }
-      .tab-panel.active { display: block; }
-      .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 8px 10px; background: #fff; border-bottom: 2px solid var(--grid); }
-      select, button { font-size: 13px; padding: 6px 8px; max-width: 100%; }
-      select { min-width: 0; }
-      .strip { display: flex; gap: 14px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 8px 12px; background: #10243d; color: #fff; font-size: 13px; }
-      .strip::-webkit-scrollbar { display: none; }
-      .strip .it { display: flex; gap: 5px; align-items: baseline; flex: 0 0 auto; }
-      .strip .nm { font-weight: 700; }
-      .up { color: #5dd886; } .down { color: #ff7b6b; }
-      section { margin: 8px; border: 1px solid var(--grid); border-radius: 4px; overflow: hidden; }
-      .secttl { padding: 6px 10px; font-weight: 700; background: var(--hdr); color: #fff; font-size: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
-      .mkt-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
-      .mkt-open { background: #1e8449; color: #fff; } .mkt-closed { background: #888; color: #fff; }
-      .scrollbox { max-height: 320px; overflow: auto; -webkit-overflow-scrolling: touch; }
-      .secA { background: var(--secA); } .secB { background: var(--secB); } .secC { background: var(--secC); } .secD { background: var(--secD); }
-      table { border-collapse: collapse; width: 100%; background: #fff; }
-      th, td { border: 1px solid var(--grid); padding: 4px 7px; text-align: right; white-space: nowrap; font-size: 12px; }
-      th { position: sticky; top: 0; background: #dfe6ef; color: #13243a; text-align: center; z-index: 1; }
-      td.lbl { text-align: left; }
-      .callcell { background: var(--lightred); } .putcell { background: var(--lightgreen); }
-      .r-red { color: var(--red); font-weight: 600; } .r-darkred { color: var(--darkred); font-weight: 700; }
-      .r-green { color: var(--green); font-weight: 600; } .r-darkgreen { color: var(--darkgreen); font-weight: 700; }
-      .totrow td { background: #e8edf3; font-weight: 700; }
-      .act-buy-put { background: var(--red); color: #fff; font-weight: 700; text-align: center; }
-      .act-buy-call { background: var(--green); color: #fff; font-weight: 700; text-align: center; }
-      .note { font-size: 11px; color: #555; padding: 4px 10px; background: #fff; line-height: 1.6; }
-      .err { background: #fde; color: #900; padding: 6px 10px; font-size: 12px; }
-      .dlbtns { padding: 8px 10px; background: #fff; display: flex; gap: 8px; flex-wrap: wrap; }
-      .bt-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; padding: 10px; background: #fff; border-bottom: 2px solid var(--grid); }
-      .bt-controls label { font-size: 12px; font-weight: 600; display: flex; flex-direction: column; gap: 3px; flex: 1 1 120px; }
-      .bt-controls input, .bt-controls select { font-size: 13px; padding: 5px 7px; width: 100%; }
-      .bt-run { background: #1f3a5f; color: #fff; border: none; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 3px; flex: 1 1 100%; margin-top: 4px; }
-      .bt-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; background: #10243d; color: #fff; }
-      .bt-summary .si { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-right: 1px solid #1e3a60; border-bottom: 1px solid #1e3a60; }
-      .bt-summary .sv { font-size: 16px; font-weight: 700; } .bt-summary .sk { font-size: 10px; color: #aac4e0; }
-      .bt-win { color: #5dd886; } .bt-loss { color: #ff7b6b; }
-      .bt-chart { padding: 8px; background: #f8f9fb; }
-      .bt-chart canvas { width: 100% !important; }
-      #bt-status { padding: 6px 10px; font-size: 12px; color: #555; background: #fff; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        font-size: 13px;
+        background: #dde1e7;
+        color: #1a1a1a;
+        -webkit-text-size-adjust: 100%;
+      }
+      h1 {
+        font-size: clamp(14px, 4vw, 18px);
+        margin: 0;
+        padding: 10px 12px;
+        background: var(--hdr);
+        color: var(--hdrtext);
+        letter-spacing: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tabs {
+        display: flex;
+        background: #152d4a;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 0 4px;
+        gap: 0;
+      }
+      .tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .tab-btn {
+        flex: 0 0 auto;
+        padding: 10px 14px;
+        border: none;
+        background: transparent;
+        color: #aac4e0;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .tab-btn.active {
+        color: #fff;
+        border-bottom: 3px solid #5dd886;
+      }
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+      .controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 8px 10px;
+        background: #fff;
+        border-bottom: 2px solid var(--grid);
+      }
+      select,
+      button {
+        font-size: 13px;
+        padding: 6px 8px;
+        max-width: 100%;
+      }
+      select {
+        min-width: 0;
+      }
+      .strip {
+        display: flex;
+        gap: 14px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 8px 12px;
+        background: #10243d;
+        color: #fff;
+        font-size: 13px;
+      }
+      .strip::-webkit-scrollbar {
+        display: none;
+      }
+      .strip .it {
+        display: flex;
+        gap: 5px;
+        align-items: baseline;
+        flex: 0 0 auto;
+      }
+      .strip .nm {
+        font-weight: 700;
+      }
+      .up {
+        color: #5dd886;
+      }
+      .down {
+        color: #ff7b6b;
+      }
+      section {
+        margin: 8px;
+        border: 1px solid var(--grid);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .secttl {
+        padding: 6px 10px;
+        font-weight: 700;
+        background: var(--hdr);
+        color: #fff;
+        font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .mkt-badge {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 10px;
+        white-space: nowrap;
+      }
+      .mkt-open {
+        background: #1e8449;
+        color: #fff;
+      }
+      .mkt-closed {
+        background: #888;
+        color: #fff;
+      }
+      .scrollbox {
+        max-height: 320px;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .secA {
+        background: var(--secA);
+      }
+      .secB {
+        background: var(--secB);
+      }
+      .secC {
+        background: var(--secC);
+      }
+      .secD {
+        background: var(--secD);
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        background: #fff;
+      }
+      th,
+      td {
+        border: 1px solid var(--grid);
+        padding: 4px 7px;
+        text-align: right;
+        white-space: nowrap;
+        font-size: 12px;
+      }
+      th {
+        position: sticky;
+        top: 0;
+        background: #dfe6ef;
+        color: #13243a;
+        text-align: center;
+        z-index: 1;
+      }
+      td.lbl {
+        text-align: left;
+      }
+      .callcell {
+        background: var(--lightred);
+      }
+      .putcell {
+        background: var(--lightgreen);
+      }
+      .r-red {
+        color: var(--red);
+        font-weight: 600;
+      }
+      .r-darkred {
+        color: var(--darkred);
+        font-weight: 700;
+      }
+      .r-green {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .r-darkgreen {
+        color: var(--darkgreen);
+        font-weight: 700;
+      }
+      .totrow td {
+        background: #e8edf3;
+        font-weight: 700;
+      }
+      .act-buy-put {
+        background: var(--red);
+        color: #fff;
+        font-weight: 700;
+        text-align: center;
+      }
+      .act-buy-call {
+        background: var(--green);
+        color: #fff;
+        font-weight: 700;
+        text-align: center;
+      }
+      .note {
+        font-size: 11px;
+        color: #555;
+        padding: 4px 10px;
+        background: #fff;
+        line-height: 1.6;
+      }
+      .err {
+        background: #fde;
+        color: #900;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      .dlbtns {
+        padding: 8px 10px;
+        background: #fff;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .bt-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: flex-end;
+        padding: 10px;
+        background: #fff;
+        border-bottom: 2px solid var(--grid);
+      }
+      .bt-controls label {
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        flex: 1 1 120px;
+      }
+      .bt-controls input,
+      .bt-controls select {
+        font-size: 13px;
+        padding: 5px 7px;
+        width: 100%;
+      }
+      .bt-run {
+        background: #1f3a5f;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 3px;
+        flex: 1 1 100%;
+        margin-top: 4px;
+      }
+      .bt-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        background: #10243d;
+        color: #fff;
+      }
+      .bt-summary .si {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 10px 12px;
+        border-right: 1px solid #1e3a60;
+        border-bottom: 1px solid #1e3a60;
+      }
+      .bt-summary .sv {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .bt-summary .sk {
+        font-size: 10px;
+        color: #aac4e0;
+      }
+      .bt-win {
+        color: #5dd886;
+      }
+      .bt-loss {
+        color: #ff7b6b;
+      }
+      .bt-chart {
+        padding: 8px;
+        background: #f8f9fb;
+      }
+      .bt-chart canvas {
+        width: 100% !important;
+      }
+      #bt-status {
+        padding: 6px 10px;
+        font-size: 12px;
+        color: #555;
+        background: #fff;
+      }
 
       /* ── Trending tab ── */
-      .tr-params { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; padding: 10px; background: #fff; border-bottom: 2px solid var(--grid); }
-      .tr-params label { font-size: 12px; font-weight: 600; display: flex; flex-direction: column; gap: 3px; flex: 1 1 100px; }
-      .tr-params input { font-size: 13px; padding: 5px 7px; width: 100%; }
-      .tr-save-btn { background: #1f3a5f; color: #fff; border: none; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 3px; flex: 1 1 auto; }
+      .tr-params {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: flex-end;
+        padding: 10px;
+        background: #fff;
+        border-bottom: 2px solid var(--grid);
+      }
+      .tr-params label {
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        flex: 1 1 100px;
+      }
+      .tr-params input {
+        font-size: 13px;
+        padding: 5px 7px;
+        width: 100%;
+      }
+      .tr-save-btn {
+        background: #1f3a5f;
+        color: #fff;
+        border: none;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 3px;
+        flex: 1 1 auto;
+      }
       /* Capital bar */
-      .tr-capital-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 10px; background: #eef4fb; border-bottom: 2px solid var(--grid); font-size: 12px; }
-      .tr-capital-bar label { font-weight: 600; display: flex; flex-direction: column; gap: 3px; flex: 1 1 160px; }
-      .tr-capital-bar input { font-size: 13px; padding: 5px 7px; width: 100%; }
-      .tr-cap-stat { flex: 1 1 120px; background: #fff; border: 1px solid var(--grid); border-radius: 4px; padding: 7px 10px; }
-      .tr-cap-stat .lk { font-size: 10px; color: #888; text-transform: uppercase; }
-      .tr-cap-stat .lv { font-size: 15px; font-weight: 700; color: #1f3a5f; }
+      .tr-capital-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 10px;
+        background: #eef4fb;
+        border-bottom: 2px solid var(--grid);
+        font-size: 12px;
+      }
+      .tr-capital-bar label {
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        flex: 1 1 160px;
+      }
+      .tr-capital-bar input {
+        font-size: 13px;
+        padding: 5px 7px;
+        width: 100%;
+      }
+      .tr-cap-stat {
+        flex: 1 1 120px;
+        background: #fff;
+        border: 1px solid var(--grid);
+        border-radius: 4px;
+        padding: 7px 10px;
+      }
+      .tr-cap-stat .lk {
+        font-size: 10px;
+        color: #888;
+        text-transform: uppercase;
+      }
+      .tr-cap-stat .lv {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1f3a5f;
+      }
 
-      #tr-status, #fno-status, #tt-status { padding: 6px 10px; font-size: 12px; color: #555; background: #fff; line-height: 1.5; }
-      .tr-section-hdr { padding: 7px 10px; font-weight: 700; font-size: 12px; color: #fff; display: flex; justify-content: space-between; align-items: center; margin: 8px 8px 0; border-radius: 4px 4px 0 0; }
-      .tr-section-hdr.rising { background: var(--hdr); } .tr-section-hdr.falling { background: #6b1a1a; }
-      .tr-table-wrap { margin: 0 8px 10px; border: 1px solid var(--grid); border-top: none; border-radius: 0 0 4px 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; background: #fff; }
-      .tr-table { border-collapse: collapse; width: 100%; min-width: 700px; }
-      .tr-table th { background: #dfe6ef; color: #13243a; font-size: 11px; padding: 5px 8px; text-align: center; border: 1px solid var(--grid); position: sticky; top: 0; z-index: 1; white-space: nowrap; }
-      .tr-table td { padding: 5px 8px; font-size: 12px; border: 1px solid var(--grid); text-align: right; white-space: nowrap; }
-      .tr-table td.lbl { text-align: left; font-weight: 700; }
-      .tr-table tr:nth-child(even) td { background: #f7f9fc; }
-      .tr-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; white-space: nowrap; }
-      .tr-badge-long { background: #1e8449; color: #fff; } .tr-badge-short { background: #c0392b; color: #fff; }
-      .tr-badge-tgt  { background: #1e8449; color: #fff; } .tr-badge-sl    { background: #a01818; color: #fff; }
-      .tr-badge-sq   { background: #888;    color: #fff; } .tr-badge-watch { background: #c0932a; color: #fff; }
-      .tr-badge-or   { background: #2a5298; color: #fff; } .tr-badge-notr  { background: #aaa;    color: #fff; }
-      .tr-pnl-pos { color: var(--darkgreen); font-weight: 700; } .tr-pnl-neg { color: var(--darkred); font-weight: 700; }
-      .tr-empty { padding: 14px; color: #888; font-size: 12px; text-align: center; }
+      #tr-status,
+      #fno-status,
+      #tt-status {
+        padding: 6px 10px;
+        font-size: 12px;
+        color: #555;
+        background: #fff;
+        line-height: 1.5;
+      }
+      .tr-section-hdr {
+        padding: 7px 10px;
+        font-weight: 700;
+        font-size: 12px;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 8px 8px 0;
+        border-radius: 4px 4px 0 0;
+      }
+      .tr-section-hdr.rising {
+        background: var(--hdr);
+      }
+      .tr-section-hdr.falling {
+        background: #6b1a1a;
+      }
+      .tr-table-wrap {
+        margin: 0 8px 10px;
+        border: 1px solid var(--grid);
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        background: #fff;
+      }
+      .tr-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 700px;
+      }
+      .tr-table th {
+        background: #dfe6ef;
+        color: #13243a;
+        font-size: 11px;
+        padding: 5px 8px;
+        text-align: center;
+        border: 1px solid var(--grid);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        white-space: nowrap;
+      }
+      .tr-table td {
+        padding: 5px 8px;
+        font-size: 12px;
+        border: 1px solid var(--grid);
+        text-align: right;
+        white-space: nowrap;
+      }
+      .tr-table td.lbl {
+        text-align: left;
+        font-weight: 700;
+      }
+      .tr-table tr:nth-child(even) td {
+        background: #f7f9fc;
+      }
+      .tr-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 10px;
+        white-space: nowrap;
+      }
+      .tr-badge-long {
+        background: #1e8449;
+        color: #fff;
+      }
+      .tr-badge-short {
+        background: #c0392b;
+        color: #fff;
+      }
+      .tr-badge-tgt {
+        background: #1e8449;
+        color: #fff;
+      }
+      .tr-badge-sl {
+        background: #a01818;
+        color: #fff;
+      }
+      .tr-badge-sq {
+        background: #888;
+        color: #fff;
+      }
+      .tr-badge-watch {
+        background: #c0932a;
+        color: #fff;
+      }
+      .tr-badge-or {
+        background: #2a5298;
+        color: #fff;
+      }
+      .tr-badge-notr {
+        background: #aaa;
+        color: #fff;
+      }
+      .tr-pnl-pos {
+        color: var(--darkgreen);
+        font-weight: 700;
+      }
+      .tr-pnl-neg {
+        color: var(--darkred);
+        font-weight: 700;
+      }
+      .tr-empty {
+        padding: 14px;
+        color: #888;
+        font-size: 12px;
+        text-align: center;
+      }
 
       /* ── Today's Trades tab ── */
-      .tt-topbar { display: grid; grid-template-columns: repeat(2,1fr); background: #10243d; color: #fff; }
-      .tt-stat-block { padding: 10px 14px; border-right: 1px solid #1e3a60; border-bottom: 1px solid #1e3a60; display: flex; flex-direction: column; gap: 2px; }
-      .tt-stat-block .lbl { font-size: 10px; color: #aac4e0; letter-spacing: .4px; text-transform: uppercase; }
-      .tt-stat-block .val { font-size: clamp(15px,4.5vw,20px); font-weight: 700; }
-      .tt-stat-block .val.pos { color: #5dd886; } .tt-stat-block .val.neg { color: #ff7b6b; }
-      .tt-active-table-wrap { margin: 8px; border: 1px solid var(--grid); border-radius: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .tt-active-table { border-collapse: collapse; width: 100%; min-width: 700px; }
-      .tt-active-table th { background: #dfe6ef; color: #13243a; font-size: 11px; padding: 5px 8px; text-align: center; border: 1px solid var(--grid); position: sticky; top: 0; z-index: 1; white-space: nowrap; }
-      .tt-active-table td { padding: 6px 8px; font-size: 12px; border: 1px solid var(--grid); text-align: right; white-space: nowrap; }
-      .tt-active-table td.lbl { text-align: left; font-weight: 700; }
-      .tt-active-table tr.open-row td { background: #eef4fb; } .tt-active-table tr.closed-row td { background: #f9f9f9; }
-      .tt-hist-wrap { margin: 8px; border: 1px solid var(--grid); border-radius: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .tt-hist-table { border-collapse: collapse; width: 100%; min-width: 700px; }
-      .tt-hist-table th { background: #dfe6ef; color: #13243a; font-size: 11px; padding: 5px 8px; text-align: center; border: 1px solid var(--grid); position: sticky; top: 0; z-index: 1; white-space: nowrap; }
-      .tt-hist-table td { padding: 5px 8px; font-size: 12px; border: 1px solid var(--grid); text-align: right; white-space: nowrap; }
-      .tt-hist-table td.lbl { text-align: left; } .tt-hist-table tr:nth-child(even) td { background: #f7f9fc; }
+      .tt-topbar {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        background: #10243d;
+        color: #fff;
+      }
+      .tt-stat-block {
+        padding: 10px 14px;
+        border-right: 1px solid #1e3a60;
+        border-bottom: 1px solid #1e3a60;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .tt-stat-block .lbl {
+        font-size: 10px;
+        color: #aac4e0;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+      }
+      .tt-stat-block .val {
+        font-size: clamp(15px, 4.5vw, 20px);
+        font-weight: 700;
+      }
+      .tt-stat-block .val.pos {
+        color: #5dd886;
+      }
+      .tt-stat-block .val.neg {
+        color: #ff7b6b;
+      }
+      .tt-active-table-wrap {
+        margin: 8px;
+        border: 1px solid var(--grid);
+        border-radius: 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .tt-active-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 700px;
+      }
+      .tt-active-table th {
+        background: #dfe6ef;
+        color: #13243a;
+        font-size: 11px;
+        padding: 5px 8px;
+        text-align: center;
+        border: 1px solid var(--grid);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        white-space: nowrap;
+      }
+      .tt-active-table td {
+        padding: 6px 8px;
+        font-size: 12px;
+        border: 1px solid var(--grid);
+        text-align: right;
+        white-space: nowrap;
+      }
+      .tt-active-table td.lbl {
+        text-align: left;
+        font-weight: 700;
+      }
+      .tt-active-table tr.open-row td {
+        background: #eef4fb;
+      }
+      .tt-active-table tr.closed-row td {
+        background: #f9f9f9;
+      }
+      .tt-hist-wrap {
+        margin: 8px;
+        border: 1px solid var(--grid);
+        border-radius: 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .tt-hist-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 700px;
+      }
+      .tt-hist-table th {
+        background: #dfe6ef;
+        color: #13243a;
+        font-size: 11px;
+        padding: 5px 8px;
+        text-align: center;
+        border: 1px solid var(--grid);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        white-space: nowrap;
+      }
+      .tt-hist-table td {
+        padding: 5px 8px;
+        font-size: 12px;
+        border: 1px solid var(--grid);
+        text-align: right;
+        white-space: nowrap;
+      }
+      .tt-hist-table td.lbl {
+        text-align: left;
+      }
+      .tt-hist-table tr:nth-child(even) td {
+        background: #f7f9fc;
+      }
 
       /* ── FnO tab ── */
-      .fno-topbar { display: grid; grid-template-columns: repeat(2,1fr); background: #10243d; color: #fff; }
-      .fno-bal-block { padding: 10px 12px; border-right: 1px solid #1e3a60; border-bottom: 1px solid #1e3a60; display: flex; flex-direction: column; gap: 2px; }
-      .fno-bal-block .lbl { font-size: 10px; color: #aac4e0; letter-spacing: .4px; text-transform: uppercase; }
-      .fno-bal-block .val { font-size: clamp(15px,4.5vw,20px); font-weight: 700; word-break: break-all; }
-      .fno-bal-block .val.pos { color: #5dd886; } .fno-bal-block .val.neg { color: #ff7b6b; }
-      .fno-params-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; padding: 8px 10px; background: #fff; border-bottom: 2px solid var(--grid); }
-      .fno-params-bar label { font-size: 12px; font-weight: 600; display: flex; flex-direction: column; gap: 3px; flex: 1 1 90px; }
-      .fno-params-bar input { font-size: 13px; padding: 5px 7px; width: 100%; }
-      .fno-btn { border: none; padding: 8px 12px; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 3px; flex: 1 1 auto; -webkit-tap-highlight-color: transparent; }
-      .fno-btn-blue { background: #1f3a5f; color: #fff; } .fno-btn-green { background: #1e8449; color: #fff; } .fno-btn-red { background: #c0392b; color: #fff; }
-      .fno-pending-banner { background: #fff3cd; color: #7a5c00; border-bottom: 1px solid #f5c842; padding: 7px 10px; font-size: 12px; font-weight: 600; display: none; line-height: 1.5; }
-      .fno-add-funds-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 10px; background: #fff8e6; border-bottom: 1px solid #f5c842; }
-      .fno-add-funds-row input { font-size: 13px; padding: 6px 8px; flex: 1 1 120px; min-width: 0; border: 1px solid #ccc; border-radius: 3px; }
-      .fno-cards { display: grid; grid-template-columns: repeat(auto-fill,minmax(150px,1fr)); gap: 8px; padding: 10px; background: #edf1f7; }
-      .fno-card { background: #fff; border: 1px solid var(--grid); border-radius: 6px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07); min-width: 0; }
-      .fno-card-hdr { background: var(--hdr); color: #fff; padding: 6px 10px; font-weight: 700; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 4px; }
-      .fno-card-sub { font-size: 10px; color: #aac4e0; font-weight: 400; }
-      .fno-card-body { padding: 7px 10px; font-size: 12px; line-height: 1.9; }
-      .fno-card-body .row { display: flex; justify-content: space-between; gap: 4px; flex-wrap: wrap; }
-      .fno-card-body .key { color: #666; } .fno-card-body .val { font-weight: 600; word-break: break-all; }
-      .fno-ltp { font-size: 14px; font-weight: 700; color: #1f3a5f; }
-      .fno-or-bar { display: flex; gap: 6px; padding: 4px 10px; background: #f7f9fc; border-top: 1px solid #e5e8ee; font-size: 11px; color: #555; flex-wrap: wrap; }
-      .fno-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; white-space: nowrap; }
-      .fno-badge-open { background: #2a5298; color: #fff; } .fno-badge-tgt { background: #1e8449; color: #fff; }
-      .fno-badge-sl   { background: #a01818; color: #fff; } .fno-badge-sq  { background: #888;    color: #fff; }
-      .fno-badge-wait { background: #c0932a; color: #fff; } .fno-badge-pend { background: #e67e22; color: #fff; }
-      .fno-badge-notr { background: #aaa;    color: #fff; } .fno-badge-long { background: #1e8449; color: #fff; }
-      .fno-badge-short{ background: #c0392b; color: #fff; }
-      .fno-pnl-pos { color: var(--darkgreen); font-weight: 700; } .fno-pnl-neg { color: var(--darkred); font-weight: 700; }
+      .fno-topbar {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        background: #10243d;
+        color: #fff;
+      }
+      .fno-bal-block {
+        padding: 10px 12px;
+        border-right: 1px solid #1e3a60;
+        border-bottom: 1px solid #1e3a60;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .fno-bal-block .lbl {
+        font-size: 10px;
+        color: #aac4e0;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+      }
+      .fno-bal-block .val {
+        font-size: clamp(15px, 4.5vw, 20px);
+        font-weight: 700;
+        word-break: break-all;
+      }
+      .fno-bal-block .val.pos {
+        color: #5dd886;
+      }
+      .fno-bal-block .val.neg {
+        color: #ff7b6b;
+      }
+      .fno-params-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: flex-end;
+        padding: 8px 10px;
+        background: #fff;
+        border-bottom: 2px solid var(--grid);
+      }
+      .fno-params-bar label {
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        flex: 1 1 90px;
+      }
+      .fno-params-bar input {
+        font-size: 13px;
+        padding: 5px 7px;
+        width: 100%;
+      }
+      .fno-btn {
+        border: none;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 3px;
+        flex: 1 1 auto;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .fno-btn-blue {
+        background: #1f3a5f;
+        color: #fff;
+      }
+      .fno-btn-green {
+        background: #1e8449;
+        color: #fff;
+      }
+      .fno-btn-red {
+        background: #c0392b;
+        color: #fff;
+      }
+      .fno-pending-banner {
+        background: #fff3cd;
+        color: #7a5c00;
+        border-bottom: 1px solid #f5c842;
+        padding: 7px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        display: none;
+        line-height: 1.5;
+      }
+      .fno-add-funds-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 8px 10px;
+        background: #fff8e6;
+        border-bottom: 1px solid #f5c842;
+      }
+      .fno-add-funds-row input {
+        font-size: 13px;
+        padding: 6px 8px;
+        flex: 1 1 120px;
+        min-width: 0;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+      .fno-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+        padding: 10px;
+        background: #edf1f7;
+      }
+      .fno-card {
+        background: #fff;
+        border: 1px solid var(--grid);
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+        min-width: 0;
+      }
+      .fno-card-hdr {
+        background: var(--hdr);
+        color: #fff;
+        padding: 6px 10px;
+        font-weight: 700;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 4px;
+      }
+      .fno-card-sub {
+        font-size: 10px;
+        color: #aac4e0;
+        font-weight: 400;
+      }
+      .fno-card-body {
+        padding: 7px 10px;
+        font-size: 12px;
+        line-height: 1.9;
+      }
+      .fno-card-body .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .fno-card-body .key {
+        color: #666;
+      }
+      .fno-card-body .val {
+        font-weight: 600;
+        word-break: break-all;
+      }
+      .fno-ltp {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1f3a5f;
+      }
+      .fno-or-bar {
+        display: flex;
+        gap: 6px;
+        padding: 4px 10px;
+        background: #f7f9fc;
+        border-top: 1px solid #e5e8ee;
+        font-size: 11px;
+        color: #555;
+        flex-wrap: wrap;
+      }
+      .fno-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 10px;
+        white-space: nowrap;
+      }
+      .fno-badge-open {
+        background: #2a5298;
+        color: #fff;
+      }
+      .fno-badge-tgt {
+        background: #1e8449;
+        color: #fff;
+      }
+      .fno-badge-sl {
+        background: #a01818;
+        color: #fff;
+      }
+      .fno-badge-sq {
+        background: #888;
+        color: #fff;
+      }
+      .fno-badge-wait {
+        background: #c0932a;
+        color: #fff;
+      }
+      .fno-badge-pend {
+        background: #e67e22;
+        color: #fff;
+      }
+      .fno-badge-notr {
+        background: #aaa;
+        color: #fff;
+      }
+      .fno-badge-long {
+        background: #1e8449;
+        color: #fff;
+      }
+      .fno-badge-short {
+        background: #c0392b;
+        color: #fff;
+      }
+      .fno-pnl-pos {
+        color: var(--darkgreen);
+        font-weight: 700;
+      }
+      .fno-pnl-neg {
+        color: var(--darkred);
+        font-weight: 700;
+      }
 
       @media (min-width: 640px) {
-        h1 { font-size: 18px; padding: 10px 14px; }
-        .tabs { padding: 0 14px; gap: 4px; overflow-x: visible; }
-        .tab-btn { padding: 8px 18px; font-size: 13px; }
-        .controls { padding: 8px 14px; }
-        .strip { gap: 18px; padding: 8px 14px; font-size: 14px; flex-wrap: wrap; overflow-x: visible; }
-        section { margin: 10px; }
-        .bt-controls label { flex: 0 0 auto; }
-        .bt-controls input, .bt-controls select { width: auto; }
-        .bt-run { flex: 0 0 auto; margin-top: 0; }
-        .bt-summary { display: flex; flex-wrap: wrap; gap: 16px; padding: 10px 14px; }
-        .bt-summary .si { border: none; padding: 0; }
-        .bt-summary .sv { font-size: 18px; }
-        .fno-topbar { grid-template-columns: repeat(5,1fr); }
-        .fno-cards { grid-template-columns: repeat(auto-fill,minmax(190px,230px)); padding: 12px 14px; }
-        .fno-params-bar label { flex: 0 0 auto; }
-        .fno-params-bar input { width: 80px; }
-        .fno-btn { flex: 0 0 auto; }
-        .fno-add-funds-row input { width: 160px; flex: 0 0 auto; }
-        .tr-params label { flex: 0 0 auto; }
-        .tr-params input { width: 90px; }
-        .tt-topbar { grid-template-columns: repeat(4,1fr); }
+        h1 {
+          font-size: 18px;
+          padding: 10px 14px;
+        }
+        .tabs {
+          padding: 0 14px;
+          gap: 4px;
+          overflow-x: visible;
+        }
+        .tab-btn {
+          padding: 8px 18px;
+          font-size: 13px;
+        }
+        .controls {
+          padding: 8px 14px;
+        }
+        .strip {
+          gap: 18px;
+          padding: 8px 14px;
+          font-size: 14px;
+          flex-wrap: wrap;
+          overflow-x: visible;
+        }
+        section {
+          margin: 10px;
+        }
+        .bt-controls label {
+          flex: 0 0 auto;
+        }
+        .bt-controls input,
+        .bt-controls select {
+          width: auto;
+        }
+        .bt-run {
+          flex: 0 0 auto;
+          margin-top: 0;
+        }
+        .bt-summary {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16px;
+          padding: 10px 14px;
+        }
+        .bt-summary .si {
+          border: none;
+          padding: 0;
+        }
+        .bt-summary .sv {
+          font-size: 18px;
+        }
+        .fno-topbar {
+          grid-template-columns: repeat(5, 1fr);
+        }
+        .fno-cards {
+          grid-template-columns: repeat(auto-fill, minmax(190px, 230px));
+          padding: 12px 14px;
+        }
+        .fno-params-bar label {
+          flex: 0 0 auto;
+        }
+        .fno-params-bar input {
+          width: 80px;
+        }
+        .fno-btn {
+          flex: 0 0 auto;
+        }
+        .fno-add-funds-row input {
+          width: 160px;
+          flex: 0 0 auto;
+        }
+        .tr-params label {
+          flex: 0 0 auto;
+        }
+        .tr-params input {
+          width: 90px;
+        }
+        .tt-topbar {
+          grid-template-columns: repeat(4, 1fr);
+        }
       }
     </style>
   </head>
   <body>
     <h1>MANJIT JAGOAR OI DATA SCANNER</h1>
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('oi',event)">OI SCANNER</button>
-      <button class="tab-btn" onclick="switchTab('bt',event)">BACKTEST</button>
-      <button class="tab-btn" onclick="switchTab('tr',event)">TRENDING</button>
-      <button class="tab-btn" onclick="switchTab('tt',event)">TODAY'S TRADES</button>
-      <button class="tab-btn" onclick="switchTab('fno',event)">FNO TRADES</button>
+      <button class="tab-btn active" onclick="switchTab('oi', event)">
+        OI SCANNER
+      </button>
+      <button class="tab-btn" onclick="switchTab('bt', event)">BACKTEST</button>
+      <button class="tab-btn" onclick="switchTab('tr', event)">TRENDING</button>
+      <button class="tab-btn" onclick="switchTab('tt', event)">
+        TODAY'S TRADES
+      </button>
+      <button class="tab-btn" onclick="switchTab('fno', event)">
+        FNO TRADES
+      </button>
     </div>
 
     <!-- TAB 1: OI SCANNER -->
     <div class="tab-panel active" id="tab-oi">
       <div class="controls">
-        <label>Scrip: <select id="scrip"></select></label>
-        <label>Expiry: <select id="expiry"></select></label>
+        <label
+          >Scrip:
+          <select id="scrip"></select
+        ></label>
+        <label
+          >Expiry:
+          <select id="expiry"></select
+        ></label>
         <button id="refresh">Refresh now</button>
-        <span id="status" class="note" style="background:transparent"></span>
+        <span id="status" class="note" style="background: transparent"></span>
       </div>
       <div id="errbox"></div>
       <div id="mktbanner"></div>
       <div class="strip" id="strip"></div>
       <section>
-        <div class="secttl">SECTION B — Selected scrip, ATM + nearby strikes (Call/Put OI change &amp; remark)</div>
+        <div class="secttl">
+          SECTION B — Selected scrip, ATM + nearby strikes (Call/Put OI change
+          &amp; remark)
+        </div>
         <div class="scrollbox secB">
-          <table id="secB"><thead><tr><th>Strike Price</th><th>Call OI Change</th><th>Put OI Change</th><th>Remark (diff)</th></tr></thead><tbody></tbody></table>
+          <table id="secB">
+            <thead>
+              <tr>
+                <th>Strike Price</th>
+                <th>Call OI Change</th>
+                <th>Put OI Change</th>
+                <th>Remark (diff)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
       <section>
-        <div class="secttl">SECTION C — ATM ±5 strikes (Net Call/Put OI change &amp; volumes)</div>
+        <div class="secttl">
+          SECTION C — ATM ±5 strikes (Net Call/Put OI change &amp; volumes)
+        </div>
         <div class="scrollbox secC">
-          <table id="secC"><thead><tr><th>SP</th><th>Net Call OI Chg</th><th>Net Put OI Chg</th><th>Call Volume</th><th>Put Volume</th></tr></thead><tbody></tbody></table>
+          <table id="secC">
+            <thead>
+              <tr>
+                <th>SP</th>
+                <th>Net Call OI Chg</th>
+                <th>Net Put OI Chg</th>
+                <th>Call Volume</th>
+                <th>Put Volume</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
       <section>
         <div class="secttl" id="secDttl">
-          <span>SECTION D — ATM ±1 (3 strikes) OI change per 3-min interval</span>
+          <span
+            >SECTION D — ATM ±1 (3 strikes) OI change per 3-min interval</span
+          >
           <span class="mkt-badge mkt-closed" id="mktbadge">MARKET CLOSED</span>
         </div>
         <div class="scrollbox secD">
-          <table id="secD"><thead><tr><th>Time</th><th>Call OI</th><th>Put OI</th><th>Difference</th><th>Change in Diff</th><th>Action</th></tr></thead><tbody></tbody></table>
+          <table id="secD">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Call OI</th>
+                <th>Put OI</th>
+                <th>Difference</th>
+                <th>Change in Diff</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
         <div class="dlbtns">
           <button id="dlxlsx">Download Excel</button>
           <button id="dlpdf">Download PDF</button>
         </div>
       </section>
-      <div class="note">OI change = oi − prev_oi. 10 lac = 1,000,000. Section D rows logged every 3 min during market hours and restored from DB on page load. DB wiped at midnight IST.</div>
+      <div class="note">
+        OI change = oi − prev_oi. 10 lac = 1,000,000. Section D rows logged
+        every 3 min during market hours and restored from DB on page load. DB
+        wiped at midnight IST.
+      </div>
     </div>
 
     <!-- TAB 2: BACKTEST -->
     <div class="tab-panel" id="tab-bt">
       <div class="bt-controls">
-        <label>Stock <select id="bt-stock" style="min-width:160px"><option value="">Loading FnO stocks…</option></select></label>
-        <label>Period <select id="bt-period"><option value="30">1 Month</option><option value="90" selected>3 Months</option><option value="180">6 Months</option><option value="365">1 Year</option></select></label>
-        <label>Candle <select id="bt-timeframe" onchange="updateSpeedNote()">
-          <option value="1min">1 min — slowest, most precise</option>
-          <option value="3min" selected>3 min — precise, slower</option>
-          <option value="5min">5 min — balanced</option>
-          <option value="15min">15 min — fast</option>
-          <option value="day">Daily — instant (no intraday exits)</option>
-        </select></label>
-        <label>Target (pts) <input type="number" id="bt-x" value="50" min="1" step="1" style="width:80px" /></label>
-        <label>Stop Loss (pts) <input type="number" id="bt-y" value="30" min="1" step="1" style="width:80px" /></label>
+        <label
+          >Stock
+          <select
+            id="bt-stock"
+            style="min-width: 160px"
+            onchange="onStockChange()"
+          >
+            <option value="">Loading FnO stocks…</option>
+          </select>
+        </label>
+        <label
+          >Strategy
+          <select id="bt-strategy" onchange="onStrategyChange()">
+            <option value="orb">ORB — Opening Range Breakout</option>
+            <option value="momentum">Momentum — EMA+RSI+ADX+VWAP</option>
+          </select>
+        </label>
+        <label
+          >Period
+          <select id="bt-period">
+            <option value="30">1 Month</option>
+            <option value="90" selected>3 Months</option>
+            <option value="180">6 Months</option>
+            <option value="365">1 Year</option>
+          </select>
+        </label>
+        <label
+          >Candle
+          <select id="bt-timeframe" onchange="updateSpeedNote()">
+            <option value="1min">1 min — slowest, most precise</option>
+            <option value="3min" selected>3 min — precise, slower</option>
+            <option value="5min">5 min — balanced</option>
+            <option value="15min">15 min — fast</option>
+            <option value="day">Daily — instant (no intraday exits)</option>
+          </select>
+        </label>
+        <label
+          >Lot Size
+          <input
+            type="number"
+            id="bt-lot-size"
+            value="1"
+            min="1"
+            step="1"
+            style="width: 70px"
+          />
+        </label>
+        <label
+          >Capital (₹)
+          <input
+            type="number"
+            id="bt-capital"
+            value="500000"
+            min="10000"
+            step="10000"
+            style="width: 110px"
+          />
+        </label>
+        <span id="bt-orb-inputs" style="display: contents">
+          <label
+            >Target (pts)
+            <input
+              type="number"
+              id="bt-x"
+              value="50"
+              min="1"
+              step="1"
+              style="width: 80px"
+            />
+          </label>
+          <label
+            >Stop Loss (pts)
+            <input
+              type="number"
+              id="bt-y"
+              value="30"
+              min="1"
+              step="1"
+              style="width: 80px"
+            />
+          </label>
+        </span>
+        <span id="bt-momentum-inputs" style="display: none">
+          <label
+            >Target %
+            <input
+              type="number"
+              id="bt-tgt-pct"
+              value="1.5"
+              min="0.1"
+              step="0.1"
+              style="width: 80px"
+            />
+          </label>
+          <label
+            >Stop Loss %
+            <input
+              type="number"
+              id="bt-sl-pct"
+              value="1.0"
+              min="0.1"
+              step="0.1"
+              style="width: 80px"
+            />
+          </label>
+        </span>
         <button class="bt-run" onclick="runBacktest()">▶ RUN BACKTEST</button>
       </div>
-      <div id="bt-speed-note" class="note" style="background:#fff8e6;border-bottom:1px solid var(--grid);padding:7px 14px;font-size:12px;color:#7a5c00"></div>
-      <div id="bt-status">Opening Range Breakout — 09:15–09:45 range. Select a stock and click Run Backtest.</div>
-      <div class="bt-summary" id="bt-summary" style="display:none">
-        <div class="si"><span class="sv" id="bs-total">0</span><span class="sk">TOTAL TRADES</span></div>
-        <div class="si"><span class="sv bt-win" id="bs-wins">0</span><span class="sk">WINS</span></div>
-        <div class="si"><span class="sv bt-loss" id="bs-losses">0</span><span class="sk">LOSSES</span></div>
-        <div class="si"><span class="sv" id="bs-winrate">0%</span><span class="sk">WIN RATE</span></div>
-        <div class="si"><span class="sv" id="bs-ls">0/0</span><span class="sk">LONG / SHORT</span></div>
-        <div class="si"><span class="sv" id="bs-pnl">0</span><span class="sk">TOTAL P&amp;L (pts)</span></div>
+      <div
+        id="bt-speed-note"
+        class="note"
+        style="
+          background: #fff8e6;
+          border-bottom: 1px solid var(--grid);
+          padding: 7px 14px;
+          font-size: 12px;
+          color: #7a5c00;
+        "
+      ></div>
+      <div id="bt-status">
+        Opening Range Breakout — 09:15–09:45 range. Select a stock and click Run
+        Backtest.
       </div>
-      <div class="bt-chart" id="bt-chart" style="display:none"><canvas id="bt-canvas" height="120"></canvas></div>
-      <section style="display:none" id="bt-table-wrap">
+      <div class="bt-summary" id="bt-summary" style="display: none">
+        <div class="si">
+          <span class="sv" id="bs-total">0</span>
+          <span class="sk">TOTAL TRADES</span>
+        </div>
+        <div class="si">
+          <span class="sv bt-win" id="bs-wins">0</span>
+          <span class="sk">WINS</span>
+        </div>
+        <div class="si">
+          <span class="sv bt-loss" id="bs-losses">0</span>
+          <span class="sk">LOSSES</span>
+        </div>
+        <div class="si">
+          <span class="sv" id="bs-winrate">0%</span>
+          <span class="sk">WIN RATE</span>
+        </div>
+        <div class="si">
+          <span class="sv" id="bs-ls">0/0</span>
+          <span class="sk">LONG / SHORT</span>
+        </div>
+        <div class="si">
+          <span class="sv" id="bs-pnl">0</span>
+          <span class="sk">TOTAL P&amp;L (pts)</span>
+        </div>
+        <div class="si">
+          <span class="sv" id="bs-start-cap">₹0</span>
+          <span class="sk">START CAPITAL</span>
+        </div>
+        <div class="si">
+          <span class="sv" id="bs-pnl-inr">₹0</span>
+          <span class="sk">TOTAL P&amp;L (₹)</span>
+        </div>
+        <div class="si">
+          <span class="sv" id="bs-end-cap">₹0</span>
+          <span class="sk">END CAPITAL</span>
+        </div>
+      </div>
+      <div class="bt-chart" id="bt-chart" style="display: none">
+        <canvas id="bt-canvas" height="120"></canvas>
+      </div>
+      <section style="display: none" id="bt-table-wrap">
         <div class="secttl">Trade Log</div>
         <div class="scrollbox">
-          <table id="bt-table"><thead><tr><th>Date</th><th>Side</th><th>Entry</th><th>SL</th><th>Target</th><th>Exit</th><th>Exit Time</th><th>P&amp;L (pts)</th><th>P&amp;L %</th><th>Result</th></tr></thead><tbody></tbody></table>
+          <table id="bt-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Side</th>
+                <th>Entry</th>
+                <th>SL</th>
+                <th>Target</th>
+                <th>Exit</th>
+                <th>Exit Time</th>
+                <th>P&amp;L (pts)</th>
+                <th>P&amp;L %</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
     </div>
@@ -254,12 +1250,48 @@
     <div class="tab-panel" id="tab-tr">
       <!-- Params row -->
       <div class="tr-params">
-        <label>Stop Loss % <input type="number" id="tr-sl-pct" placeholder="Default 1.0" step="0.1" min="0.1" max="20" /></label>
-        <label>Target %    <input type="number" id="tr-tgt-pct" placeholder="Default 1.0" step="0.1" min="0.1" max="20" /></label>
-        <button class="tr-save-btn" onclick="saveTrendingParams()">💾 Save Params</button>
-        <button class="tr-save-btn" style="background:#2a5298" onclick="loadTrending()">↻ Refresh</button>
-        <button class="tr-save-btn" style="background:#c0932a" onclick="scanNow()">🔍 Scan Now</button>
-        <span id="tr-param-display" class="note" style="background:transparent;margin-left:4px;align-self:center"></span>
+        <label
+          >Stop Loss %
+          <input
+            type="number"
+            id="tr-sl-pct"
+            placeholder="Default 1.0"
+            step="0.1"
+            min="0.1"
+            max="20"
+        /></label>
+        <label
+          >Target %
+          <input
+            type="number"
+            id="tr-tgt-pct"
+            placeholder="Default 1.0"
+            step="0.1"
+            min="0.1"
+            max="20"
+        /></label>
+        <button class="tr-save-btn" onclick="saveTrendingParams()">
+          💾 Save Params
+        </button>
+        <button
+          class="tr-save-btn"
+          style="background: #2a5298"
+          onclick="loadTrending()"
+        >
+          ↻ Refresh
+        </button>
+        <button
+          class="tr-save-btn"
+          style="background: #c0932a"
+          onclick="scanNow()"
+        >
+          🔍 Scan Now
+        </button>
+        <span
+          id="tr-param-display"
+          class="note"
+          style="background: transparent; margin-left: 4px; align-self: center"
+        ></span>
       </div>
 
       <!-- Capital bar -->
@@ -270,17 +1302,29 @@
         </div>
         <div class="tr-cap-stat">
           <div class="lk">Deployed</div>
-          <div class="lv" id="tr-cap-deployed" style="color:#c0392b">₹—</div>
+          <div class="lv" id="tr-cap-deployed" style="color: #c0392b">₹—</div>
         </div>
         <div class="tr-cap-stat">
           <div class="lk">Free</div>
-          <div class="lv" id="tr-cap-free" style="color:#1e8449">₹—</div>
+          <div class="lv" id="tr-cap-free" style="color: #1e8449">₹—</div>
         </div>
-        <label style="flex:1 1 180px">
+        <label style="flex: 1 1 180px">
           Set Capital (next day)
-          <input type="number" id="tr-capital-input" placeholder="e.g. 2000000" min="100000" step="100000" />
+          <input
+            type="number"
+            id="tr-capital-input"
+            placeholder="e.g. 2000000"
+            min="100000"
+            step="100000"
+          />
         </label>
-        <button class="tr-save-btn" style="background:#1e8449;align-self:flex-end" onclick="setTrCapital()">💰 Set Capital</button>
+        <button
+          class="tr-save-btn"
+          style="background: #1e8449; align-self: flex-end"
+          onclick="setTrCapital()"
+        >
+          💰 Set Capital
+        </button>
       </div>
 
       <div id="tr-status">Loading trending stocks…</div>
@@ -288,16 +1332,29 @@
       <!-- Rising table -->
       <div class="tr-section-hdr rising">
         <span>📈 RISING — 3 consecutive days higher close</span>
-        <span id="tr-rising-count" style="font-size:11px;color:#aac4e0"></span>
+        <span
+          id="tr-rising-count"
+          style="font-size: 11px; color: #aac4e0"
+        ></span>
       </div>
       <div class="tr-table-wrap">
         <table class="tr-table">
           <thead>
             <tr>
-              <th>Symbol</th><th>LTP (Fut)</th><th>3d Gain%</th><th>D-1 Close</th>
-              <th>OR High</th><th>OR Low</th><th>Lots</th>
-              <th>Entry ₹</th><th>SL ₹</th><th>Target ₹</th>
-              <th>Unreal P&amp;L</th><th>Exit ₹</th><th>Final P&amp;L ₹</th><th>Status</th>
+              <th>Symbol</th>
+              <th>LTP (Fut)</th>
+              <th>3d Gain%</th>
+              <th>D-1 Close</th>
+              <th>OR High</th>
+              <th>OR Low</th>
+              <th>Lots</th>
+              <th>Entry ₹</th>
+              <th>SL ₹</th>
+              <th>Target ₹</th>
+              <th>Unreal P&amp;L</th>
+              <th>Exit ₹</th>
+              <th>Final P&amp;L ₹</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody id="tr-rising-tbody"></tbody>
@@ -307,16 +1364,29 @@
       <!-- Falling table -->
       <div class="tr-section-hdr falling">
         <span>📉 FALLING — 3 consecutive days lower close</span>
-        <span id="tr-falling-count" style="font-size:11px;color:#ffaaaa"></span>
+        <span
+          id="tr-falling-count"
+          style="font-size: 11px; color: #ffaaaa"
+        ></span>
       </div>
       <div class="tr-table-wrap">
         <table class="tr-table">
           <thead>
             <tr>
-              <th>Symbol</th><th>LTP (Fut)</th><th>3d Drop%</th><th>D-1 Close</th>
-              <th>OR High</th><th>OR Low</th><th>Lots</th>
-              <th>Entry ₹</th><th>SL ₹</th><th>Target ₹</th>
-              <th>Unreal P&amp;L</th><th>Exit ₹</th><th>Final P&amp;L ₹</th><th>Status</th>
+              <th>Symbol</th>
+              <th>LTP (Fut)</th>
+              <th>3d Drop%</th>
+              <th>D-1 Close</th>
+              <th>OR High</th>
+              <th>OR Low</th>
+              <th>Lots</th>
+              <th>Entry ₹</th>
+              <th>SL ₹</th>
+              <th>Target ₹</th>
+              <th>Unreal P&amp;L</th>
+              <th>Exit ₹</th>
+              <th>Final P&amp;L ₹</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody id="tr-falling-tbody"></tbody>
@@ -326,9 +1396,17 @@
       <!-- Daily summary -->
       <section>
         <div class="secttl"><span>📅 DAILY P&amp;L SUMMARY</span></div>
-        <div class="scrollbox" style="max-height:200px">
+        <div class="scrollbox" style="max-height: 200px">
           <table id="tr-daily-table">
-            <thead><tr><th>Date</th><th>Trades</th><th>Wins</th><th>Losses</th><th>Total P&amp;L ₹</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Trades</th>
+                <th>Wins</th>
+                <th>Losses</th>
+                <th>Total P&amp;L ₹</th>
+              </tr>
+            </thead>
             <tbody></tbody>
           </table>
         </div>
@@ -338,7 +1416,18 @@
       <section>
         <div class="secttl">
           <span>TRADE HISTORY (last 30 days)</span>
-          <select id="tr-hist-sym" onchange="loadHistory()" style="font-size:11px;padding:2px 6px;background:#2a4a6e;color:#fff;border:none;border-radius:3px">
+          <select
+            id="tr-hist-sym"
+            onchange="loadHistory()"
+            style="
+              font-size: 11px;
+              padding: 2px 6px;
+              background: #2a4a6e;
+              color: #fff;
+              border: none;
+              border-radius: 3px;
+            "
+          >
             <option value="">All stocks</option>
           </select>
         </div>
@@ -346,10 +1435,23 @@
           <table id="tr-hist-table">
             <thead>
               <tr>
-                <th>Date</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Lot Sz</th>
-                <th>Entry ₹</th><th>Time</th><th>SL%</th><th>TGT%</th>
-                <th>SL ₹</th><th>Target ₹</th><th>Notional</th>
-                <th>Exit ₹</th><th>Exit Time</th><th>P&amp;L ₹</th><th>P&amp;L %</th><th>Result</th>
+                <th>Date</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Lots</th>
+                <th>Lot Sz</th>
+                <th>Entry ₹</th>
+                <th>Time</th>
+                <th>SL%</th>
+                <th>TGT%</th>
+                <th>SL ₹</th>
+                <th>Target ₹</th>
+                <th>Notional</th>
+                <th>Exit ₹</th>
+                <th>Exit Time</th>
+                <th>P&amp;L ₹</th>
+                <th>P&amp;L %</th>
+                <th>Result</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -358,149 +1460,430 @@
       </section>
 
       <div class="note">
-        Strategy: Scan NSE FnO stocks at 09:00 (or later if missed) for 3 consecutive rising/falling closes + volume filter.
-        OR window 09:15–09:45: high/low locked. Entry after 09:45: LONG if breaks OR high, SHORT if breaks OR low.
-        Entry window until 14:30. Capital ₹20L — takes as many lots as budget allows per stock.
-        SL/Target as % of entry. Square-off 15:25. History never wiped.
+        Strategy: Scan NSE FnO stocks at 09:00 (or later if missed) for 3
+        consecutive rising/falling closes + volume filter. OR window
+        09:15–09:45: high/low locked. Entry after 09:45: LONG if breaks OR high,
+        SHORT if breaks OR low. Entry window until 14:30. Capital ₹20L — takes
+        as many lots as budget allows per stock. SL/Target as % of entry.
+        Square-off 15:25. History never wiped.
       </div>
     </div>
 
     <!-- TAB 4: TODAY'S TRADES (Equity Cash) -->
     <div class="tab-panel" id="tab-tt">
       <div class="tt-topbar" id="tt-topbar">
-        <div class="tt-stat-block"><span class="lbl">Capital Per Trade</span><span class="val" id="tt-capital-display">₹10,000</span></div>
-        <div class="tt-stat-block"><span class="lbl">Active Trades</span><span class="val" id="tt-active-count">—</span></div>
-        <div class="tt-stat-block"><span class="lbl">Today Unrealised P&amp;L</span><span class="val" id="tt-today-unreal">—</span></div>
-        <div class="tt-stat-block"><span class="lbl">Today Closed P&amp;L</span><span class="val" id="tt-today-closed">—</span></div>
+        <div class="tt-stat-block">
+          <span class="lbl">Capital Per Trade</span
+          ><span class="val" id="tt-capital-display">₹10,000</span>
+        </div>
+        <div class="tt-stat-block">
+          <span class="lbl">Active Trades</span
+          ><span class="val" id="tt-active-count">—</span>
+        </div>
+        <div class="tt-stat-block">
+          <span class="lbl">Today Unrealised P&amp;L</span
+          ><span class="val" id="tt-today-unreal">—</span>
+        </div>
+        <div class="tt-stat-block">
+          <span class="lbl">Today Closed P&amp;L</span
+          ><span class="val" id="tt-today-closed">—</span>
+        </div>
       </div>
       <div class="fno-params-bar">
-        <label>Capital (₹) <input type="number" id="tt-capital" placeholder="10000" min="1000" step="500" /></label>
-        <label>Stop Loss %  <input type="number" id="tt-sl-pct"  placeholder="1.0" step="0.1" min="0.1" max="20" /></label>
-        <label>Target %     <input type="number" id="tt-tgt-pct" placeholder="1.0" step="0.1" min="0.1" max="20" /></label>
-        <button class="fno-btn fno-btn-blue" onclick="saveEqParams()">💾 Save</button>
-        <button class="fno-btn fno-btn-blue" onclick="loadEqState()" style="background:#2a5298">↻ Refresh</button>
-        <span id="tt-param-display" class="note" style="background:transparent;align-self:center"></span>
+        <label
+          >Capital (₹)
+          <input
+            type="number"
+            id="tt-capital"
+            placeholder="10000"
+            min="1000"
+            step="500"
+        /></label>
+        <label
+          >Stop Loss %
+          <input
+            type="number"
+            id="tt-sl-pct"
+            placeholder="1.0"
+            step="0.1"
+            min="0.1"
+            max="20"
+        /></label>
+        <label
+          >Target %
+          <input
+            type="number"
+            id="tt-tgt-pct"
+            placeholder="1.0"
+            step="0.1"
+            min="0.1"
+            max="20"
+        /></label>
+        <button class="fno-btn fno-btn-blue" onclick="saveEqParams()">
+          💾 Save
+        </button>
+        <button
+          class="fno-btn fno-btn-blue"
+          onclick="loadEqState()"
+          style="background: #2a5298"
+        >
+          ↻ Refresh
+        </button>
+        <span
+          id="tt-param-display"
+          class="note"
+          style="background: transparent; align-self: center"
+        ></span>
       </div>
       <div id="tt-status">Loading equity trades…</div>
-      <div class="secttl" style="margin:8px 8px 0;border-radius:4px 4px 0 0">
-        <span>📊 TODAY'S EQUITY CASH TRADES (Top 4 Rising + Top 4 Falling)</span>
-        <span id="tt-date" style="font-size:11px;color:#aac4e0"></span>
+      <div class="secttl" style="margin: 8px 8px 0; border-radius: 4px 4px 0 0">
+        <span
+          >📊 TODAY'S EQUITY CASH TRADES (Top 4 Rising + Top 4 Falling)</span
+        >
+        <span id="tt-date" style="font-size: 11px; color: #aac4e0"></span>
       </div>
-      <div class="tt-active-table-wrap" style="border-radius:0 0 4px 4px;margin-bottom:8px">
+      <div
+        class="tt-active-table-wrap"
+        style="border-radius: 0 0 4px 4px; margin-bottom: 8px"
+      >
         <table class="tt-active-table">
-          <thead><tr>
-            <th>Symbol</th><th>Side</th><th>LTP</th><th>Qty</th><th>Capital Used</th>
-            <th>Entry ₹</th><th>Entry Time</th><th>SL ₹</th><th>Target ₹</th>
-            <th>Day High</th><th>Day Low</th><th>Unrealised P&amp;L</th>
-            <th>Exit ₹</th><th>Exit Time</th><th>Final P&amp;L ₹</th><th>Result</th>
-          </tr></thead>
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Side</th>
+              <th>LTP</th>
+              <th>Qty</th>
+              <th>Capital Used</th>
+              <th>Entry ₹</th>
+              <th>Entry Time</th>
+              <th>SL ₹</th>
+              <th>Target ₹</th>
+              <th>Day High</th>
+              <th>Day Low</th>
+              <th>Unrealised P&amp;L</th>
+              <th>Exit ₹</th>
+              <th>Exit Time</th>
+              <th>Final P&amp;L ₹</th>
+              <th>Result</th>
+            </tr>
+          </thead>
           <tbody id="tt-active-tbody"></tbody>
         </table>
       </div>
-      <div class="secttl" style="margin:8px 8px 0;border-radius:4px 4px 0 0;background:#2a4a6e">
+      <div
+        class="secttl"
+        style="
+          margin: 8px 8px 0;
+          border-radius: 4px 4px 0 0;
+          background: #2a4a6e;
+        "
+      >
         <span>📋 TRADE HISTORY</span>
-        <span style="font-size:11px;color:#aac4e0">Select date range to load</span>
+        <span style="font-size: 11px; color: #aac4e0"
+          >Select date range to load</span
+        >
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:10px;background:#fff;border:1px solid var(--grid);border-top:none;margin:0 8px">
-        <label style="font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:3px">From Date <input type="date" id="tt-from-date" style="font-size:13px;padding:5px 7px" /></label>
-        <label style="font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:3px">To Date   <input type="date" id="tt-to-date"   style="font-size:13px;padding:5px 7px" /></label>
-        <label style="font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:3px">Symbol (optional) <input type="text" id="tt-hist-sym" placeholder="e.g. ICICIBANK" style="font-size:13px;padding:5px 7px;width:130px" /></label>
-        <button class="fno-btn fno-btn-blue" onclick="loadEqHistory()" style="align-self:flex-end">🔍 Load History</button>
+      <div
+        style="
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          align-items: flex-end;
+          padding: 10px;
+          background: #fff;
+          border: 1px solid var(--grid);
+          border-top: none;
+          margin: 0 8px;
+        "
+      >
+        <label
+          style="
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+          "
+          >From Date
+          <input
+            type="date"
+            id="tt-from-date"
+            style="font-size: 13px; padding: 5px 7px"
+        /></label>
+        <label
+          style="
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+          "
+          >To Date
+          <input
+            type="date"
+            id="tt-to-date"
+            style="font-size: 13px; padding: 5px 7px"
+        /></label>
+        <label
+          style="
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+          "
+          >Symbol (optional)
+          <input
+            type="text"
+            id="tt-hist-sym"
+            placeholder="e.g. ICICIBANK"
+            style="font-size: 13px; padding: 5px 7px; width: 130px"
+        /></label>
+        <button
+          class="fno-btn fno-btn-blue"
+          onclick="loadEqHistory()"
+          style="align-self: flex-end"
+        >
+          🔍 Load History
+        </button>
       </div>
-      <div id="tt-hist-prompt" style="padding:16px;text-align:center;color:#888;font-size:13px;background:#fff;border:1px solid var(--grid);border-top:none;margin:0 8px 8px">
+      <div
+        id="tt-hist-prompt"
+        style="
+          padding: 16px;
+          text-align: center;
+          color: #888;
+          font-size: 13px;
+          background: #fff;
+          border: 1px solid var(--grid);
+          border-top: none;
+          margin: 0 8px 8px;
+        "
+      >
         Select a date range above and click Load History.
       </div>
-      <div class="tt-hist-wrap" style="display:none;margin:0 8px 8px">
+      <div class="tt-hist-wrap" style="display: none; margin: 0 8px 8px">
         <table class="tt-hist-table">
-          <thead><tr>
-            <th>Date</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Capital Used</th>
-            <th>Entry ₹</th><th>Entry Time</th><th>SL%</th><th>TGT%</th>
-            <th>SL ₹</th><th>Target ₹</th><th>Exit ₹</th><th>Exit Time</th>
-            <th>P&amp;L ₹</th><th>P&amp;L %</th><th>P&amp;L pts</th><th>Result</th>
-          </tr></thead>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Symbol</th>
+              <th>Side</th>
+              <th>Qty</th>
+              <th>Capital Used</th>
+              <th>Entry ₹</th>
+              <th>Entry Time</th>
+              <th>SL%</th>
+              <th>TGT%</th>
+              <th>SL ₹</th>
+              <th>Target ₹</th>
+              <th>Exit ₹</th>
+              <th>Exit Time</th>
+              <th>P&amp;L ₹</th>
+              <th>P&amp;L %</th>
+              <th>P&amp;L pts</th>
+              <th>Result</th>
+            </tr>
+          </thead>
           <tbody id="tt-hist-tbody"></tbody>
         </table>
       </div>
-      <div class="note">Strategy: Top 4 rising + Top 4 falling from 09:00 scan. Equity cash. LONG on new day high break, SHORT on new day low break. Entry 09:15–14:30. Capital per trade configurable. Square-off 15:25 IST.</div>
+      <div class="note">
+        Strategy: Top 4 rising + Top 4 falling from 09:00 scan. Equity cash.
+        LONG on new day high break, SHORT on new day low break. Entry
+        09:15–14:30. Capital per trade configurable. Square-off 15:25 IST.
+      </div>
     </div>
 
     <!-- TAB 5: FNO TRADES -->
     <div class="tab-panel" id="tab-fno">
       <div class="fno-topbar" id="fno-topbar">
-        <div class="fno-bal-block"><span class="lbl">Account Balance</span><span class="val" id="fno-balance">₹—</span></div>
-        <div class="fno-bal-block"><span class="lbl">Today P&amp;L (₹)</span><span class="val" id="fno-today-pnl">—</span></div>
-        <div class="fno-bal-block"><span class="lbl">Overall P&amp;L (₹)</span><span class="val" id="fno-overall-pnl">—</span></div>
-        <div class="fno-bal-block"><span class="lbl">Margin In Use</span><span class="val" id="fno-margin-used">—</span></div>
-        <div class="fno-bal-block"><span class="lbl">Date</span><span class="val" style="font-size:14px" id="fno-date">—</span></div>
+        <div class="fno-bal-block">
+          <span class="lbl">Account Balance</span
+          ><span class="val" id="fno-balance">₹—</span>
+        </div>
+        <div class="fno-bal-block">
+          <span class="lbl">Today P&amp;L (₹)</span
+          ><span class="val" id="fno-today-pnl">—</span>
+        </div>
+        <div class="fno-bal-block">
+          <span class="lbl">Overall P&amp;L (₹)</span
+          ><span class="val" id="fno-overall-pnl">—</span>
+        </div>
+        <div class="fno-bal-block">
+          <span class="lbl">Margin In Use</span
+          ><span class="val" id="fno-margin-used">—</span>
+        </div>
+        <div class="fno-bal-block">
+          <span class="lbl">Date</span
+          ><span class="val" style="font-size: 14px" id="fno-date">—</span>
+        </div>
       </div>
-      <div class="fno-pending-banner" id="fno-pending-banner">⚠ Some trades are waiting for funds. Add funds below and they will auto re-enter if price is still near breakout level.</div>
-      <div class="fno-add-funds-row" id="fno-add-funds-row" style="display:none">
-        <span style="font-weight:600;font-size:13px">Add Funds:</span>
-        <input type="number" id="fno-fund-input" placeholder="Amount in ₹ e.g. 200000" min="1" step="1000" />
-        <button class="fno-btn fno-btn-green" onclick="addFunds()">➕ Add Funds</button>
-        <button class="fno-btn fno-btn-blue" onclick="$('fno-add-funds-row').style.display='none'">Cancel</button>
+      <div class="fno-pending-banner" id="fno-pending-banner">
+        ⚠ Some trades are waiting for funds. Add funds below and they will auto
+        re-enter if price is still near breakout level.
+      </div>
+      <div
+        class="fno-add-funds-row"
+        id="fno-add-funds-row"
+        style="display: none"
+      >
+        <span style="font-weight: 600; font-size: 13px">Add Funds:</span>
+        <input
+          type="number"
+          id="fno-fund-input"
+          placeholder="Amount in ₹ e.g. 200000"
+          min="1"
+          step="1000"
+        />
+        <button class="fno-btn fno-btn-green" onclick="addFunds()">
+          ➕ Add Funds
+        </button>
+        <button
+          class="fno-btn fno-btn-blue"
+          onclick="$('fno-add-funds-row').style.display = 'none'"
+        >
+          Cancel
+        </button>
       </div>
       <div class="fno-params-bar">
-        <label>Stop Loss % <input type="number" id="fno-sl-pct"  placeholder="Default 1.0" step="0.1" min="0.1" max="20" /></label>
-        <label>Target %    <input type="number" id="fno-tgt-pct" placeholder="Default 1.0" step="0.1" min="0.1" max="20" /></label>
-        <button class="fno-btn fno-btn-blue"  onclick="saveFnoParams()">💾 Save Params</button>
-        <button class="fno-btn fno-btn-green" onclick="showAddFunds()">💰 Add Funds</button>
-        <button class="fno-btn fno-btn-blue"  onclick="loadFno()" style="background:#2a5298">↻ Refresh</button>
-        <span id="fno-param-display" class="note" style="background:transparent;align-self:center"></span>
+        <label
+          >Stop Loss %
+          <input
+            type="number"
+            id="fno-sl-pct"
+            placeholder="Default 1.0"
+            step="0.1"
+            min="0.1"
+            max="20"
+        /></label>
+        <label
+          >Target %
+          <input
+            type="number"
+            id="fno-tgt-pct"
+            placeholder="Default 1.0"
+            step="0.1"
+            min="0.1"
+            max="20"
+        /></label>
+        <button class="fno-btn fno-btn-blue" onclick="saveFnoParams()">
+          💾 Save Params
+        </button>
+        <button class="fno-btn fno-btn-green" onclick="showAddFunds()">
+          💰 Add Funds
+        </button>
+        <button
+          class="fno-btn fno-btn-blue"
+          onclick="loadFno()"
+          style="background: #2a5298"
+        >
+          ↻ Refresh
+        </button>
+        <span
+          id="fno-param-display"
+          class="note"
+          style="background: transparent; align-self: center"
+        ></span>
       </div>
       <div id="fno-status">Loading FnO trade state…</div>
       <div class="fno-cards" id="fno-cards"></div>
       <section>
         <div class="secttl">
           <span>TRADE LOG (last 30 days)</span>
-          <select id="fno-hist-sym" onchange="loadFnoHistory()" style="font-size:11px;padding:2px 6px;background:#2a4a6e;color:#fff;border:none;border-radius:3px">
+          <select
+            id="fno-hist-sym"
+            onchange="loadFnoHistory()"
+            style="
+              font-size: 11px;
+              padding: 2px 6px;
+              background: #2a4a6e;
+              color: #fff;
+              border: none;
+              border-radius: 3px;
+            "
+          >
             <option value="">All stocks</option>
-            <option value="DIXON">DIXON</option><option value="FORCEMOT">FORCEMOT</option>
-            <option value="POWERINDIA">POWERINDIA</option><option value="BSE">BSE</option><option value="MCX">MCX</option>
+            <option value="DIXON">DIXON</option>
+            <option value="FORCEMOT">FORCEMOT</option>
+            <option value="POWERINDIA">POWERINDIA</option>
+            <option value="BSE">BSE</option>
+            <option value="MCX">MCX</option>
           </select>
         </div>
         <div class="scrollbox">
           <table id="fno-hist-table">
-            <thead><tr>
-              <th>Date</th><th>Symbol</th><th>Side</th><th>Lot</th><th>Entry ₹</th><th>Time</th>
-              <th>SL %</th><th>TGT %</th><th>SL ₹</th><th>Target ₹</th>
-              <th>Margin</th><th>OR High</th><th>OR Low</th>
-              <th>Exit ₹</th><th>Exit Time</th><th>P&amp;L pts</th><th>P&amp;L ₹</th><th>Result</th>
-            </tr></thead>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Lot</th>
+                <th>Entry ₹</th>
+                <th>Time</th>
+                <th>SL %</th>
+                <th>TGT %</th>
+                <th>SL ₹</th>
+                <th>Target ₹</th>
+                <th>Margin</th>
+                <th>OR High</th>
+                <th>OR Low</th>
+                <th>Exit ₹</th>
+                <th>Exit Time</th>
+                <th>P&amp;L pts</th>
+                <th>P&amp;L ₹</th>
+                <th>Result</th>
+              </tr>
+            </thead>
             <tbody></tbody>
           </table>
         </div>
       </section>
       <section>
         <div class="secttl">BALANCE LOG</div>
-        <div class="scrollbox" style="max-height:200px">
+        <div class="scrollbox" style="max-height: 200px">
           <table id="fno-bal-table">
-            <thead><tr><th>Date</th><th>Time</th><th>Event</th><th>Amount</th><th>Balance</th><th>Note</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Event</th>
+                <th>Amount</th>
+                <th>Balance</th>
+                <th>Note</th>
+              </tr>
+            </thead>
             <tbody></tbody>
           </table>
         </div>
       </section>
-      <div class="note">Strategy: 30-min Opening Range (09:15–09:45). First breakout of OR_high → LONG, OR_low → SHORT. 1 lot per stock. SL and Target as % of entry. Square-off 15:25 IST.</div>
+      <div class="note">
+        Strategy: 30-min Opening Range (09:15–09:45). First breakout of OR_high
+        → LONG, OR_low → SHORT. 1 lot per stock. SL and Target as % of entry.
+        Square-off 15:25 IST.
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-      const SRV        = window.location.origin;
-      const TEN_LAC    = 1_000_000;
+      const SRV = window.location.origin;
+      const TEN_LAC = 1_000_000;
       const REFRESH_MS = 3 * 60 * 1000;
 
-      let indexKeys  = {};
+      let indexKeys = {};
       let strikeStep = {};
-      let secDRows   = [];
-      let lastDiff   = null;
-      let timer      = null;
+      let secDRows = [];
+      let lastDiff = null;
+      let timer = null;
       let marketOpen = false;
 
-      const $ = id => document.getElementById(id);
-      const fmt  = n => n == null ? "-" : Number(n).toLocaleString("en-IN");
-      const fmtR = (n, d=2) => n == null ? "-" : Number(n).toFixed(d);
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => (n == null ? "-" : Number(n).toLocaleString("en-IN"));
+      const fmtR = (n, d = 2) => (n == null ? "-" : Number(n).toFixed(d));
 
-      function showErr(msg) { $("errbox").innerHTML = msg ? `<div class="err">${msg}</div>` : ""; }
+      function showErr(msg) {
+        $("errbox").innerHTML = msg ? `<div class="err">${msg}</div>` : "";
+      }
 
       async function jget(path) {
         const r = await fetch(SRV + path);
@@ -510,24 +1893,30 @@
 
       async function init() {
         try {
-          const inst  = await jget("/instruments");
-          indexKeys   = inst.indices || {};
-          strikeStep  = inst.strike_step || {};
-          const sel   = $("scrip");
+          const inst = await jget("/instruments");
+          indexKeys = inst.indices || {};
+          strikeStep = inst.strike_step || {};
+          const sel = $("scrip");
           sel.innerHTML = "";
-          Object.keys(indexKeys).forEach(name => {
+          Object.keys(indexKeys).forEach((name) => {
             const o = document.createElement("option");
-            o.value = indexKeys[name]; o.textContent = name; o.dataset.name = name;
+            o.value = indexKeys[name];
+            o.textContent = name;
+            o.dataset.name = name;
             sel.appendChild(o);
           });
-          sel.onchange             = onScripChange;
-          $("refresh").onclick     = loadAll;
-          $("expiry").onchange     = onExpiryChange;
-          $("dlxlsx").onclick      = downloadXlsx;
-          $("dlpdf").onclick       = downloadPdf;
+          sel.onchange = onScripChange;
+          $("refresh").onclick = loadAll;
+          $("expiry").onchange = onExpiryChange;
+          $("dlxlsx").onclick = downloadXlsx;
+          $("dlpdf").onclick = downloadPdf;
           await onScripChange();
-        } catch(e) {
-          showErr("Cannot reach server — is jagoar_oi_server.py running? (" + e.message + ")");
+        } catch (e) {
+          showErr(
+            "Cannot reach server — is jagoar_oi_server.py running? (" +
+              e.message +
+              ")",
+          );
         }
       }
 
@@ -535,38 +1924,63 @@
         showErr("");
         const ik = $("scrip").value;
         try {
-          const ex  = await jget("/expiries?instrument_key=" + encodeURIComponent(ik));
+          const ex = await jget(
+            "/expiries?instrument_key=" + encodeURIComponent(ik),
+          );
           const sel = $("expiry");
           sel.innerHTML = "";
-          (ex.expiries || []).forEach(d => { const o = document.createElement("option"); o.value = d; o.textContent = d; sel.appendChild(o); });
+          (ex.expiries || []).forEach((d) => {
+            const o = document.createElement("option");
+            o.value = d;
+            o.textContent = d;
+            sel.appendChild(o);
+          });
           await resetSectionD();
           await loadAll();
-        } catch(e) { showErr("Expiry load failed: " + e.message); }
+        } catch (e) {
+          showErr("Expiry load failed: " + e.message);
+        }
       }
 
-      async function onExpiryChange() { await resetSectionD(); await loadAll(); }
+      async function onExpiryChange() {
+        await resetSectionD();
+        await loadAll();
+      }
 
       async function resetSectionD() {
-        secDRows = []; lastDiff = null;
+        secDRows = [];
+        lastDiff = null;
         $("secD").querySelector("tbody").innerHTML = "";
         await restoreFromDB();
       }
 
       async function restoreFromDB() {
-        const scrip  = selectedName();
+        const scrip = selectedName();
         const expiry = $("expiry").value;
         if (!scrip || !expiry) return;
         try {
-          const res  = await jget(`/logs?scrip=${encodeURIComponent(scrip)}&expiry=${encodeURIComponent(expiry)}`);
+          const res = await jget(
+            `/logs?scrip=${encodeURIComponent(scrip)}&expiry=${encodeURIComponent(expiry)}`,
+          );
           const logs = res.logs || [];
           if (!logs.length) return;
-          logs.forEach(row => {
-            _renderSecDRow(row.ts, row.callOI, row.putOI, row.diff, row.changeDiff, row.action);
+          logs.forEach((row) => {
+            _renderSecDRow(
+              row.ts,
+              row.callOI,
+              row.putOI,
+              row.diff,
+              row.changeDiff,
+              row.action,
+            );
             secDRows.push(row);
           });
-          lastDiff = logs[logs.length-1].diff;
-          $("status").textContent = `Restored ${logs.length} rows from today's DB`;
-        } catch(e) { console.warn("DB restore failed:", e.message); }
+          lastDiff = logs[logs.length - 1].diff;
+          $("status").textContent =
+            `Restored ${logs.length} rows from today's DB`;
+        } catch (e) {
+          console.warn("DB restore failed:", e.message);
+        }
       }
 
       function selectedName() {
@@ -575,212 +1989,476 @@
       }
 
       function atmIndex(rows, spot) {
-        let best=0, bd=Infinity;
-        rows.forEach((r,i) => { const d=Math.abs(r.strike - spot); if(d<bd){bd=d;best=i;} });
+        let best = 0,
+          bd = Infinity;
+        rows.forEach((r, i) => {
+          const d = Math.abs(r.strike - spot);
+          if (d < bd) {
+            bd = d;
+            best = i;
+          }
+        });
         return best;
       }
 
       function remark(diff) {
-        if (diff >  TEN_LAC) return {txt:"STRONG RESISTANCE", cls:"r-darkred"};
-        if (diff >  0)       return {txt:"RESISTANCE",        cls:"r-red"};
-        if (diff < -TEN_LAC) return {txt:"STRONG SUPPORT",    cls:"r-darkgreen"};
-        if (diff <  0)       return {txt:"SUPPORT",           cls:"r-green"};
-        return {txt:"NEUTRAL", cls:""};
+        if (diff > TEN_LAC)
+          return { txt: "STRONG RESISTANCE", cls: "r-darkred" };
+        if (diff > 0) return { txt: "RESISTANCE", cls: "r-red" };
+        if (diff < -TEN_LAC)
+          return { txt: "STRONG SUPPORT", cls: "r-darkgreen" };
+        if (diff < 0) return { txt: "SUPPORT", cls: "r-green" };
+        return { txt: "NEUTRAL", cls: "" };
       }
 
       async function loadAll() {
         showErr("");
-        const ik  = $("scrip").value;
+        const ik = $("scrip").value;
         const exp = $("expiry").value;
         if (!ik || !exp) return;
         $("status").textContent = "Loading…";
         try {
           const [chain, indices] = await Promise.all([
-            jget(`/chain?instrument_key=${encodeURIComponent(ik)}&expiry_date=${exp}`),
-            jget("/indices").catch(()=>null),
+            jget(
+              `/chain?instrument_key=${encodeURIComponent(ik)}&expiry_date=${exp}`,
+            ),
+            jget("/indices").catch(() => null),
           ]);
           marketOpen = chain.market_open || false;
           updateMarketBadge();
           renderStrip(indices, chain);
-          const rows = chain.rows, spot = chain.spot;
-          const atm  = atmIndex(rows, spot);
+          const rows = chain.rows,
+            spot = chain.spot;
+          const atm = atmIndex(rows, spot);
           renderSecB(rows, atm);
           renderSecC(rows, atm);
           if (marketOpen) {
-            const lastRow = secDRows[secDRows.length-1];
-            const now     = new Date();
-            const lastTime = lastRow ? new Date(now.toDateString()+" "+lastRow.ts) : null;
-            const diffMs   = lastTime ? now - lastTime : Infinity;
-            if (diffMs > 2.5*60*1000) appendSecD(rows, atm, chain.ts, exp);
+            const lastRow = secDRows[secDRows.length - 1];
+            const now = new Date();
+            const lastTime = lastRow
+              ? new Date(now.toDateString() + " " + lastRow.ts)
+              : null;
+            const diffMs = lastTime ? now - lastTime : Infinity;
+            if (diffMs > 2.5 * 60 * 1000) appendSecD(rows, atm, chain.ts, exp);
           }
-          $("status").textContent = `Updated ${chain.ts} IST (PCR ${chain.pcr ?? "-"})${marketOpen ? "" : " — Market closed, logging paused"}`;
-        } catch(e) { showErr("Data load failed: " + e.message); $("status").textContent = ""; }
+          $("status").textContent =
+            `Updated ${chain.ts} IST (PCR ${chain.pcr ?? "-"})${marketOpen ? "" : " — Market closed, logging paused"}`;
+        } catch (e) {
+          showErr("Data load failed: " + e.message);
+          $("status").textContent = "";
+        }
         clearTimeout(timer);
         timer = setTimeout(loadAll, REFRESH_MS);
       }
 
       function updateMarketBadge() {
         const badge = $("mktbadge");
-        if (marketOpen) { badge.textContent = "MARKET OPEN";   badge.className = "mkt-badge mkt-open"; }
-        else            { badge.textContent = "MARKET CLOSED"; badge.className = "mkt-badge mkt-closed"; }
+        if (marketOpen) {
+          badge.textContent = "MARKET OPEN";
+          badge.className = "mkt-badge mkt-open";
+        } else {
+          badge.textContent = "MARKET CLOSED";
+          badge.className = "mkt-badge mkt-closed";
+        }
       }
 
       function renderStrip(indices, chain) {
         const strip = $("strip");
         strip.innerHTML = `<div class="it"><span class="nm">PCR</span><span>${chain.pcr ?? "-"}</span></div>`;
         if (!indices || !indices.data) return;
-        Object.entries(indices.data).forEach(([k,v]) => {
-          const ltp=v.last_price, close=v.close_price??v.cp;
-          let chg="", pct="", cls="";
-          if (ltp!=null && close!=null) {
-            const d=ltp-close, p=close?(d/close)*100:0;
-            cls=(d>=0?"up":"down"); chg=(d>=0?"+":"")+d.toFixed(2); pct=(d>=0?"+":"")+p.toFixed(2)+"%";
+        Object.entries(indices.data).forEach(([k, v]) => {
+          const ltp = v.last_price,
+            close = v.close_price ?? v.cp;
+          let chg = "",
+            pct = "",
+            cls = "";
+          if (ltp != null && close != null) {
+            const d = ltp - close,
+              p = close ? (d / close) * 100 : 0;
+            cls = d >= 0 ? "up" : "down";
+            chg = (d >= 0 ? "+" : "") + d.toFixed(2);
+            pct = (d >= 0 ? "+" : "") + p.toFixed(2) + "%";
           }
-          const label=k.split(":").pop();
-          strip.innerHTML += `<div class="it"><span class="nm">${label}</span><span>${ltp??"-"}</span><span class="${cls}">${chg} ${pct}</span></div>`;
+          const label = k.split(":").pop();
+          strip.innerHTML += `<div class="it"><span class="nm">${label}</span><span>${ltp ?? "-"}</span><span class="${cls}">${chg} ${pct}</span></div>`;
         });
       }
 
       function renderSecB(rows, atm) {
         const tb = $("secB").querySelector("tbody");
         tb.innerHTML = "";
-        const start=Math.max(0,atm-1), end=Math.min(rows.length,start+4);
-        let tc=0, tp=0;
-        for (let i=start;i<end;i++) {
-          const r=rows[i], diff=r.call_oi_change-r.put_oi_change, rm=remark(diff);
-          tc+=r.call_oi_change; tp+=r.put_oi_change;
-          tb.innerHTML += `<tr><td class="lbl">${r.strike}${i===atm?" (ATM)":""}</td><td class="callcell">${fmt(r.call_oi_change)}</td><td class="putcell">${fmt(r.put_oi_change)}</td><td class="${rm.cls}">${rm.txt} (${fmt(diff)})</td></tr>`;
+        const start = Math.max(0, atm - 1),
+          end = Math.min(rows.length, start + 4);
+        let tc = 0,
+          tp = 0;
+        for (let i = start; i < end; i++) {
+          const r = rows[i],
+            diff = r.call_oi_change - r.put_oi_change,
+            rm = remark(diff);
+          tc += r.call_oi_change;
+          tp += r.put_oi_change;
+          tb.innerHTML += `<tr><td class="lbl">${r.strike}${i === atm ? " (ATM)" : ""}</td><td class="callcell">${fmt(r.call_oi_change)}</td><td class="putcell">${fmt(r.put_oi_change)}</td><td class="${rm.cls}">${rm.txt} (${fmt(diff)})</td></tr>`;
         }
-        const trm=remark(tc-tp);
+        const trm = remark(tc - tp);
         tb.innerHTML += `<tr class="totrow"><td class="lbl">TOTAL</td><td>${fmt(tc)}</td><td>${fmt(tp)}</td><td class="${trm.cls}">${trm.txt}</td></tr>`;
       }
 
       function renderSecC(rows, atm) {
         const tb = $("secC").querySelector("tbody");
         tb.innerHTML = "";
-        const start=Math.max(0,atm-5), end=Math.min(rows.length,atm+6);
-        for (let i=start;i<end;i++) {
-          const r=rows[i];
-          tb.innerHTML += `<tr><td class="lbl">${r.strike}${i===atm?" (ATM)":""}</td><td class="callcell">${fmt(r.call_oi_change)}</td><td class="putcell">${fmt(r.put_oi_change)}</td><td class="callcell">${fmt(r.call_volume)}</td><td class="putcell">${fmt(r.put_volume)}</td></tr>`;
+        const start = Math.max(0, atm - 5),
+          end = Math.min(rows.length, atm + 6);
+        for (let i = start; i < end; i++) {
+          const r = rows[i];
+          tb.innerHTML += `<tr><td class="lbl">${r.strike}${i === atm ? " (ATM)" : ""}</td><td class="callcell">${fmt(r.call_oi_change)}</td><td class="putcell">${fmt(r.put_oi_change)}</td><td class="callcell">${fmt(r.call_volume)}</td><td class="putcell">${fmt(r.put_volume)}</td></tr>`;
         }
       }
 
       async function appendSecD(rows, atm, ts, expiry) {
-        const start=Math.max(0,atm-1), end=Math.min(rows.length,atm+2);
-        let callOI=0, putOI=0;
-        for (let i=start;i<end;i++) { callOI+=rows[i].call_oi_change; putOI+=rows[i].put_oi_change; }
-        const diff=callOI-putOI, changeDiff=lastDiff===null?0:diff-lastDiff;
-        let action="";
-        if (callOI-putOI>TEN_LAC) action="BUY PUT";
-        if (putOI-callOI>TEN_LAC) action="BUY CALL";
-        lastDiff=diff;
-        secDRows.push({ts,callOI,putOI,diff,changeDiff,action});
-        _renderSecDRow(ts,callOI,putOI,diff,changeDiff,action);
-        const logUrl=`/log?scrip=${encodeURIComponent(selectedName())}&expiry=${encodeURIComponent(expiry)}&ts=${encodeURIComponent(ts)}&call_oi=${callOI}&put_oi=${putOI}&diff=${diff}&change_diff=${changeDiff}&action=${encodeURIComponent(action)}`;
-        fetch(SRV+logUrl).catch(e=>console.warn("DB log failed:",e.message));
+        const start = Math.max(0, atm - 1),
+          end = Math.min(rows.length, atm + 2);
+        let callOI = 0,
+          putOI = 0;
+        for (let i = start; i < end; i++) {
+          callOI += rows[i].call_oi_change;
+          putOI += rows[i].put_oi_change;
+        }
+        const diff = callOI - putOI,
+          changeDiff = lastDiff === null ? 0 : diff - lastDiff;
+        let action = "";
+        if (callOI - putOI > TEN_LAC) action = "BUY PUT";
+        if (putOI - callOI > TEN_LAC) action = "BUY CALL";
+        lastDiff = diff;
+        secDRows.push({ ts, callOI, putOI, diff, changeDiff, action });
+        _renderSecDRow(ts, callOI, putOI, diff, changeDiff, action);
+        const logUrl = `/log?scrip=${encodeURIComponent(selectedName())}&expiry=${encodeURIComponent(expiry)}&ts=${encodeURIComponent(ts)}&call_oi=${callOI}&put_oi=${putOI}&diff=${diff}&change_diff=${changeDiff}&action=${encodeURIComponent(action)}`;
+        fetch(SRV + logUrl).catch((e) =>
+          console.warn("DB log failed:", e.message),
+        );
       }
 
-      function _renderSecDRow(ts,callOI,putOI,diff,changeDiff,action) {
-        const tb=$("secD").querySelector("tbody");
-        const diffCls=diff>0?"r-red":diff<0?"r-green":"";
-        const actCls=action==="BUY PUT"?"act-buy-put":action==="BUY CALL"?"act-buy-call":"";
-        const tr=document.createElement("tr");
-        tr.innerHTML=`<td class="lbl">${ts}</td><td class="callcell">${fmt(callOI)}</td><td class="putcell">${fmt(putOI)}</td><td class="${diffCls}">${fmt(diff)}</td><td>${fmt(changeDiff)}</td><td class="${actCls}">${action}</td>`;
+      function _renderSecDRow(ts, callOI, putOI, diff, changeDiff, action) {
+        const tb = $("secD").querySelector("tbody");
+        const diffCls = diff > 0 ? "r-red" : diff < 0 ? "r-green" : "";
+        const actCls =
+          action === "BUY PUT"
+            ? "act-buy-put"
+            : action === "BUY CALL"
+              ? "act-buy-call"
+              : "";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td class="lbl">${ts}</td><td class="callcell">${fmt(callOI)}</td><td class="putcell">${fmt(putOI)}</td><td class="${diffCls}">${fmt(diff)}</td><td>${fmt(changeDiff)}</td><td class="${actCls}">${action}</td>`;
         tb.appendChild(tr);
-        const box=tb.closest(".scrollbox");
-        if(box) box.scrollTop=box.scrollHeight;
+        const box = tb.closest(".scrollbox");
+        if (box) box.scrollTop = box.scrollHeight;
       }
 
       function secDArray() {
-        return [["Time","Call OI","Put OI","Difference","Change in Diff","Action"],
-          ...secDRows.map(r=>[r.ts,r.callOI,r.putOI,r.diff,r.changeDiff,r.action])];
+        return [
+          [
+            "Time",
+            "Call OI",
+            "Put OI",
+            "Difference",
+            "Change in Diff",
+            "Action",
+          ],
+          ...secDRows.map((r) => [
+            r.ts,
+            r.callOI,
+            r.putOI,
+            r.diff,
+            r.changeDiff,
+            r.action,
+          ]),
+        ];
       }
       function downloadXlsx() {
-        const ws=XLSX.utils.aoa_to_sheet(secDArray()); const wb=XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb,ws,"OI Section D"); XLSX.writeFile(wb,`JAGOAR_OI_SectionD_${selectedName()}.xlsx`);
+        const ws = XLSX.utils.aoa_to_sheet(secDArray());
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "OI Section D");
+        XLSX.writeFile(wb, `JAGOAR_OI_SectionD_${selectedName()}.xlsx`);
       }
       function downloadPdf() {
-        const {jsPDF}=window.jspdf; const doc=new jsPDF();
-        doc.text(`MANJIT JAGOAR OI SCANNER - Section D (${selectedName()})`,14,14);
-        doc.autoTable({head:[secDArray()[0]],body:secDArray().slice(1),startY:20,styles:{fontSize:8}});
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text(
+          `MANJIT JAGOAR OI SCANNER - Section D (${selectedName()})`,
+          14,
+          14,
+        );
+        doc.autoTable({
+          head: [secDArray()[0]],
+          body: secDArray().slice(1),
+          startY: 20,
+          styles: { fontSize: 8 },
+        });
         doc.save(`JAGOAR_OI_SectionD_${selectedName()}.pdf`);
       }
 
       init();
 
       function switchTab(name, evt) {
-        document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
-        document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-        document.getElementById("tab-"+name).classList.add("active");
-        if (evt&&evt.target) evt.target.classList.add("active");
-        if (name==="bt" && $("bt-stock").options.length<=1) loadFnoStocks();
-        if (name==="tr")  initTrending();
-        if (name==="tt")  initTodayTrades();
-        if (name==="fno") initFno();
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById("tab-" + name).classList.add("active");
+        if (evt && evt.target) evt.target.classList.add("active");
+        if (name === "bt" && $("bt-stock").options.length <= 1) loadFnoStocks();
+        if (name === "tr") initTrending();
+        if (name === "tt") initTodayTrades();
+        if (name === "fno") initFno();
       }
 
       // ── BACKTEST ────────────────────────────────────────────────────────────
       let btChart = null;
 
       async function loadFnoStocks() {
-        $("bt-status").textContent = "Loading FnO stock list…";
+        $("bt-status").textContent = "Loading FnO futures list…";
         try {
           const res = await jget("/fno_stocks");
           const sel = $("bt-stock");
-          sel.innerHTML = '<option value="">— Select stock —</option>';
-          (res.stocks||[]).forEach(s=>{
-            const o=document.createElement("option"); o.value=s.instrument_key; o.dataset.symbol=s.symbol; o.textContent=s.symbol; sel.appendChild(o);
+          sel.innerHTML = '<option value="">— Select stock / index —</option>';
+          let lastType = "";
+          (res.stocks || []).forEach((s) => {
+            if (lastType !== s.type) {
+              const grp = document.createElement("optgroup");
+              grp.label = s.type === "index" ? "── INDICES ──" : "── FnO STOCKS (Futures) ──";
+              sel.appendChild(grp);
+              lastType = s.type;
+            }
+            const o = document.createElement("option");
+            o.value = s.instrument_key;
+            o.dataset.symbol = s.symbol;
+            o.dataset.lotSize = s.lot_size;
+            o.textContent = s.symbol;
+            sel.appendChild(o);
           });
-          $("bt-status").textContent = `${res.stocks.length} FnO stocks loaded.`;
-        } catch(e) { $("bt-status").textContent = "Failed: "+e.message; }
+          $("bt-status").textContent = `${res.stocks.length} futures instruments loaded.`;
+        } catch (e) {
+          $("bt-status").textContent = "Failed: " + e.message;
+        }
       }
-
-      const SPEED_NOTE={
-        "1min":"⚠ 1-min: slowest. First run can take 1–3 min. Cached after.",
-        "3min":"⚠ 3-min: first run ~20–60s per stock. Cached after, then instant.",
-        "5min":"5-min: first run ~15–40s. Cached after.",
-        "15min":"15-min: few requests, first run ~5–15s. Cached after.",
-        "day":"Daily: 1 request, instant — but NO intraday exits.",
+      const SPEED_NOTE = {
+        "1min": "⚠ 1-min: slowest. First run can take 1–3 min. Cached after.",
+        "3min":
+          "⚠ 3-min: first run ~20–60s per stock. Cached after, then instant.",
+        "5min": "5-min: first run ~15–40s. Cached after.",
+        "15min": "15-min: few requests, first run ~5–15s. Cached after.",
+        day: "Daily: 1 request, instant — but NO intraday exits.",
       };
       function updateSpeedNote() {
-        const tf=$("bt-timeframe").value, note=$("bt-speed-note");
-        note.textContent=SPEED_NOTE[tf]||""; note.style.display=note.textContent?"block":"none";
+        const tf = $("bt-timeframe").value,
+          note = $("bt-speed-note");
+        note.textContent = SPEED_NOTE[tf] || "";
+        note.style.display = note.textContent ? "block" : "none";
       }
       updateSpeedNote();
 
+      function onStockChange() {
+        const o = $("bt-stock").selectedOptions[0];
+        if (o && o.dataset.lotSize) {
+          $("bt-lot-size").value = o.dataset.lotSize;
+        }
+      }
       async function runBacktest() {
-        const sel=$("bt-stock"), ik=sel.value, sym=sel.selectedOptions[0]?.dataset?.symbol||"";
-        if (!ik){$("bt-status").textContent="Please select a stock first.";return;}
-        const days=parseInt($("bt-period").value), timeframe=$("bt-timeframe").value;
-        const xPts=parseFloat($("bt-x").value), yPts=parseFloat($("bt-y").value);
-        if(!(xPts>0)||!(yPts>0)){$("bt-status").textContent="Target and Stop Loss must be positive.";return;}
-        const toDate=new Date().toISOString().slice(0,10);
-        const fromDate=new Date(Date.now()-days*86400000).toISOString().slice(0,10);
-        $("bt-status").textContent=`Running ORB backtest for ${sym} on ${timeframe} candles…`;
-        $("bt-summary").style.display="none"; $("bt-chart").style.display="none"; $("bt-table-wrap").style.display="none";
+        const sel = $("bt-stock"),
+          ik = sel.value,
+          sym = sel.selectedOptions[0]?.dataset?.symbol || "";
+        if (!ik) {
+          $("bt-status").textContent = "Please select a stock first.";
+          return;
+        }
+        const days = parseInt($("bt-period").value),
+          timeframe = $("bt-timeframe").value;
+        const strategy = $("bt-strategy").value;
+        const lotSize = parseInt($("bt-lot-size").value) || 1;
+        const capital = parseFloat($("bt-capital").value) || 500000;
+        const toDate = new Date().toISOString().slice(0, 10);
+        const fromDate = new Date(Date.now() - days * 86400000)
+          .toISOString()
+          .slice(0, 10);
+        let url = `/backtest?instrument_key=${encodeURIComponent(ik)}&symbol=${encodeURIComponent(sym)}&timeframe=${encodeURIComponent(timeframe)}&from_date=${fromDate}&to_date=${toDate}&strategy=${strategy}&lot_size=${lotSize}`;
+        if (strategy === "orb") {
+          const xPts = parseFloat($("bt-x").value),
+            yPts = parseFloat($("bt-y").value);
+          if (!(xPts > 0) || !(yPts > 0)) {
+            $("bt-status").textContent =
+              "Target and Stop Loss must be positive.";
+            return;
+          }
+          url += `&x_pts=${xPts}&y_pts=${yPts}`;
+          $("bt-status").textContent =
+            `Running ORB backtest for ${sym} on ${timeframe} futures candles…`;
+        } else {
+          const tgtPct = parseFloat($("bt-tgt-pct").value),
+            slPct = parseFloat($("bt-sl-pct").value);
+          if (!(tgtPct > 0) || !(slPct > 0)) {
+            $("bt-status").textContent = "Target % and SL % must be positive.";
+            return;
+          }
+          url += `&target_pct=${tgtPct}&sl_pct=${slPct}`;
+          $("bt-status").textContent =
+            `Running Momentum backtest for ${sym} on ${timeframe} futures candles…`;
+        }
+        $("bt-summary").style.display = "none";
+        $("bt-chart").style.display = "none";
+        $("bt-table-wrap").style.display = "none";
         try {
-          const url=`/backtest?instrument_key=${encodeURIComponent(ik)}&symbol=${encodeURIComponent(sym)}&timeframe=${encodeURIComponent(timeframe)}&from_date=${fromDate}&to_date=${toDate}&x_pts=${xPts}&y_pts=${yPts}`;
-          const res=await jget(url); const s=res.summary, trades=res.trades;
-          if(!trades||!trades.length){$("bt-status").textContent=`No breakout trades for ${sym} in this period.`;return;}
-          $("bs-total").textContent=s.total; $("bs-wins").textContent=s.wins; $("bs-losses").textContent=s.losses;
-          $("bs-winrate").textContent=s.win_rate+"%"; $("bs-ls").textContent=`${s.longs} / ${s.shorts}`;
-          const pnlEl=$("bs-pnl"); pnlEl.textContent=(s.total_pnl>=0?"+":"")+s.total_pnl.toFixed(2);
-          pnlEl.className="sv "+(s.total_pnl>=0?"bt-win":"bt-loss");
-          $("bt-summary").style.display="flex";
-          let cum=0; const labels=[], data=[];
-          trades.forEach(t=>{cum+=t.pnl;labels.push(t.entry_date);data.push(parseFloat(cum.toFixed(2)));});
-          $("bt-chart").style.display="block";
-          if (btChart) btChart.destroy();
-          btChart=new Chart($("bt-canvas"),{type:"line",data:{labels,datasets:[{label:`${sym} Cumulative P&L (pts)`,data,borderColor:s.total_pnl>=0?"#1e8449":"#e74c3c",backgroundColor:s.total_pnl>=0?"rgba(30,132,73,0.08)":"rgba(231,76,60,0.08)",borderWidth:2,pointRadius:3,fill:true,tension:0.3}]},options:{responsive:true,plugins:{legend:{display:true}},scales:{x:{ticks:{maxTicksLimit:12,font:{size:10}}},y:{ticks:{font:{size:10}}}}}});
-          const tb=$("bt-table").querySelector("tbody"); tb.innerHTML="";
-          trades.forEach(t=>{
-            const cls=t.result==="WIN"?"r-darkgreen":"r-darkred";
-            const sideCls=t.side==="LONG"?"r-darkgreen":"r-darkred";
-            tb.innerHTML+=`<tr><td class="lbl">${t.entry_date}</td><td class="${sideCls}">${t.side}</td><td>${t.entry.toFixed(2)}</td><td class="r-red">${t.sl.toFixed(2)}</td><td class="r-green">${t.target.toFixed(2)}</td><td>${t.exit.toFixed(2)}</td><td>${t.exit_time||"-"}</td><td class="${cls}">${t.pnl>=0?"+":""}${t.pnl.toFixed(2)}</td><td class="${cls}">${t.pnl_pct>=0?"+":""}${t.pnl_pct}%</td><td class="${cls}">${t.result}</td></tr>`;
+          const res = await jget(url);
+          const s = res.summary,
+            trades = res.trades;
+          const isMom = res.strategy === "momentum";
+          if (!trades || !trades.length) {
+            $("bt-status").textContent =
+              `No trades found for ${sym} in this period.`;
+            return;
+          }
+
+          // Basic stats
+          $("bs-total").textContent = s.total;
+          $("bs-wins").textContent = s.wins;
+          $("bs-losses").textContent = s.losses;
+          $("bs-winrate").textContent = s.win_rate + "%";
+          $("bs-ls").textContent = `${s.longs} / ${s.shorts}`;
+          const pnlEl = $("bs-pnl");
+          pnlEl.textContent =
+            (s.total_pnl >= 0 ? "+" : "") +
+            s.total_pnl.toFixed(2) +
+            (isMom ? "%" : "");
+          pnlEl.className = "sv " + (s.total_pnl >= 0 ? "bt-win" : "bt-loss");
+
+          // Capital tracker
+          const pnlInr = s.total_pnl_inr || 0;
+          const endCap = capital + pnlInr;
+          $("bs-start-cap").textContent = "₹" + fmt(Math.round(capital));
+          const pnlInrEl = $("bs-pnl-inr");
+          pnlInrEl.textContent =
+            (pnlInr >= 0 ? "+" : "") + "₹" + fmt(Math.round(pnlInr));
+          pnlInrEl.className = "sv " + (pnlInr >= 0 ? "bt-win" : "bt-loss");
+          const endEl = $("bs-end-cap");
+          endEl.textContent = "₹" + fmt(Math.round(endCap));
+          endEl.className = "sv " + (endCap >= capital ? "bt-win" : "bt-loss");
+
+          $("bt-summary").style.display = "flex";
+
+          // Chart — portfolio value in ₹
+          let cum = 0;
+          const labels = [],
+            data = [];
+          trades.forEach((t) => {
+            cum += t.pnl_inr || 0;
+            labels.push(t.entry_date);
+            data.push(parseFloat((capital + cum).toFixed(2)));
           });
-          $("bt-table-wrap").style.display="block";
-          $("bt-status").textContent=`ORB complete: ${sym} | ${timeframe} | ${fromDate} → ${toDate}`;
-        } catch(e){$("bt-status").textContent="Backtest failed: "+e.message;}
+          $("bt-chart").style.display = "block";
+          if (btChart) btChart.destroy();
+          btChart = new Chart($("bt-canvas"), {
+            type: "line",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: `${sym} Portfolio Value (₹)`,
+                  data,
+                  borderColor: pnlInr >= 0 ? "#1e8449" : "#e74c3c",
+                  backgroundColor:
+                    pnlInr >= 0
+                      ? "rgba(30,132,73,0.08)"
+                      : "rgba(231,76,60,0.08)",
+                  borderWidth: 2,
+                  pointRadius: 2,
+                  fill: true,
+                  tension: 0.3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { display: true } },
+              scales: {
+                x: { ticks: { maxTicksLimit: 12, font: { size: 10 } } },
+                y: {
+                  ticks: {
+                    font: { size: 10 },
+                    callback: (v) => "₹" + fmt(Math.round(v)),
+                  },
+                },
+              },
+            },
+          });
+
+          // Table headers
+          const thead = $("bt-table").querySelector("thead tr");
+          if (isMom) {
+            thead.innerHTML = `<th>Date</th><th>Side</th><th>Entry ₹</th><th>SL ₹</th><th>Target ₹</th><th>Exit ₹</th><th>Exit Time</th><th>P&L pts</th><th>P&L ₹</th><th>Result</th><th>EMA9</th><th>EMA21</th><th>RSI</th><th>ADX</th><th>VWAP</th>`;
+          } else {
+            thead.innerHTML = `<th>Date</th><th>Side</th><th>Entry</th><th>SL</th><th>Target</th><th>Exit</th><th>Exit Time</th><th>P&L pts</th><th>P&L ₹</th><th>Result</th>`;
+          }
+
+          const tb = $("bt-table").querySelector("tbody");
+          tb.innerHTML = "";
+          trades.forEach((t) => {
+            const cls = t.result === "WIN" ? "r-darkgreen" : "r-darkred";
+            const sideCls = t.side === "LONG" ? "r-darkgreen" : "r-darkred";
+            const pnlInrCell =
+              (t.pnl_inr >= 0 ? "+" : "") +
+              "₹" +
+              fmt(Math.round(t.pnl_inr || 0));
+            if (isMom) {
+              tb.innerHTML += `<tr>
+                <td class="lbl">${t.entry_date}</td>
+                <td class="${sideCls}">${t.side}</td>
+                <td>${t.entry.toFixed(2)}</td>
+                <td class="r-red">${t.sl.toFixed(2)}</td>
+                <td class="r-green">${t.target.toFixed(2)}</td>
+                <td>${t.exit.toFixed(2)}</td>
+                <td>${t.exit_time || "-"}</td>
+                <td class="${cls}">${t.pnl >= 0 ? "+" : ""}${t.pnl.toFixed(2)}</td>
+                <td class="${cls}">${pnlInrCell}</td>
+                <td class="${cls}">${t.result}</td>
+                <td style="font-size:11px;color:#555">${t.ema9}</td>
+                <td style="font-size:11px;color:#555">${t.ema21}</td>
+                <td style="font-size:11px;color:${t.rsi > 50 ? "#1e8449" : "#c0392b"}">${t.rsi}</td>
+                <td style="font-size:11px;color:${t.adx > 25 ? "#1f3a5f" : "#c0932a"}">${t.adx}</td>
+                <td style="font-size:11px;color:#555">${t.vwap}</td>
+              </tr>`;
+            } else {
+              tb.innerHTML += `<tr>
+                <td class="lbl">${t.entry_date}</td>
+                <td class="${sideCls}">${t.side}</td>
+                <td>${t.entry.toFixed(2)}</td>
+                <td class="r-red">${t.sl.toFixed(2)}</td>
+                <td class="r-green">${t.target.toFixed(2)}</td>
+                <td>${t.exit.toFixed(2)}</td>
+                <td>${t.exit_time || "-"}</td>
+                <td class="${cls}">${t.pnl >= 0 ? "+" : ""}${t.pnl.toFixed(2)}</td>
+                <td class="${cls}">${pnlInrCell}</td>
+                <td class="${cls}">${t.result}</td>
+              </tr>`;
+            }
+          });
+          $("bt-table-wrap").style.display = "block";
+          $("bt-status").textContent =
+            `${isMom ? "Momentum" : "ORB"} complete: ${sym} | ${timeframe} | ${fromDate} → ${toDate} | ${s.total} trades | lot=${lotSize}`;
+        } catch (e) {
+          $("bt-status").textContent = "Backtest failed: " + e.message;
+        }
+      }
+
+      function onStrategyChange() {
+        const strat = $("bt-strategy").value;
+        $("bt-orb-inputs").style.display =
+          strat === "orb" ? "contents" : "none";
+        $("bt-momentum-inputs").style.display =
+          strat === "momentum" ? "contents" : "none";
+        $("bt-status").textContent =
+          strat === "orb"
+            ? "Opening Range Breakout — 09:15–09:45 range. Select a stock and click Run Backtest."
+            : "Momentum (EMA9/21 + RSI14 + ADX14 + VWAP + Volume) — Select a stock and click Run Backtest.";
       }
 
       // ── TRENDING TAB ────────────────────────────────────────────────────────
@@ -789,58 +2467,76 @@
 
       function trBadge(s) {
         const trade = s.trade;
-        const cm    = new Date().getHours()*60+new Date().getMinutes();
+        const cm = new Date().getHours() * 60 + new Date().getMinutes();
         if (!trade) {
-          if (s.or_locked) return `<span class="tr-badge tr-badge-watch">WATCHING</span>`;
-          if (cm >= 9*60+15 && cm < 9*60+45) return `<span class="tr-badge tr-badge-or">BUILDING OR</span>`;
+          if (s.or_locked)
+            return `<span class="tr-badge tr-badge-watch">WATCHING</span>`;
+          if (cm >= 9 * 60 + 15 && cm < 9 * 60 + 45)
+            return `<span class="tr-badge tr-badge-or">BUILDING OR</span>`;
           return `<span class="tr-badge tr-badge-notr">WAITING</span>`;
         }
-        const r=trade.result;
-        if (!r||r==="OPEN") {
-          const c=s.direction==="LONG"?"tr-badge-long":"tr-badge-short";
+        const r = trade.result;
+        if (!r || r === "OPEN") {
+          const c = s.direction === "LONG" ? "tr-badge-long" : "tr-badge-short";
           return `<span class="tr-badge ${c}">${s.direction} OPEN</span>`;
         }
-        if (r==="TGT HIT")   return `<span class="tr-badge tr-badge-tgt">TGT HIT ✓</span>`;
-        if (r==="SL HIT")    return `<span class="tr-badge tr-badge-sl">SL HIT ✗</span>`;
-        if (r==="SQUAREOFF") return `<span class="tr-badge tr-badge-sq">SQ OFF</span>`;
+        if (r === "TGT HIT")
+          return `<span class="tr-badge tr-badge-tgt">TGT HIT ✓</span>`;
+        if (r === "SL HIT")
+          return `<span class="tr-badge tr-badge-sl">SL HIT ✗</span>`;
+        if (r === "SQUAREOFF")
+          return `<span class="tr-badge tr-badge-sq">SQ OFF</span>`;
         return `<span class="tr-badge tr-badge-watch">${r}</span>`;
       }
 
       function renderTrendingRow(s, ltps) {
-        const sym     = s.symbol;
-        const trade   = s.trade;
-        const ltp     = ltps[sym] ?? null;
-        const isLong  = s.direction === "LONG";
+        const sym = s.symbol;
+        const trade = s.trade;
+        const ltp = ltps[sym] ?? null;
+        const isLong = s.direction === "LONG";
         const gainCls = isLong ? "r-darkgreen" : "r-darkred";
-        const gainSign= s.gain3d_pct >= 0 ? "+" : "";
+        const gainSign = s.gain3d_pct >= 0 ? "+" : "";
 
         const ltpCell = ltp != null ? `₹${fmtR(ltp)}` : "—";
-        const orHCell = s.or_high != null ? `<span class="r-green">₹${fmtR(s.or_high)}</span>` : "—";
-        const orLCell = s.or_low  != null ? `<span class="r-red">₹${fmtR(s.or_low)}</span>` : "—";
+        const orHCell =
+          s.or_high != null
+            ? `<span class="r-green">₹${fmtR(s.or_high)}</span>`
+            : "—";
+        const orLCell =
+          s.or_low != null
+            ? `<span class="r-red">₹${fmtR(s.or_low)}</span>`
+            : "—";
 
-        let lotsCell="—", entryCell="—", slCell="—", tgtCell="—";
-        let unrealCell="—", exitCell="—", finalPnlCell="—";
+        let lotsCell = "—",
+          entryCell = "—",
+          slCell = "—",
+          tgtCell = "—";
+        let unrealCell = "—",
+          exitCell = "—",
+          finalPnlCell = "—";
 
         if (trade) {
           const isOpen = trade.result === "OPEN";
-          const isL    = trade.side === "LONG";
-          lotsCell  = `${trade.lots_taken || 1}×${trade.lot_size}`;
+          const isL = trade.side === "LONG";
+          lotsCell = `${trade.lots_taken || 1}×${trade.lot_size}`;
           entryCell = `₹${fmtR(trade.entry_price)}<br><span style="font-size:10px;color:#888">${trade.entry_time}</span>`;
-          slCell    = `<span class="r-red">₹${fmtR(trade.sl_price)}</span>`;
-          tgtCell   = `<span class="r-green">₹${fmtR(trade.target_price)}</span>`;
+          slCell = `<span class="r-red">₹${fmtR(trade.sl_price)}</span>`;
+          tgtCell = `<span class="r-green">₹${fmtR(trade.target_price)}</span>`;
 
           if (isOpen && ltp != null) {
-            const pnl_pts = isL ? ltp-trade.entry_price : trade.entry_price-ltp;
-            const unreal  = pnl_pts * trade.lot_size * (trade.lots_taken||1);
-            const unrPct  = ((pnl_pts/trade.entry_price)*100).toFixed(2);
-            const cls     = unreal>=0?"tr-pnl-pos":"tr-pnl-neg";
-            unrealCell    = `<span class="${cls}">${unreal>=0?"+":""}₹${fmtR(unreal)}<br><span style="font-size:10px">(${unreal>=0?"+":""}${unrPct}%)</span></span>`;
+            const pnl_pts = isL
+              ? ltp - trade.entry_price
+              : trade.entry_price - ltp;
+            const unreal = pnl_pts * trade.lot_size * (trade.lots_taken || 1);
+            const unrPct = ((pnl_pts / trade.entry_price) * 100).toFixed(2);
+            const cls = unreal >= 0 ? "tr-pnl-pos" : "tr-pnl-neg";
+            unrealCell = `<span class="${cls}">${unreal >= 0 ? "+" : ""}₹${fmtR(unreal)}<br><span style="font-size:10px">(${unreal >= 0 ? "+" : ""}${unrPct}%)</span></span>`;
           }
           if (!isOpen) {
-            exitCell = `₹${fmtR(trade.exit_price)}<br><span style="font-size:10px;color:#888">${trade.exit_time||"—"}</span>`;
+            exitCell = `₹${fmtR(trade.exit_price)}<br><span style="font-size:10px;color:#888">${trade.exit_time || "—"}</span>`;
             if (trade.pnl_inr != null) {
-              const cls = trade.pnl_inr>=0?"tr-pnl-pos":"tr-pnl-neg";
-              finalPnlCell = `<span class="${cls}">${trade.pnl_inr>=0?"+":""}₹${fmtR(trade.pnl_inr)}<br><span style="font-size:10px">(${trade.pnl_pct>=0?"+":""}${fmtR(trade.pnl_pct)}%)</span></span>`;
+              const cls = trade.pnl_inr >= 0 ? "tr-pnl-pos" : "tr-pnl-neg";
+              finalPnlCell = `<span class="${cls}">${trade.pnl_inr >= 0 ? "+" : ""}₹${fmtR(trade.pnl_inr)}<br><span style="font-size:10px">(${trade.pnl_pct >= 0 ? "+" : ""}${fmtR(trade.pnl_pct)}%)</span></span>`;
             }
           }
         }
@@ -865,37 +2561,52 @@
       }
 
       function renderTrendingTables(state, ltps) {
-        const risingTb  = $("tr-rising-tbody");
+        const risingTb = $("tr-rising-tbody");
         const fallingTb = $("tr-falling-tbody");
-        risingTb.innerHTML = ""; fallingTb.innerHTML = "";
+        risingTb.innerHTML = "";
+        fallingTb.innerHTML = "";
 
         // Capital display
         if (state.capital != null) {
-          $("tr-cap-total").textContent    = "₹" + fmt(Math.round(state.capital));
-          $("tr-cap-deployed").textContent = "₹" + fmt(Math.round(state.capital_deployed||0));
-          $("tr-cap-free").textContent     = "₹" + fmt(Math.round(state.capital_free||0));
+          $("tr-cap-total").textContent = "₹" + fmt(Math.round(state.capital));
+          $("tr-cap-deployed").textContent =
+            "₹" + fmt(Math.round(state.capital_deployed || 0));
+          $("tr-cap-free").textContent =
+            "₹" + fmt(Math.round(state.capital_free || 0));
         }
 
         if (!state.rising.length && !state.falling.length) {
-          risingTb.innerHTML  = `<tr><td colspan="14" class="tr-empty">${state.scanned_date?"No qualifying stocks found today.":"Scan not run yet — runs at 09:00 IST or click Scan Now."}</td></tr>`;
+          risingTb.innerHTML = `<tr><td colspan="14" class="tr-empty">${state.scanned_date ? "No qualifying stocks found today." : "Scan not run yet — runs at 09:00 IST or click Scan Now."}</td></tr>`;
           fallingTb.innerHTML = `<tr><td colspan="14" class="tr-empty">—</td></tr>`;
           return;
         }
 
-        $("tr-rising-count").textContent  = `${state.rising.length} stocks`;
+        $("tr-rising-count").textContent = `${state.rising.length} stocks`;
         $("tr-falling-count").textContent = `${state.falling.length} stocks`;
 
-        if (state.rising.length)  state.rising.forEach(s=>risingTb.appendChild(renderTrendingRow(s,ltps)));
-        else                      risingTb.innerHTML  = `<tr><td colspan="14" class="tr-empty">No rising stocks found.</td></tr>`;
+        if (state.rising.length)
+          state.rising.forEach((s) =>
+            risingTb.appendChild(renderTrendingRow(s, ltps)),
+          );
+        else
+          risingTb.innerHTML = `<tr><td colspan="14" class="tr-empty">No rising stocks found.</td></tr>`;
 
-        if (state.falling.length) state.falling.forEach(s=>fallingTb.appendChild(renderTrendingRow(s,ltps)));
-        else                      fallingTb.innerHTML = `<tr><td colspan="14" class="tr-empty">No falling stocks found.</td></tr>`;
+        if (state.falling.length)
+          state.falling.forEach((s) =>
+            fallingTb.appendChild(renderTrendingRow(s, ltps)),
+          );
+        else
+          fallingTb.innerHTML = `<tr><td colspan="14" class="tr-empty">No falling stocks found.</td></tr>`;
       }
 
       async function initTrending() {
         await loadTrending();
         clearTimeout(trTimer);
-        trTimer = setTimeout(function autoRefresh(){loadTrending();clearTimeout(trTimer);trTimer=setTimeout(autoRefresh,60000);},60000);
+        trTimer = setTimeout(function autoRefresh() {
+          loadTrending();
+          clearTimeout(trTimer);
+          trTimer = setTimeout(autoRefresh, 60000);
+        }, 60000);
       }
 
       async function loadTrending() {
@@ -903,96 +2614,144 @@
         try {
           const [state, ltpRes] = await Promise.all([
             jget("/trending_state"),
-            jget("/trending_ltp").catch(()=>({ltps:{}})),
+            jget("/trending_ltp").catch(() => ({ ltps: {} })),
           ]);
           _trLtps = ltpRes.ltps || {};
           renderTrendingTables(state, _trLtps);
-          $("tr-param-display").textContent = `SL ${state.sl_pct}% / TGT ${state.target_pct}%`;
-          const scanInfo = state.scanned_date ? `Scanned: ${state.scanned_date}` : "Not scanned yet";
-          $("tr-status").textContent = `${scanInfo} | ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open?"OPEN ✓":"CLOSED"}`;
+          $("tr-param-display").textContent =
+            `SL ${state.sl_pct}% / TGT ${state.target_pct}%`;
+          const scanInfo = state.scanned_date
+            ? `Scanned: ${state.scanned_date}`
+            : "Not scanned yet";
+          $("tr-status").textContent =
+            `${scanInfo} | ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open ? "OPEN ✓" : "CLOSED"}`;
 
           // Populate history symbol filter
-          const allSyms = [...state.rising,...state.falling].map(s=>s.symbol);
+          const allSyms = [...state.rising, ...state.falling].map(
+            (s) => s.symbol,
+          );
           const sel = $("tr-hist-sym");
-          const existing = Array.from(sel.options).map(o=>o.value);
-          allSyms.forEach(sym=>{
-            if (!existing.includes(sym)){
-              const o=document.createElement("option"); o.value=sym; o.textContent=sym; sel.appendChild(o);
+          const existing = Array.from(sel.options).map((o) => o.value);
+          allSyms.forEach((sym) => {
+            if (!existing.includes(sym)) {
+              const o = document.createElement("option");
+              o.value = sym;
+              o.textContent = sym;
+              sel.appendChild(o);
             }
           });
           await loadHistory();
           await loadDailySummary();
-        } catch(e) { $("tr-status").textContent = "Failed: " + e.message; }
+        } catch (e) {
+          $("tr-status").textContent = "Failed: " + e.message;
+        }
       }
 
       async function loadDailySummary() {
         try {
           const res = await jget("/trending_daily_summary");
-          const tb  = $("tr-daily-table").querySelector("tbody");
+          const tb = $("tr-daily-table").querySelector("tbody");
           tb.innerHTML = "";
-          (res.summary||[]).forEach(r=>{
-            const cls = r.pnl_inr>=0?"r-darkgreen":"r-darkred";
+          (res.summary || []).forEach((r) => {
+            const cls = r.pnl_inr >= 0 ? "r-darkgreen" : "r-darkred";
             tb.innerHTML += `<tr>
               <td class="lbl">${r.date}</td>
               <td>${r.trades}</td>
               <td class="r-darkgreen">${r.wins}</td>
               <td class="r-darkred">${r.losses}</td>
-              <td class="${cls}">${r.pnl_inr>=0?"+":""}₹${fmtR(r.pnl_inr)}</td>
+              <td class="${cls}">${r.pnl_inr >= 0 ? "+" : ""}₹${fmtR(r.pnl_inr)}</td>
             </tr>`;
           });
-          if (!res.summary||!res.summary.length) {
+          if (!res.summary || !res.summary.length) {
             tb.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#888;padding:10px">No history yet</td></tr>`;
           }
-        } catch(e) { console.warn("Daily summary load failed:", e.message); }
+        } catch (e) {
+          console.warn("Daily summary load failed:", e.message);
+        }
       }
 
       async function saveTrendingParams() {
-        const sl  = parseFloat($("tr-sl-pct").value);
+        const sl = parseFloat($("tr-sl-pct").value);
         const tgt = parseFloat($("tr-tgt-pct").value);
-        if (isNaN(sl)||sl<=0||isNaN(tgt)||tgt<=0){$("tr-status").textContent="Enter valid positive numbers.";return;}
+        if (isNaN(sl) || sl <= 0 || isNaN(tgt) || tgt <= 0) {
+          $("tr-status").textContent = "Enter valid positive numbers.";
+          return;
+        }
         try {
-          const p = await jget(`/trending_params?sl_pct=${sl}&target_pct=${tgt}`);
-          $("tr-param-display").textContent = `SL ${p.sl_pct}% / TGT ${p.target_pct}%`;
-          $("tr-status").textContent = `Params saved — SL ${p.sl_pct}% / TGT ${p.target_pct}%. Applies on next entry.`;
-          $("tr-sl-pct").value=""; $("tr-tgt-pct").value="";
-        } catch(e) { $("tr-status").textContent = "Save failed: " + e.message; }
+          const p = await jget(
+            `/trending_params?sl_pct=${sl}&target_pct=${tgt}`,
+          );
+          $("tr-param-display").textContent =
+            `SL ${p.sl_pct}% / TGT ${p.target_pct}%`;
+          $("tr-status").textContent =
+            `Params saved — SL ${p.sl_pct}% / TGT ${p.target_pct}%. Applies on next entry.`;
+          $("tr-sl-pct").value = "";
+          $("tr-tgt-pct").value = "";
+        } catch (e) {
+          $("tr-status").textContent = "Save failed: " + e.message;
+        }
       }
 
       async function setTrCapital() {
         const amount = parseFloat($("tr-capital-input").value);
-        if (isNaN(amount)||amount<100000){$("tr-status").textContent="Minimum capital is ₹1 lac.";return;}
+        if (isNaN(amount) || amount < 100000) {
+          $("tr-status").textContent = "Minimum capital is ₹1 lac.";
+          return;
+        }
         try {
           const res = await jget(`/trending_set_capital?amount=${amount}`);
-          $("tr-status").textContent = res.msg + ` | Current: ₹${fmt(Math.round(res.current))}`;
+          $("tr-status").textContent =
+            res.msg + ` | Current: ₹${fmt(Math.round(res.current))}`;
           $("tr-capital-input").value = "";
-        } catch(e) { $("tr-status").textContent = "Capital set failed: " + e.message; }
+        } catch (e) {
+          $("tr-status").textContent = "Capital set failed: " + e.message;
+        }
       }
 
       async function scanNow() {
-        $("tr-status").textContent = "Scan triggered — running in background (~2-3 min)…";
-        try { await jget("/trending_scan_now"); }
-        catch(e) { $("tr-status").textContent = "Scan trigger failed: " + e.message; }
+        $("tr-status").textContent =
+          "Scan triggered — running in background (~2-3 min)…";
+        try {
+          await jget("/trending_scan_now");
+        } catch (e) {
+          $("tr-status").textContent = "Scan trigger failed: " + e.message;
+        }
       }
 
       async function loadHistory() {
         const sym = $("tr-hist-sym").value;
         try {
-          const url = `/trending_history?days=30${sym?"&symbol="+encodeURIComponent(sym):""}`;
+          const url = `/trending_history?days=30${sym ? "&symbol=" + encodeURIComponent(sym) : ""}`;
           const res = await jget(url);
-          const rows= res.history||[];
-          const tb  = $("tr-hist-table").querySelector("tbody");
-          tb.innerHTML="";
-          if (!rows.length){tb.innerHTML=`<tr><td colspan="17" style="text-align:center;color:#888;padding:12px">No history yet</td></tr>`;return;}
-          rows.forEach(r=>{
-            const isL    = r.side==="LONG";
-            const sideCls= isL?"r-darkgreen":"r-darkred";
-            const pnlCls = r.pnl_inr==null?"":(r.pnl_inr>=0?"r-darkgreen":"r-darkred");
-            const resCls = r.result==="TGT HIT"?"r-darkgreen":r.result==="SL HIT"?"r-darkred":r.result==="SQUAREOFF"?"r-red":"";
-            tb.innerHTML+=`<tr>
+          const rows = res.history || [];
+          const tb = $("tr-hist-table").querySelector("tbody");
+          tb.innerHTML = "";
+          if (!rows.length) {
+            tb.innerHTML = `<tr><td colspan="17" style="text-align:center;color:#888;padding:12px">No history yet</td></tr>`;
+            return;
+          }
+          rows.forEach((r) => {
+            const isL = r.side === "LONG";
+            const sideCls = isL ? "r-darkgreen" : "r-darkred";
+            const pnlCls =
+              r.pnl_inr == null
+                ? ""
+                : r.pnl_inr >= 0
+                  ? "r-darkgreen"
+                  : "r-darkred";
+            const resCls =
+              r.result === "TGT HIT"
+                ? "r-darkgreen"
+                : r.result === "SL HIT"
+                  ? "r-darkred"
+                  : r.result === "SQUAREOFF"
+                    ? "r-red"
+                    : "";
+            tb.innerHTML += `<tr>
               <td class="lbl">${r.log_date}</td>
               <td class="lbl" style="font-weight:700">${r.symbol}</td>
               <td class="${sideCls}">${r.side}</td>
-              <td>${r.lots_taken||1}</td>
+              <td>${r.lots_taken || 1}</td>
               <td>${r.lot_size}</td>
               <td>₹${fmtR(r.entry_price)}</td>
               <td>${r.entry_time}</td>
@@ -1000,237 +2759,454 @@
               <td class="r-green">${fmtR(r.target_pct)}%</td>
               <td class="r-red">₹${fmtR(r.sl_price)}</td>
               <td class="r-green">₹${fmtR(r.target_price)}</td>
-              <td>${r.notional!=null?"₹"+fmt(Math.round(r.notional)):"—"}</td>
-              <td>${r.result==="OPEN"?"—":"₹"+fmtR(r.exit_price)}</td>
-              <td>${r.exit_time||"—"}</td>
-              <td class="${pnlCls}">${r.pnl_inr==null?"—":(r.pnl_inr>=0?"+":"")+"₹"+fmtR(r.pnl_inr)}</td>
-              <td class="${pnlCls}">${r.pnl_pct==null?"—":(r.pnl_pct>=0?"+":"")+fmtR(r.pnl_pct)+"%"}</td>
+              <td>${r.notional != null ? "₹" + fmt(Math.round(r.notional)) : "—"}</td>
+              <td>${r.result === "OPEN" ? "—" : "₹" + fmtR(r.exit_price)}</td>
+              <td>${r.exit_time || "—"}</td>
+              <td class="${pnlCls}">${r.pnl_inr == null ? "—" : (r.pnl_inr >= 0 ? "+" : "") + "₹" + fmtR(r.pnl_inr)}</td>
+              <td class="${pnlCls}">${r.pnl_pct == null ? "—" : (r.pnl_pct >= 0 ? "+" : "") + fmtR(r.pnl_pct) + "%"}</td>
               <td class="${resCls}">${r.result}</td>
             </tr>`;
           });
-        } catch(e) { console.warn("History load failed:", e.message); }
+        } catch (e) {
+          console.warn("History load failed:", e.message);
+        }
       }
 
       // ── TODAY'S TRADES (Equity Cash) ─────────────────────────────────────────
-      let ttTimer=null;
-      function initTodayTrades(){loadEqState();clearInterval(ttTimer);ttTimer=setInterval(loadEqState,60000);}
+      let ttTimer = null;
+      function initTodayTrades() {
+        loadEqState();
+        clearInterval(ttTimer);
+        ttTimer = setInterval(loadEqState, 60000);
+      }
 
       async function loadEqState() {
         try {
-          const state  = await jget("/eq_state");
+          const state = await jget("/eq_state");
           $("tt-date").textContent = state.date;
-          $("tt-capital-display").textContent = "₹"+fmt(state.capital);
-          $("tt-param-display").textContent   = `Capital ₹${fmt(state.capital)} | SL ${state.sl_pct}% | TGT ${state.target_pct}%`;
-          const stocks = state.stocks||[];
-          const open   = stocks.filter(s=>s.trade&&s.trade.result==="OPEN");
-          const closed = stocks.filter(s=>s.trade&&s.trade.result!=="OPEN");
+          $("tt-capital-display").textContent = "₹" + fmt(state.capital);
+          $("tt-param-display").textContent =
+            `Capital ₹${fmt(state.capital)} | SL ${state.sl_pct}% | TGT ${state.target_pct}%`;
+          const stocks = state.stocks || [];
+          const open = stocks.filter(
+            (s) => s.trade && s.trade.result === "OPEN",
+          );
+          const closed = stocks.filter(
+            (s) => s.trade && s.trade.result !== "OPEN",
+          );
           $("tt-active-count").textContent = open.length;
-          let unrealTotal=0;
-          open.forEach(s=>{if(s.ltp!=null&&s.trade){const isL=s.trade.side==="LONG";unrealTotal+=(isL?(s.ltp-s.trade.entry_price):(s.trade.entry_price-s.ltp))*s.trade.qty;}});
-          const uEl=$("tt-today-unreal"); uEl.textContent=(unrealTotal>=0?"+":"")+"₹"+fmtR(unrealTotal); uEl.className="val "+(unrealTotal>=0?"pos":"neg");
-          let closedTotal=0; closed.forEach(s=>{closedTotal+=s.trade.pnl_inr||0;});
-          const cEl=$("tt-today-closed"); cEl.textContent=(closedTotal>=0?"+":"")+"₹"+fmtR(closedTotal); cEl.className="val "+(closedTotal>=0?"pos":"neg");
+          let unrealTotal = 0;
+          open.forEach((s) => {
+            if (s.ltp != null && s.trade) {
+              const isL = s.trade.side === "LONG";
+              unrealTotal +=
+                (isL
+                  ? s.ltp - s.trade.entry_price
+                  : s.trade.entry_price - s.ltp) * s.trade.qty;
+            }
+          });
+          const uEl = $("tt-today-unreal");
+          uEl.textContent =
+            (unrealTotal >= 0 ? "+" : "") + "₹" + fmtR(unrealTotal);
+          uEl.className = "val " + (unrealTotal >= 0 ? "pos" : "neg");
+          let closedTotal = 0;
+          closed.forEach((s) => {
+            closedTotal += s.trade.pnl_inr || 0;
+          });
+          const cEl = $("tt-today-closed");
+          cEl.textContent =
+            (closedTotal >= 0 ? "+" : "") + "₹" + fmtR(closedTotal);
+          cEl.className = "val " + (closedTotal >= 0 ? "pos" : "neg");
           renderEqActiveTable(stocks);
-          $("tt-status").textContent=`${stocks.length} stocks tracked | ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open?"OPEN ✓":"CLOSED"}`;
-        } catch(e){$("tt-status").textContent="Failed: "+e.message;}
+          $("tt-status").textContent =
+            `${stocks.length} stocks tracked | ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open ? "OPEN ✓" : "CLOSED"}`;
+        } catch (e) {
+          $("tt-status").textContent = "Failed: " + e.message;
+        }
       }
 
       function renderEqActiveTable(stocks) {
-        const tb=$("tt-active-tbody"); tb.innerHTML="";
-        if (!stocks.length){tb.innerHTML=`<tr><td colspan="16" style="text-align:center;color:#888;padding:14px">No stocks tracked yet — scan runs at 09:00 IST or click Scan Now in Trending tab.</td></tr>`;return;}
-        const sorted=[...stocks].sort((a,b)=>{const rank=r=>(!r.trade?2:r.trade.result==="OPEN"?0:1);return rank(a)-rank(b);});
-        sorted.forEach(s=>{
-          const trade=s.trade, isOpen=trade&&trade.result==="OPEN";
-          const isL=trade?trade.side==="LONG":s.side==="LONG";
-          const sideCls=isL?"r-darkgreen":"r-darkred";
-          const ltp=s.ltp;
-          const ltpCell=ltp!=null?`₹${fmtR(ltp)}`:"—";
-          const dhCell=s.day_high!=null?`<span class="r-green">₹${fmtR(s.day_high)}</span>`:"—";
-          const dlCell=s.day_low !=null?`<span class="r-red">₹${fmtR(s.day_low)}</span>`:"—";
-          let qtyCell=s.qty!=null?s.qty:"—", capCell="—", entryCell="—", timeCell="—";
-          let slCell="—", tgtCell="—", unrealCell="—", exitCell="—", exitTimeCell="—", finalPnlCell="—";
-          let badge=`<span class="tr-badge tr-badge-watch">WATCHING</span>`;
-          if (trade){
-            qtyCell=trade.qty; capCell=`₹${fmtR(trade.capital_used)}`; entryCell=`₹${fmtR(trade.entry_price)}`; timeCell=trade.entry_time;
-            slCell=`<span class="r-red">₹${fmtR(trade.sl_price)}</span>`; tgtCell=`<span class="r-green">₹${fmtR(trade.target_price)}</span>`;
-            if (isOpen&&ltp!=null){
-              const unreal=(isL?(ltp-trade.entry_price):(trade.entry_price-ltp))*trade.qty;
-              const unrPct=((unreal/trade.capital_used)*100).toFixed(2);
-              const cls=unreal>=0?"tr-pnl-pos":"tr-pnl-neg";
-              unrealCell=`<span class="${cls}">${unreal>=0?"+":""}₹${fmtR(unreal)}<br><span style="font-size:10px">(${unreal>=0?"+":""}${unrPct}%)</span></span>`;
-              badge=`<span class="tr-badge ${isL?"tr-badge-long":"tr-badge-short"}">${isL?"LONG":"SHORT"} OPEN</span>`;
-            } else if(!isOpen){
-              exitCell=`₹${fmtR(trade.exit_price)}`; exitTimeCell=trade.exit_time||"—";
-              if(trade.pnl_inr!=null){
-                const cls=trade.pnl_inr>=0?"tr-pnl-pos":"tr-pnl-neg";
-                finalPnlCell=`<span class="${cls}">${trade.pnl_inr>=0?"+":""}₹${fmtR(trade.pnl_inr)}<br><span style="font-size:10px">(${trade.pnl_pct>=0?"+":""}${fmtR(trade.pnl_pct)}%)</span></span>`;
+        const tb = $("tt-active-tbody");
+        tb.innerHTML = "";
+        if (!stocks.length) {
+          tb.innerHTML = `<tr><td colspan="16" style="text-align:center;color:#888;padding:14px">No stocks tracked yet — scan runs at 09:00 IST or click Scan Now in Trending tab.</td></tr>`;
+          return;
+        }
+        const sorted = [...stocks].sort((a, b) => {
+          const rank = (r) =>
+            !r.trade ? 2 : r.trade.result === "OPEN" ? 0 : 1;
+          return rank(a) - rank(b);
+        });
+        sorted.forEach((s) => {
+          const trade = s.trade,
+            isOpen = trade && trade.result === "OPEN";
+          const isL = trade ? trade.side === "LONG" : s.side === "LONG";
+          const sideCls = isL ? "r-darkgreen" : "r-darkred";
+          const ltp = s.ltp;
+          const ltpCell = ltp != null ? `₹${fmtR(ltp)}` : "—";
+          const dhCell =
+            s.day_high != null
+              ? `<span class="r-green">₹${fmtR(s.day_high)}</span>`
+              : "—";
+          const dlCell =
+            s.day_low != null
+              ? `<span class="r-red">₹${fmtR(s.day_low)}</span>`
+              : "—";
+          let qtyCell = s.qty != null ? s.qty : "—",
+            capCell = "—",
+            entryCell = "—",
+            timeCell = "—";
+          let slCell = "—",
+            tgtCell = "—",
+            unrealCell = "—",
+            exitCell = "—",
+            exitTimeCell = "—",
+            finalPnlCell = "—";
+          let badge = `<span class="tr-badge tr-badge-watch">WATCHING</span>`;
+          if (trade) {
+            qtyCell = trade.qty;
+            capCell = `₹${fmtR(trade.capital_used)}`;
+            entryCell = `₹${fmtR(trade.entry_price)}`;
+            timeCell = trade.entry_time;
+            slCell = `<span class="r-red">₹${fmtR(trade.sl_price)}</span>`;
+            tgtCell = `<span class="r-green">₹${fmtR(trade.target_price)}</span>`;
+            if (isOpen && ltp != null) {
+              const unreal =
+                (isL ? ltp - trade.entry_price : trade.entry_price - ltp) *
+                trade.qty;
+              const unrPct = ((unreal / trade.capital_used) * 100).toFixed(2);
+              const cls = unreal >= 0 ? "tr-pnl-pos" : "tr-pnl-neg";
+              unrealCell = `<span class="${cls}">${unreal >= 0 ? "+" : ""}₹${fmtR(unreal)}<br><span style="font-size:10px">(${unreal >= 0 ? "+" : ""}${unrPct}%)</span></span>`;
+              badge = `<span class="tr-badge ${isL ? "tr-badge-long" : "tr-badge-short"}">${isL ? "LONG" : "SHORT"} OPEN</span>`;
+            } else if (!isOpen) {
+              exitCell = `₹${fmtR(trade.exit_price)}`;
+              exitTimeCell = trade.exit_time || "—";
+              if (trade.pnl_inr != null) {
+                const cls = trade.pnl_inr >= 0 ? "tr-pnl-pos" : "tr-pnl-neg";
+                finalPnlCell = `<span class="${cls}">${trade.pnl_inr >= 0 ? "+" : ""}₹${fmtR(trade.pnl_inr)}<br><span style="font-size:10px">(${trade.pnl_pct >= 0 ? "+" : ""}${fmtR(trade.pnl_pct)}%)</span></span>`;
               }
-              badge=trade.result==="TGT HIT"?`<span class="tr-badge tr-badge-tgt">TGT HIT ✓</span>`:trade.result==="SL HIT"?`<span class="tr-badge tr-badge-sl">SL HIT ✗</span>`:`<span class="tr-badge tr-badge-sq">SQ OFF</span>`;
+              badge =
+                trade.result === "TGT HIT"
+                  ? `<span class="tr-badge tr-badge-tgt">TGT HIT ✓</span>`
+                  : trade.result === "SL HIT"
+                    ? `<span class="tr-badge tr-badge-sl">SL HIT ✗</span>`
+                    : `<span class="tr-badge tr-badge-sq">SQ OFF</span>`;
             }
           }
-          const tr=document.createElement("tr"); tr.className=isOpen?"open-row":(trade?"closed-row":"");
-          tr.innerHTML=`<td class="lbl">${s.symbol}</td><td class="${sideCls}">${isL?"LONG":"SHORT"}</td><td>${ltpCell}</td><td>${qtyCell}</td><td>${capCell}</td><td>${entryCell}</td><td>${timeCell}</td><td>${slCell}</td><td>${tgtCell}</td><td>${dhCell}</td><td>${dlCell}</td><td>${unrealCell}</td><td>${exitCell}</td><td>${exitTimeCell}</td><td>${finalPnlCell}</td><td>${badge}</td>`;
+          const tr = document.createElement("tr");
+          tr.className = isOpen ? "open-row" : trade ? "closed-row" : "";
+          tr.innerHTML = `<td class="lbl">${s.symbol}</td><td class="${sideCls}">${isL ? "LONG" : "SHORT"}</td><td>${ltpCell}</td><td>${qtyCell}</td><td>${capCell}</td><td>${entryCell}</td><td>${timeCell}</td><td>${slCell}</td><td>${tgtCell}</td><td>${dhCell}</td><td>${dlCell}</td><td>${unrealCell}</td><td>${exitCell}</td><td>${exitTimeCell}</td><td>${finalPnlCell}</td><td>${badge}</td>`;
           tb.appendChild(tr);
         });
       }
 
-      async function saveEqParams(){
-        const capital=parseFloat($("tt-capital").value), sl=parseFloat($("tt-sl-pct").value), tgt=parseFloat($("tt-tgt-pct").value);
-        const params=[];
-        if(!isNaN(capital)&&capital>0) params.push(`capital=${capital}`);
-        if(!isNaN(sl)&&sl>0)          params.push(`sl_pct=${sl}`);
-        if(!isNaN(tgt)&&tgt>0)        params.push(`target_pct=${tgt}`);
-        if(!params.length){$("tt-status").textContent="Enter at least one value.";return;}
-        try{
-          const res=await jget(`/eq_params?${params.join("&")}`);
-          $("tt-param-display").textContent=`Capital ₹${fmt(res.capital)} | SL ${res.sl_pct}% | TGT ${res.target_pct}%`;
-          $("tt-capital-display").textContent="₹"+fmt(res.capital);
-          $("tt-status").textContent=`Saved — Capital ₹${fmt(res.capital)} | SL ${res.sl_pct}% | TGT ${res.target_pct}%`;
-          $("tt-capital").value=""; $("tt-sl-pct").value=""; $("tt-tgt-pct").value="";
-        }catch(e){$("tt-status").textContent="Save failed: "+e.message;}
+      async function saveEqParams() {
+        const capital = parseFloat($("tt-capital").value),
+          sl = parseFloat($("tt-sl-pct").value),
+          tgt = parseFloat($("tt-tgt-pct").value);
+        const params = [];
+        if (!isNaN(capital) && capital > 0) params.push(`capital=${capital}`);
+        if (!isNaN(sl) && sl > 0) params.push(`sl_pct=${sl}`);
+        if (!isNaN(tgt) && tgt > 0) params.push(`target_pct=${tgt}`);
+        if (!params.length) {
+          $("tt-status").textContent = "Enter at least one value.";
+          return;
+        }
+        try {
+          const res = await jget(`/eq_params?${params.join("&")}`);
+          $("tt-param-display").textContent =
+            `Capital ₹${fmt(res.capital)} | SL ${res.sl_pct}% | TGT ${res.target_pct}%`;
+          $("tt-capital-display").textContent = "₹" + fmt(res.capital);
+          $("tt-status").textContent =
+            `Saved — Capital ₹${fmt(res.capital)} | SL ${res.sl_pct}% | TGT ${res.target_pct}%`;
+          $("tt-capital").value = "";
+          $("tt-sl-pct").value = "";
+          $("tt-tgt-pct").value = "";
+        } catch (e) {
+          $("tt-status").textContent = "Save failed: " + e.message;
+        }
       }
 
-      async function loadEqHistory(){
-        const from=$("tt-from-date").value, to=$("tt-to-date").value, sym=$("tt-hist-sym").value.trim().toUpperCase();
-        if(!from||!to){$("tt-hist-prompt").textContent="Please select both From Date and To Date.";$("tt-hist-prompt").style.display="block";document.querySelector(".tt-hist-wrap").style.display="none";return;}
-        try{
-          const url=`/eq_history?from_date=${from}&to_date=${to}${sym?"&symbol="+encodeURIComponent(sym):""}`;
-          const res=await jget(url), rows=res.trades||[];
-          const histWrap=document.querySelector(".tt-hist-wrap"), prompt=$("tt-hist-prompt");
-          if(!rows.length){prompt.textContent=`No history for ${from} to ${to}${sym?" ("+sym+")":""}.`;prompt.style.display="block";histWrap.style.display="none";return;}
-          prompt.style.display="none"; histWrap.style.display="block";
-          const tb=$("tt-hist-tbody"); tb.innerHTML="";
-          rows.forEach(r=>{
-            const isL=r.side==="LONG", sideCls=isL?"r-darkgreen":"r-darkred";
-            const pnlCls=r.pnl_inr==null?"":(r.pnl_inr>=0?"r-darkgreen":"r-darkred");
-            const resCls=r.result==="TGT HIT"?"r-darkgreen":r.result==="SL HIT"?"r-darkred":r.result==="SQUAREOFF"?"r-red":"";
-            tb.innerHTML+=`<tr><td class="lbl">${r.log_date}</td><td class="lbl" style="font-weight:700">${r.symbol}</td><td class="${sideCls}">${r.side}</td><td>${r.qty}</td><td>₹${fmtR(r.capital_used)}</td><td>₹${fmtR(r.entry_price)}</td><td>${r.entry_time}</td><td class="r-red">${fmtR(r.sl_pct)}%</td><td class="r-green">${fmtR(r.target_pct)}%</td><td class="r-red">₹${fmtR(r.sl_price)}</td><td class="r-green">₹${fmtR(r.target_price)}</td><td>${r.exit_price!=null?"₹"+fmtR(r.exit_price):"—"}</td><td>${r.exit_time||"—"}</td><td class="${pnlCls}">${r.pnl_inr!=null?(r.pnl_inr>=0?"+":"")+"₹"+fmtR(r.pnl_inr):"—"}</td><td class="${pnlCls}">${r.pnl_pct!=null?(r.pnl_pct>=0?"+":"")+fmtR(r.pnl_pct)+"%":"—"}</td><td class="${pnlCls}">${r.pnl_pts!=null?(r.pnl_pts>=0?"+":"")+fmtR(r.pnl_pts):"—"}</td><td class="${resCls}">${r.result}</td></tr>`;
+      async function loadEqHistory() {
+        const from = $("tt-from-date").value,
+          to = $("tt-to-date").value,
+          sym = $("tt-hist-sym").value.trim().toUpperCase();
+        if (!from || !to) {
+          $("tt-hist-prompt").textContent =
+            "Please select both From Date and To Date.";
+          $("tt-hist-prompt").style.display = "block";
+          document.querySelector(".tt-hist-wrap").style.display = "none";
+          return;
+        }
+        try {
+          const url = `/eq_history?from_date=${from}&to_date=${to}${sym ? "&symbol=" + encodeURIComponent(sym) : ""}`;
+          const res = await jget(url),
+            rows = res.trades || [];
+          const histWrap = document.querySelector(".tt-hist-wrap"),
+            prompt = $("tt-hist-prompt");
+          if (!rows.length) {
+            prompt.textContent = `No history for ${from} to ${to}${sym ? " (" + sym + ")" : ""}.`;
+            prompt.style.display = "block";
+            histWrap.style.display = "none";
+            return;
+          }
+          prompt.style.display = "none";
+          histWrap.style.display = "block";
+          const tb = $("tt-hist-tbody");
+          tb.innerHTML = "";
+          rows.forEach((r) => {
+            const isL = r.side === "LONG",
+              sideCls = isL ? "r-darkgreen" : "r-darkred";
+            const pnlCls =
+              r.pnl_inr == null
+                ? ""
+                : r.pnl_inr >= 0
+                  ? "r-darkgreen"
+                  : "r-darkred";
+            const resCls =
+              r.result === "TGT HIT"
+                ? "r-darkgreen"
+                : r.result === "SL HIT"
+                  ? "r-darkred"
+                  : r.result === "SQUAREOFF"
+                    ? "r-red"
+                    : "";
+            tb.innerHTML += `<tr><td class="lbl">${r.log_date}</td><td class="lbl" style="font-weight:700">${r.symbol}</td><td class="${sideCls}">${r.side}</td><td>${r.qty}</td><td>₹${fmtR(r.capital_used)}</td><td>₹${fmtR(r.entry_price)}</td><td>${r.entry_time}</td><td class="r-red">${fmtR(r.sl_pct)}%</td><td class="r-green">${fmtR(r.target_pct)}%</td><td class="r-red">₹${fmtR(r.sl_price)}</td><td class="r-green">₹${fmtR(r.target_price)}</td><td>${r.exit_price != null ? "₹" + fmtR(r.exit_price) : "—"}</td><td>${r.exit_time || "—"}</td><td class="${pnlCls}">${r.pnl_inr != null ? (r.pnl_inr >= 0 ? "+" : "") + "₹" + fmtR(r.pnl_inr) : "—"}</td><td class="${pnlCls}">${r.pnl_pct != null ? (r.pnl_pct >= 0 ? "+" : "") + fmtR(r.pnl_pct) + "%" : "—"}</td><td class="${pnlCls}">${r.pnl_pts != null ? (r.pnl_pts >= 0 ? "+" : "") + fmtR(r.pnl_pts) : "—"}</td><td class="${resCls}">${r.result}</td></tr>`;
           });
-        }catch(e){$("tt-hist-prompt").textContent="Failed: "+e.message;$("tt-hist-prompt").style.display="block";}
+        } catch (e) {
+          $("tt-hist-prompt").textContent = "Failed: " + e.message;
+          $("tt-hist-prompt").style.display = "block";
+        }
       }
 
       // ── FNO TRADES TAB ───────────────────────────────────────────────────────
-      let fnoTimer=null, _fnoInited=false;
-      function initFno(){if(!_fnoInited)_fnoInited=true;loadFno();clearInterval(fnoTimer);fnoTimer=setInterval(loadFno,60000);}
-
-      async function loadFno(){
-        try{
-          const [state,hist]=await Promise.all([jget("/fno_state"),jget("/fno_history?days=30")]);
-          renderFnoTopbar(state,hist); renderFnoCards(state); renderFnoHistory(hist.trades); renderFnoBalLog(hist.balance_log);
-          $("fno-date").textContent=state.date;
-          $("fno-param-display").textContent=`Active: SL ${state.sl_pct}% / TGT ${state.target_pct}%`;
-          $("fno-status").textContent=`Last refreshed: ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open?"OPEN ✓":"CLOSED"}`;
-          $("fno-pending-banner").style.display=(state.pending&&state.pending.length)?"block":"none";
-        }catch(e){$("fno-status").textContent="Load failed: "+e.message;}
+      let fnoTimer = null,
+        _fnoInited = false;
+      function initFno() {
+        if (!_fnoInited) _fnoInited = true;
+        loadFno();
+        clearInterval(fnoTimer);
+        fnoTimer = setInterval(loadFno, 60000);
       }
 
-      function renderFnoTopbar(state,hist){
-        const bal=$("fno-balance"); bal.textContent="₹"+fmt(Math.round(state.balance)); bal.className="val";
-        const todayTrades=(hist.trades||[]).filter(t=>t.log_date===state.date);
-        const todayPnl=todayTrades.reduce((s,t)=>s+(t.pnl_inr||0),0);
-        const todayEl=$("fno-today-pnl"); todayEl.textContent=(todayPnl>=0?"+":"")+"₹"+fmt(Math.round(todayPnl)); todayEl.className="val "+(todayPnl>=0?"pos":"neg");
-        const overallPnl=state.balance-500000;
-        const oel=$("fno-overall-pnl"); oel.textContent=(overallPnl>=0?"+":"")+"₹"+fmt(Math.round(overallPnl)); oel.className="val "+(overallPnl>=0?"pos":"neg");
-        const marginUsed=todayTrades.filter(t=>t.result==="OPEN").reduce((s,t)=>s+(t.margin_used||0),0);
-        $("fno-margin-used").textContent=marginUsed>0?"₹"+fmt(Math.round(marginUsed)):"₹0";
+      async function loadFno() {
+        try {
+          const [state, hist] = await Promise.all([
+            jget("/fno_state"),
+            jget("/fno_history?days=30"),
+          ]);
+          renderFnoTopbar(state, hist);
+          renderFnoCards(state);
+          renderFnoHistory(hist.trades);
+          renderFnoBalLog(hist.balance_log);
+          $("fno-date").textContent = state.date;
+          $("fno-param-display").textContent =
+            `Active: SL ${state.sl_pct}% / TGT ${state.target_pct}%`;
+          $("fno-status").textContent =
+            `Last refreshed: ${new Date().toLocaleTimeString("en-IN")} | Market: ${state.market_open ? "OPEN ✓" : "CLOSED"}`;
+          $("fno-pending-banner").style.display =
+            state.pending && state.pending.length ? "block" : "none";
+        } catch (e) {
+          $("fno-status").textContent = "Load failed: " + e.message;
+        }
       }
 
-      function fnoBadge(result,side){
-        if(!result||result==="OPEN"){const sc=side==="LONG"?"fno-badge-long":side==="SHORT"?"fno-badge-short":"fno-badge-open";return `<span class="fno-badge ${sc}">${side?side+" OPEN":"OPEN"}</span>`;}
-        if(result==="TGT HIT")   return `<span class="fno-badge fno-badge-tgt">TGT HIT ✓</span>`;
-        if(result==="SL HIT")    return `<span class="fno-badge fno-badge-sl">SL HIT ✗</span>`;
-        if(result==="SQUAREOFF") return `<span class="fno-badge fno-badge-sq">SQUARED OFF</span>`;
+      function renderFnoTopbar(state, hist) {
+        const bal = $("fno-balance");
+        bal.textContent = "₹" + fmt(Math.round(state.balance));
+        bal.className = "val";
+        const todayTrades = (hist.trades || []).filter(
+          (t) => t.log_date === state.date,
+        );
+        const todayPnl = todayTrades.reduce((s, t) => s + (t.pnl_inr || 0), 0);
+        const todayEl = $("fno-today-pnl");
+        todayEl.textContent =
+          (todayPnl >= 0 ? "+" : "") + "₹" + fmt(Math.round(todayPnl));
+        todayEl.className = "val " + (todayPnl >= 0 ? "pos" : "neg");
+        const overallPnl = state.balance - 500000;
+        const oel = $("fno-overall-pnl");
+        oel.textContent =
+          (overallPnl >= 0 ? "+" : "") + "₹" + fmt(Math.round(overallPnl));
+        oel.className = "val " + (overallPnl >= 0 ? "pos" : "neg");
+        const marginUsed = todayTrades
+          .filter((t) => t.result === "OPEN")
+          .reduce((s, t) => s + (t.margin_used || 0), 0);
+        $("fno-margin-used").textContent =
+          marginUsed > 0 ? "₹" + fmt(Math.round(marginUsed)) : "₹0";
+      }
+
+      function fnoBadge(result, side) {
+        if (!result || result === "OPEN") {
+          const sc =
+            side === "LONG"
+              ? "fno-badge-long"
+              : side === "SHORT"
+                ? "fno-badge-short"
+                : "fno-badge-open";
+          return `<span class="fno-badge ${sc}">${side ? side + " OPEN" : "OPEN"}</span>`;
+        }
+        if (result === "TGT HIT")
+          return `<span class="fno-badge fno-badge-tgt">TGT HIT ✓</span>`;
+        if (result === "SL HIT")
+          return `<span class="fno-badge fno-badge-sl">SL HIT ✗</span>`;
+        if (result === "SQUAREOFF")
+          return `<span class="fno-badge fno-badge-sq">SQUARED OFF</span>`;
         return `<span class="fno-badge fno-badge-wait">${result}</span>`;
       }
 
-      function renderFnoCards(state){
-        const container=$("fno-cards"); container.innerHTML="";
-        (state.stocks||[]).forEach(s=>{
-          const sym=s.symbol, trade=s.trade, ltp=s.ltp, isPending=s.is_pending;
-          const ltpHtml=ltp!=null?`<span class="fno-ltp">₹${fmtR(ltp)}</span>`:`<span style="color:#888">—</span>`;
-          let badge=isPending?`<span class="fno-badge fno-badge-pend">WAIT FUNDS</span>`:!trade?`<span class="fno-badge fno-badge-notr">NO TRADE</span>`:fnoBadge(trade.result,trade.side);
-          let bodyHtml=`<div class="row"><span class="key">LTP (Futures)</span><span class="val">${ltpHtml}</span></div>`;
-          bodyHtml+=`<div class="row"><span class="key">Lot Size</span><span class="val">${s.lot_size}</span></div>`;
-          if(trade){
-            const isOpen=trade.result==="OPEN";
-            if(isOpen&&ltp!=null){
-              const unreal=trade.side==="LONG"?(ltp-trade.entry_price)*trade.lot_size:(trade.entry_price-ltp)*trade.lot_size;
-              const pnlPts=trade.side==="LONG"?ltp-trade.entry_price:trade.entry_price-ltp;
-              const cls=unreal>=0?"fno-pnl-pos":"fno-pnl-neg";
-              bodyHtml+=`<div class="row"><span class="key">Unrealised P&amp;L</span><span class="val ${cls}">${unreal>=0?"+":""}₹${fmtR(unreal)} (${pnlPts>=0?"+":""}${fmtR(pnlPts)} pts)</span></div>`;
+      function renderFnoCards(state) {
+        const container = $("fno-cards");
+        container.innerHTML = "";
+        (state.stocks || []).forEach((s) => {
+          const sym = s.symbol,
+            trade = s.trade,
+            ltp = s.ltp,
+            isPending = s.is_pending;
+          const ltpHtml =
+            ltp != null
+              ? `<span class="fno-ltp">₹${fmtR(ltp)}</span>`
+              : `<span style="color:#888">—</span>`;
+          let badge = isPending
+            ? `<span class="fno-badge fno-badge-pend">WAIT FUNDS</span>`
+            : !trade
+              ? `<span class="fno-badge fno-badge-notr">NO TRADE</span>`
+              : fnoBadge(trade.result, trade.side);
+          let bodyHtml = `<div class="row"><span class="key">LTP (Futures)</span><span class="val">${ltpHtml}</span></div>`;
+          bodyHtml += `<div class="row"><span class="key">Lot Size</span><span class="val">${s.lot_size}</span></div>`;
+          if (trade) {
+            const isOpen = trade.result === "OPEN";
+            if (isOpen && ltp != null) {
+              const unreal =
+                trade.side === "LONG"
+                  ? (ltp - trade.entry_price) * trade.lot_size
+                  : (trade.entry_price - ltp) * trade.lot_size;
+              const pnlPts =
+                trade.side === "LONG"
+                  ? ltp - trade.entry_price
+                  : trade.entry_price - ltp;
+              const cls = unreal >= 0 ? "fno-pnl-pos" : "fno-pnl-neg";
+              bodyHtml += `<div class="row"><span class="key">Unrealised P&amp;L</span><span class="val ${cls}">${unreal >= 0 ? "+" : ""}₹${fmtR(unreal)} (${pnlPts >= 0 ? "+" : ""}${fmtR(pnlPts)} pts)</span></div>`;
             }
-            bodyHtml+=`<div class="row"><span class="key">Entry</span><span class="val">₹${fmtR(trade.entry_price)} @ ${trade.entry_time}</span></div>`;
-            bodyHtml+=`<div class="row"><span class="key">SL</span><span class="val r-red">₹${fmtR(trade.sl_price)} (${fmtR(trade.sl_pct)}%)</span></div>`;
-            bodyHtml+=`<div class="row"><span class="key">Target</span><span class="val r-green">₹${fmtR(trade.target_price)} (${fmtR(trade.target_pct)}%)</span></div>`;
-            bodyHtml+=`<div class="row"><span class="key">Margin Blocked</span><span class="val">₹${fmtR(trade.margin_used)}</span></div>`;
-            if(!isOpen){
-              const cls=trade.pnl_inr>=0?"fno-pnl-pos":"fno-pnl-neg";
-              bodyHtml+=`<div class="row"><span class="key">P&amp;L</span><span class="val ${cls}">${trade.pnl_inr>=0?"+":""}₹${fmtR(trade.pnl_inr)} (${trade.pnl_pts>=0?"+":""}${fmtR(trade.pnl_pts)}pts)</span></div>`;
-              bodyHtml+=`<div class="row"><span class="key">Exit</span><span class="val">₹${fmtR(trade.exit_price)} @ ${trade.exit_time||"—"}</span></div>`;
+            bodyHtml += `<div class="row"><span class="key">Entry</span><span class="val">₹${fmtR(trade.entry_price)} @ ${trade.entry_time}</span></div>`;
+            bodyHtml += `<div class="row"><span class="key">SL</span><span class="val r-red">₹${fmtR(trade.sl_price)} (${fmtR(trade.sl_pct)}%)</span></div>`;
+            bodyHtml += `<div class="row"><span class="key">Target</span><span class="val r-green">₹${fmtR(trade.target_price)} (${fmtR(trade.target_pct)}%)</span></div>`;
+            bodyHtml += `<div class="row"><span class="key">Margin Blocked</span><span class="val">₹${fmtR(trade.margin_used)}</span></div>`;
+            if (!isOpen) {
+              const cls = trade.pnl_inr >= 0 ? "fno-pnl-pos" : "fno-pnl-neg";
+              bodyHtml += `<div class="row"><span class="key">P&amp;L</span><span class="val ${cls}">${trade.pnl_inr >= 0 ? "+" : ""}₹${fmtR(trade.pnl_inr)} (${trade.pnl_pts >= 0 ? "+" : ""}${fmtR(trade.pnl_pts)}pts)</span></div>`;
+              bodyHtml += `<div class="row"><span class="key">Exit</span><span class="val">₹${fmtR(trade.exit_price)} @ ${trade.exit_time || "—"}</span></div>`;
             }
-          } else if(isPending){
-            bodyHtml+=`<div class="row" style="color:#c0392b;font-size:11px;padding-top:4px">Insufficient margin. Add funds to enable entry.</div>`;
+          } else if (isPending) {
+            bodyHtml += `<div class="row" style="color:#c0392b;font-size:11px;padding-top:4px">Insufficient margin. Add funds to enable entry.</div>`;
           } else {
-            const cm=new Date().getHours()*60+new Date().getMinutes();
-            bodyHtml+=`<div class="row"><span class="key">Status</span><span class="val">${cm<9*60+45?"⏳ Building OR (09:15–09:45)":"Watching for breakout"}</span></div>`;
+            const cm = new Date().getHours() * 60 + new Date().getMinutes();
+            bodyHtml += `<div class="row"><span class="key">Status</span><span class="val">${cm < 9 * 60 + 45 ? "⏳ Building OR (09:15–09:45)" : "Watching for breakout"}</span></div>`;
           }
-          const orHtml=s.or_high!=null?`<div class="fno-or-bar">OR: H <b>₹${fmtR(s.or_high)}</b> L <b>₹${fmtR(s.or_low)}</b></div>`:`<div class="fno-or-bar" style="color:#aaa">OR: building after 09:15</div>`;
-          const card=document.createElement("div"); card.className="fno-card";
-          card.innerHTML=`<div class="fno-card-hdr"><span>${sym} <span class="fno-card-sub">FUT</span></span>${badge}</div><div class="fno-card-body">${bodyHtml}</div>${orHtml}`;
+          const orHtml =
+            s.or_high != null
+              ? `<div class="fno-or-bar">OR: H <b>₹${fmtR(s.or_high)}</b> L <b>₹${fmtR(s.or_low)}</b></div>`
+              : `<div class="fno-or-bar" style="color:#aaa">OR: building after 09:15</div>`;
+          const card = document.createElement("div");
+          card.className = "fno-card";
+          card.innerHTML = `<div class="fno-card-hdr"><span>${sym} <span class="fno-card-sub">FUT</span></span>${badge}</div><div class="fno-card-body">${bodyHtml}</div>${orHtml}`;
           container.appendChild(card);
         });
       }
 
-      function renderFnoHistory(trades){
-        const tb=$("fno-hist-table").querySelector("tbody"); tb.innerHTML="";
-        if(!trades||!trades.length){tb.innerHTML=`<tr><td colspan="18" style="text-align:center;color:#888;padding:12px">No trade history yet</td></tr>`;return;}
-        trades.forEach(t=>{
-          const isOpen=t.result==="OPEN", sideCls=t.side==="LONG"?"r-darkgreen":"r-darkred";
-          const resCls=t.result==="TGT HIT"?"r-darkgreen":t.result==="SL HIT"?"r-darkred":t.result==="SQUAREOFF"?"r-red":"";
-          const pnlCls=t.pnl_inr==null?"":(t.pnl_inr>=0?"r-darkgreen":"r-darkred");
-          tb.innerHTML+=`<tr><td class="lbl">${t.log_date}</td><td style="font-weight:700">${t.symbol}</td><td class="${sideCls}">${t.side}</td><td>${t.lot_size}</td><td>₹${fmtR(t.entry_price)}</td><td>${t.entry_time}</td><td class="r-red">${fmtR(t.sl_pct)}%</td><td class="r-green">${fmtR(t.target_pct)}%</td><td class="r-red">₹${fmtR(t.sl_price)}</td><td class="r-green">₹${fmtR(t.target_price)}</td><td>₹${fmtR(t.margin_used)}</td><td>${fmtR(t.or_high)}</td><td>${fmtR(t.or_low)}</td><td>${isOpen?"—":"₹"+fmtR(t.exit_price)}</td><td>${t.exit_time||"—"}</td><td class="${pnlCls}">${t.pnl_pts==null?"—":(t.pnl_pts>=0?"+":"")+fmtR(t.pnl_pts)}</td><td class="${pnlCls}">${t.pnl_inr==null?"—":(t.pnl_inr>=0?"+":"")+"₹"+fmtR(t.pnl_inr)}</td><td class="${resCls}">${t.result}</td></tr>`;
+      function renderFnoHistory(trades) {
+        const tb = $("fno-hist-table").querySelector("tbody");
+        tb.innerHTML = "";
+        if (!trades || !trades.length) {
+          tb.innerHTML = `<tr><td colspan="18" style="text-align:center;color:#888;padding:12px">No trade history yet</td></tr>`;
+          return;
+        }
+        trades.forEach((t) => {
+          const isOpen = t.result === "OPEN",
+            sideCls = t.side === "LONG" ? "r-darkgreen" : "r-darkred";
+          const resCls =
+            t.result === "TGT HIT"
+              ? "r-darkgreen"
+              : t.result === "SL HIT"
+                ? "r-darkred"
+                : t.result === "SQUAREOFF"
+                  ? "r-red"
+                  : "";
+          const pnlCls =
+            t.pnl_inr == null
+              ? ""
+              : t.pnl_inr >= 0
+                ? "r-darkgreen"
+                : "r-darkred";
+          tb.innerHTML += `<tr><td class="lbl">${t.log_date}</td><td style="font-weight:700">${t.symbol}</td><td class="${sideCls}">${t.side}</td><td>${t.lot_size}</td><td>₹${fmtR(t.entry_price)}</td><td>${t.entry_time}</td><td class="r-red">${fmtR(t.sl_pct)}%</td><td class="r-green">${fmtR(t.target_pct)}%</td><td class="r-red">₹${fmtR(t.sl_price)}</td><td class="r-green">₹${fmtR(t.target_price)}</td><td>₹${fmtR(t.margin_used)}</td><td>${fmtR(t.or_high)}</td><td>${fmtR(t.or_low)}</td><td>${isOpen ? "—" : "₹" + fmtR(t.exit_price)}</td><td>${t.exit_time || "—"}</td><td class="${pnlCls}">${t.pnl_pts == null ? "—" : (t.pnl_pts >= 0 ? "+" : "") + fmtR(t.pnl_pts)}</td><td class="${pnlCls}">${t.pnl_inr == null ? "—" : (t.pnl_inr >= 0 ? "+" : "") + "₹" + fmtR(t.pnl_inr)}</td><td class="${resCls}">${t.result}</td></tr>`;
         });
       }
 
-      function renderFnoBalLog(logs){
-        const tb=$("fno-bal-table").querySelector("tbody"); tb.innerHTML="";
-        if(!logs||!logs.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;color:#888">No balance events yet</td></tr>`;return;}
-        logs.forEach(r=>{
-          const amtCls=r.amount>=0?"r-darkgreen":"r-darkred";
-          tb.innerHTML+=`<tr><td class="lbl">${r.log_date}</td><td>${r.ts}</td><td style="font-weight:600">${r.event}</td><td class="${amtCls}">${r.amount>=0?"+":""}₹${fmtR(r.amount)}</td><td style="font-weight:700">₹${fmtR(r.balance)}</td><td class="lbl" style="color:#666;font-size:11px">${r.note||""}</td></tr>`;
+      function renderFnoBalLog(logs) {
+        const tb = $("fno-bal-table").querySelector("tbody");
+        tb.innerHTML = "";
+        if (!logs || !logs.length) {
+          tb.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#888">No balance events yet</td></tr>`;
+          return;
+        }
+        logs.forEach((r) => {
+          const amtCls = r.amount >= 0 ? "r-darkgreen" : "r-darkred";
+          tb.innerHTML += `<tr><td class="lbl">${r.log_date}</td><td>${r.ts}</td><td style="font-weight:600">${r.event}</td><td class="${amtCls}">${r.amount >= 0 ? "+" : ""}₹${fmtR(r.amount)}</td><td style="font-weight:700">₹${fmtR(r.balance)}</td><td class="lbl" style="color:#666;font-size:11px">${r.note || ""}</td></tr>`;
         });
       }
 
-      async function saveFnoParams(){
-        const sl=parseFloat($("fno-sl-pct").value), tgt=parseFloat($("fno-tgt-pct").value);
-        if(isNaN(sl)||sl<=0||isNaN(tgt)||tgt<=0){$("fno-status").textContent="Enter valid positive numbers.";return;}
-        try{
-          const res=await jget(`/fno_params?sl_pct=${sl}&target_pct=${tgt}`);
-          $("fno-param-display").textContent=`Active: SL ${res.sl_pct}% / TGT ${res.target_pct}%`;
-          $("fno-status").textContent=`Params saved — SL ${res.sl_pct}% / Target ${res.target_pct}%. Applies from next entry.`;
-          $("fno-sl-pct").value=""; $("fno-tgt-pct").value="";
-        }catch(e){$("fno-status").textContent="Save failed: "+e.message;}
+      async function saveFnoParams() {
+        const sl = parseFloat($("fno-sl-pct").value),
+          tgt = parseFloat($("fno-tgt-pct").value);
+        if (isNaN(sl) || sl <= 0 || isNaN(tgt) || tgt <= 0) {
+          $("fno-status").textContent = "Enter valid positive numbers.";
+          return;
+        }
+        try {
+          const res = await jget(`/fno_params?sl_pct=${sl}&target_pct=${tgt}`);
+          $("fno-param-display").textContent =
+            `Active: SL ${res.sl_pct}% / TGT ${res.target_pct}%`;
+          $("fno-status").textContent =
+            `Params saved — SL ${res.sl_pct}% / Target ${res.target_pct}%. Applies from next entry.`;
+          $("fno-sl-pct").value = "";
+          $("fno-tgt-pct").value = "";
+        } catch (e) {
+          $("fno-status").textContent = "Save failed: " + e.message;
+        }
       }
 
-      function showAddFunds(){$("fno-add-funds-row").style.display="flex";$("fno-fund-input").focus();}
+      function showAddFunds() {
+        $("fno-add-funds-row").style.display = "flex";
+        $("fno-fund-input").focus();
+      }
 
-      async function addFunds(){
-        const amount=parseFloat($("fno-fund-input").value);
-        if(isNaN(amount)||amount<=0){$("fno-status").textContent="Enter a valid positive amount.";return;}
-        try{
-          const res=await jget(`/fno_add_funds?amount=${amount}`);
-          $("fno-status").textContent=`₹${fmt(Math.round(amount))} added. New balance: ₹${fmt(Math.round(res.balance))}. Pending re-entry checks: ${res.pending_count}`;
-          $("fno-fund-input").value=""; $("fno-add-funds-row").style.display="none";
+      async function addFunds() {
+        const amount = parseFloat($("fno-fund-input").value);
+        if (isNaN(amount) || amount <= 0) {
+          $("fno-status").textContent = "Enter a valid positive amount.";
+          return;
+        }
+        try {
+          const res = await jget(`/fno_add_funds?amount=${amount}`);
+          $("fno-status").textContent =
+            `₹${fmt(Math.round(amount))} added. New balance: ₹${fmt(Math.round(res.balance))}. Pending re-entry checks: ${res.pending_count}`;
+          $("fno-fund-input").value = "";
+          $("fno-add-funds-row").style.display = "none";
           await loadFno();
-        }catch(e){$("fno-status").textContent="Add funds failed: "+e.message;}
+        } catch (e) {
+          $("fno-status").textContent = "Add funds failed: " + e.message;
+        }
       }
 
-      async function loadFnoHistory(){
-        const sym=$("fno-hist-sym").value;
-        try{
-          const url=`/fno_history?days=30${sym?"&symbol="+encodeURIComponent(sym):""}`;
-          const res=await jget(url); renderFnoHistory(res.trades); renderFnoBalLog(res.balance_log);
-        }catch(e){console.warn("FnO history load failed:",e.message);}
+      async function loadFnoHistory() {
+        const sym = $("fno-hist-sym").value;
+        try {
+          const url = `/fno_history?days=30${sym ? "&symbol=" + encodeURIComponent(sym) : ""}`;
+          const res = await jget(url);
+          renderFnoHistory(res.trades);
+          renderFnoBalLog(res.balance_log);
+        } catch (e) {
+          console.warn("FnO history load failed:", e.message);
+        }
       }
     </script>
   </body>
